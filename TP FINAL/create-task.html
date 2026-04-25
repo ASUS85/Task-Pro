@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <!-- Configuration de base -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Titre de la page -->
+    <title>TaskPRO - Créer une Nouvelle Tâche</title>
+
+    <!-- Feuille de style dédiée à cette page -->
+    <link rel="stylesheet" href="create-task.css">
+
+    <!-- Librairie d’icônes Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="dashboard-body">
+
+    <!-- =========================================
+         SIDEBAR DE NAVIGATION
+    ========================================== -->
+    <aside class="sidebar">
+
+        <div class="logo-area">
+            <span class="logo-icon">🟡</span>
+            <span class="logo-text">TaskPRO</span>
+        </div>
+
+        <nav class="side-nav">
+
+            <a href="dashboard.html">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Vue d'ensemble</span>
+            </a>
+
+            <a href="create-task.html" class="active">
+                <i data-lucide="plus-square"></i>
+                <span>Créer une nouvelle tâche</span>
+            </a>
+
+            <a href="tasks-list.html">
+                <i data-lucide="check-square"></i>
+                <span>Liste des tâches</span>
+            </a>
+
+            <a href="users-list.html">
+                <i data-lucide="users"></i>
+                <span>Liste des utilisateurs</span>
+            </a>
+
+            <a href="profile.html">
+                <i data-lucide="user-cog"></i>
+                <span>Profil</span>
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+    <!-- =========================================
+         CONTENU PRINCIPAL
+    ========================================== -->
+    <main class="main-content">
+
+        <!-- HEADER PAGE -->
+        <header class="page-header">
+            <h1>Créer une Nouvelle Tâche</h1>
+            <p>Configurez tous les paramètres nécessaires pour planifier une mission.</p>
+        </header>
+
+
+        <!-- =========================================
+             FORMULAIRE PRINCIPAL
+        ========================================== -->
+        <section class="task-form-container">
+
+            <form id="createTaskForm">
+
+                <!-- =========================
+                     LIBELLE
+                ========================== -->
+                <div class="form-group">
+                    <label for="taskTitle">Libellé de la tâche</label>
+                    <input type="text" id="taskTitle" placeholder="Ex: Développer le module de paiement" required>
+                </div>
+
+
+                <!-- =========================
+                     DESCRIPTION
+                ========================== -->
+                <div class="form-group">
+                    <label for="taskDescription">Description</label>
+                    <textarea id="taskDescription" rows="5"
+                        placeholder="Décrivez en détail les objectifs, contraintes et consignes de la tâche..."></textarea>
+                </div>
+
+
+                <!-- =========================
+                     PIECES JOINTES
+                ========================== -->
+                <div class="form-group">
+                    <label>Pièces jointes</label>
+
+                    <div class="file-upload-wrapper">
+                        <input type="file" id="taskFiles" multiple hidden>
+
+                        <button type="button" id="attachFileBtn" class="secondary-btn">
+                            <i data-lucide="paperclip"></i>
+                            Ajouter / Attacher un fichier
+                        </button>
+                    </div>
+
+                    <!-- Zone d'affichage dynamique des fichiers sélectionnés -->
+                    <div id="attachedFilesPreview"></div>
+                </div>
+
+
+                <!-- =========================
+                     TACHE PARENT
+                ========================== -->
+                <div class="form-group">
+                    <label>Tâche Parent / Dépendance</label>
+
+                    <div class="selector-field">
+
+                        <!-- Champ non éditable -->
+                        <input type="text"
+                               id="parentTaskDisplay"
+                               placeholder="Aucune tâche parent sélectionnée"
+                               readonly>
+
+                        <!-- Bouton popup sélection -->
+                        <button type="button" id="selectParentTaskBtn">
+                            <i data-lucide="search"></i>
+                        </button>
+
+                    </div>
+                </div>
+
+
+                <!-- =========================
+                     DUREE / DATE / HEURE
+                ========================== -->
+                <div class="form-row">
+
+                    <div class="form-group">
+                        <label for="durationType">Type de durée</label>
+
+                        <select id="durationType">
+                            <option value="hours">Durée en heures</option>
+                            <option value="date">Date / Heure précise</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskDuration">Durée / Échéance</label>
+
+                        <input type="datetime-local" id="taskDuration">
+                    </div>
+
+                </div>
+
+
+                <!-- =========================
+                     STATUT INITIAL
+                ========================== -->
+                <div class="form-group">
+                    <label for="taskStatus">Statut initial</label>
+
+                    <select id="taskStatus">
+                        <option value="non_assignee">Non assignée</option>
+                        <option value="en_attente">En attente</option>
+                        <option value="en_cours">En cours</option>
+                        <option value="planifiee">Planifiée</option>
+                    </select>
+                </div>
+
+
+                <!-- =========================
+                     ASSIGNATION UTILISATEUR
+                ========================== -->
+                <div class="form-group">
+                    <label>Assigner à un utilisateur</label>
+
+                    <div class="selector-field">
+
+                        <input type="text"
+                               id="assignedUserDisplay"
+                               placeholder="Aucun utilisateur sélectionné"
+                               readonly>
+
+                        <button type="button" id="selectUserBtn">
+                            <i data-lucide="users"></i>
+                        </button>
+
+                    </div>
+                </div>
+
+
+                <!-- =========================
+                     BOUTON VALIDATION
+                ========================== -->
+                <div class="form-actions">
+                    <button type="submit" class="primary-btn">
+                        <i data-lucide="check-circle"></i>
+                        Créer la tâche
+                    </button>
+                </div>
+
+            </form>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================================
+         MODAL : SELECTION TACHE PARENT
+    ========================================== -->
+    <div id="parentTaskModal" class="modal">
+        <button type="button" id="clearParentTask" class="secondary-btn" style="margin-bottom:10px;">
+    ✖ Aucune tâche parent
+</button>
+
+        <div class="modal-content">
+
+            <h2>Sélectionner une Tâche Parent</h2>
+
+            <input type="text"
+                   id="searchParentTask"
+                   placeholder="Rechercher une tâche...">
+
+            <div class="modal-list" id="parentTaskList">
+                <!-- Les tâches existantes seront injectées ici via JS -->
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         MODAL : SELECTION UTILISATEUR
+    ========================================== -->
+    <div id="userSelectModal" class="modal">
+        <button type="button" id="clearUserSelection" class="secondary-btn" style="margin-bottom:10px;">
+    ✖ Aucun utilisateur
+</button>
+
+        <div class="modal-content">
+
+            <h2>Assigner à un Utilisateur</h2>
+
+            <input type="text"
+                   id="searchUser"
+                   placeholder="Rechercher un utilisateur...">
+
+            <select id="filterRole">
+                <option value="">Tous les postes</option>
+                <option value="manager">Manager</option>
+                <option value="developpeur">Développeur</option>
+                <option value="designer">Designer</option>
+            </select>
+
+            <div class="modal-list" id="userList">
+                <!-- Les utilisateurs seront injectés ici via JS -->
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         MODAL CONFIRMATION
+    ========================================== -->
+    <div id="confirmModal" class="modal">
+
+        <div class="modal-content confirm-modal">
+
+            <h2>Confirmer la création</h2>
+
+            <p>Voulez-vous vraiment créer cette tâche ?</p>
+
+            <div class="modal-actions">
+
+                <button type="button" class="secondary-btn" id="cancelConfirmBtn">
+                    Annuler
+                </button>
+
+                <button type="button" class="primary-btn" id="confirmCreateBtn">
+                    Confirmer
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- JS -->
+    <script>
+        lucide.createIcons();
+    </script>
+
+    <script src="create-task.js"></script>
+
+</body>
+</html>
