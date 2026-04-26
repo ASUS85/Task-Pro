@@ -34,7 +34,7 @@ require_once __DIR__ . '/../Services/TacheService.php';
 // Récupérer la route et la méthode
 $method = $_SERVER['REQUEST_METHOD'];
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$path = str_replace('/task-pro/Task-Pro/TP FINAL/public/api.php', '', $path);
+$path = str_replace('/Task-Pro/public/api.php', '', $path);
 $parts = array_filter(explode('/', $path));
 
 // Récupérer les données de requête
