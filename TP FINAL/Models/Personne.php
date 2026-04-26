@@ -2,60 +2,74 @@
 
 abstract class Personne
 {
-    protected $id;
-    protected $nom;
-    protected $prenom;
-    protected $sexe;
-    protected $email;
-    protected $password;
-    protected $role;
-    
+    protected int $id;
+    protected string $nom;
+    protected string $prenom;
+    protected string $sexe;
+    protected string $email;
+    public string $poste;
+    protected string $password;
+    protected string $role;
 
-
-    public function __construct($id, $nom, $prenom, $sexe, $email, $password, $role)
+    public function __construct(int $id, string $nom, string $prenom, string $sexe, string $email, string $poste, string $password, string $role)
     {
+        $this->id = $id;
         $this->nom = $nom;
         $this->prenom = $prenom;
         $this->sexe = $sexe;
-        $this->email = $email;
+        $this->email = $this->validerEmail($email);
+        $this->poste = $poste;
+        $this->password = password_hash($password, PASSWORD_BCRYPT); // Hacher le password
         $this->role = $role;
-        $this->password = $password;
-        $this->id = $id;
     }
 
-    public function getNom()
+    private function validerEmail(string $email): string
+    {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException("Email invalide");
+        }
+        return $email;
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+    public function getNom(): string
     {
         return $this->nom;
     }
-
-    public function getPrenom()
+    public function getPrenom(): string
     {
         return $this->prenom;
     }
-
-    public function getSexe()
+    public function getSexe(): string
     {
         return $this->sexe;
     }
-
-    public function getEmail()
+    public function getEmail(): string
     {
         return $this->email;
     }
-
-    public function getRole()
+    public function getPoste(): string
+    {
+        return $this->poste;
+    }
+    public function getPassword(): string
+    {
+        return $this->password;
+    }
+    public function getRole(): string
     {
         return $this->role;
     }
 
-    public function getPassword()
+    public function setNom(string $nom): void
     {
-        return $this->password;
+        $this->nom = $nom;
     }
-
-    public function getId()
+    public function setEmail(string $email): void
     {
-        return $this->id;
+        $this->email = $this->validerEmail($email);
     }
-
 }
