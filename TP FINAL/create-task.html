@@ -15,49 +15,49 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
-<body class="dashboard-body">
+<body class="dashboard-body" data-page="create-task">
 
-    <!-- =========================================
-         SIDEBAR DE NAVIGATION
-    ========================================== -->
+  <!-- SIDEBAR -->
     <aside class="sidebar">
 
-        <div class="logo-area">
-            <span class="logo-icon">🟡</span>
-            <span class="logo-text">TaskPRO</span>
-        </div>
+    <div class="logo-area">
+        <span class="logo-icon">🟡</span>
+        <span class="logo-text">TaskPRO</span>
+    </div>
 
-        <nav class="side-nav">
+    <nav class="side-nav">
+        <a href="dashboard.html" data-page="dashboard">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Vue d'ensemble</span>
+        </a>
 
-            <a href="dashboard.html">
-                <i data-lucide="layout-dashboard"></i>
-                <span>Vue d'ensemble</span>
-            </a>
+        <a href="create-task.html" data-page="create-task">
+            <i data-lucide="plus-square"></i>
+            <span>Créer une nouvelle tâche</span>
+        </a>
 
-            <a href="create-task.html" class="active">
-                <i data-lucide="plus-square"></i>
-                <span>Créer une nouvelle tâche</span>
-            </a>
+        <a href="task-list.html" data-page="tasks">
+            <i data-lucide="check-square"></i>
+            <span>Liste des tâches</span>
+        </a>
 
-            <a href="tasks-list.html">
-                <i data-lucide="check-square"></i>
-                <span>Liste des tâches</span>
-            </a>
+        <a href="users-list.html" data-page="users">
+            <i data-lucide="users"></i>
+            <span>Liste des utilisateurs</span>
+        </a>
 
-            <a href="users-list.html">
-                <i data-lucide="users"></i>
-                <span>Liste des utilisateurs</span>
-            </a>
+        <a href="profile.html" data-page="profile">
+            <i data-lucide="user-cog"></i>
+            <span>Profil</span>
+        </a>
+    </nav>
 
-            <a href="profile.html">
-                <i data-lucide="user-cog"></i>
-                <span>Profil</span>
-            </a>
+    <button onclick="logout()" class="logout-btn">
+        <i data-lucide="log-out"></i>
+        <span>Déconnexion</span>
+    </button>
 
-        </nav>
-
-    </aside>
-
+</aside>
 
     <!-- =========================================
          CONTENU PRINCIPAL
@@ -74,6 +74,7 @@
         <!-- =========================================
              FORMULAIRE PRINCIPAL
         ========================================== -->
+        <h3 class="section-title">Informations Générales</h3>
         <section class="task-form-container">
 
             <form id="createTaskForm">
@@ -116,7 +117,7 @@
                     <div id="attachedFilesPreview"></div>
                 </div>
 
-
+<h3 class="section-title">Planification</h3>
                 <!-- =========================
                      TACHE PARENT
                 ========================== -->
@@ -144,43 +145,23 @@
                      DUREE / DATE / HEURE
                 ========================== -->
                 <div class="form-row">
-
-                    <div class="form-group">
-                        <label for="durationType">Type de durée</label>
-
-                        <select id="durationType">
-                            <option value="hours">Durée en heures</option>
-                            <option value="date">Date / Heure précise</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="taskDuration">Durée / Échéance</label>
-
-                        <input type="datetime-local" id="taskDuration">
-                    </div>
-
-                </div>
-
-
-                <!-- =========================
-                     STATUT INITIAL
-                ========================== -->
+                            <!-- DATE -->
                 <div class="form-group">
-                    <label for="taskStatus">Statut initial</label>
-
-                    <select id="taskStatus">
-                        <option value="non_assignee">Non assignée</option>
-                        <option value="en_attente">En attente</option>
-                        <option value="en_cours">En cours</option>
-                        <option value="planifiee">Planifiée</option>
-                    </select>
+                    <label for="taskDate">Date de début</label>
+                    <input type="date" id="taskDate">
                 </div>
 
+                <!-- DUREE -->
+                <div class="form-group">
+                    <label for="taskDurationHours">Durée (heures)</label>
+                    <input type="number" id="taskDurationHours" placeholder="Ex: 5">
+                </div>
 
-                <!-- =========================
+            </div>
+              <!-- =========================
                      ASSIGNATION UTILISATEUR
                 ========================== -->
+                <h3 class="section-title">Assignation</h3>
                 <div class="form-group">
                     <label>Assigner à un utilisateur</label>
 
@@ -232,9 +213,16 @@
                    id="searchParentTask"
                    placeholder="Rechercher une tâche...">
 
-            <div class="modal-list" id="parentTaskList">
-                <!-- Les tâches existantes seront injectées ici via JS -->
-            </div>
+            <table class="modal-table">
+    <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Date de soumission</th>
+            <th>Temps restant</th>
+        </tr>
+    </thead>
+    <tbody id="parentTaskList"></tbody>
+</table>
 
         </div>
 

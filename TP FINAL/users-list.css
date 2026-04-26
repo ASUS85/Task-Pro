@@ -1,0 +1,666 @@
+/* ============================================================
+   TASKPRO - USERS LIST CSS (HARMONISÉ DASHBOARD ENTERPRISE)
+   ============================================================ */
+
+:root {
+    --primary-gold: #D4AF37;
+    --gold-glow: rgba(212, 175, 55, 0.2);
+    --bg-dark: #08080a;
+    --sidebar-bg: #0d0d11;
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --text-dim: #777;
+
+    --green: #00d26a;
+    --red: #ff4d4d;
+    --blue: #00b8ff;
+    --orange: #ff9800;
+}
+
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* BODY */
+body.dashboard-body {
+    background: var(--bg-dark);
+    color: white;
+    display: flex;
+    min-height: 100vh;
+}
+
+/* =========================
+   SIDEBAR UNIFIÉE (CREATE + TASK LIST)
+========================= */
+
+/* =========================
+   SIDEBAR
+========================= */
+.sidebar {
+    width: 270px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    background: linear-gradient(180deg, #0d0d11, #111217);
+    border-right: 1px solid rgba(255,255,255,0.06);
+
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+}
+.sidebar-footer {
+    margin-top: auto;
+}
+
+/* LOGO */
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 50px;
+}
+
+.logo-text {
+    font-weight: 800;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+
+    background: linear-gradient(90deg, #fff, #d4af37);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* NAV */
+.side-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* LIENS */
+.side-nav a {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    padding: 14px 18px;
+
+    color: #777;
+    text-decoration: none;
+
+    border-radius: 12px;
+
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+/* EFFET LUMIÈRE AU SURVOL */
+.side-nav a::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(212,175,55,0.15),
+        transparent
+    );
+
+    opacity: 0;
+    transition: 0.3s;
+}
+
+/* HOVER */
+.side-nav a:hover {
+    color: #fff;
+    transform: translateX(6px);
+}
+
+.side-nav a:hover::before {
+    opacity: 1;
+}
+
+/* PAGE ACTIVE */
+.side-nav a.active {
+    background: rgba(212,175,55,0.12);
+    color: #d4af37;
+
+    border-left: 4px solid #d4af37;
+
+    box-shadow: inset 10px 0 20px rgba(212,175,55,0.05);
+}
+
+/* ICON */
+.side-nav i {
+    transition: 0.3s;
+}
+
+.side-nav a:hover i {
+    transform: scale(1.2);
+}
+
+/* LOGOUT */
+.logout-btn {
+    margin-top: auto;
+
+    background: rgba(255, 60, 60, 0.08);
+    border: 1px solid rgba(255, 60, 60, 0.15);
+
+    padding: 12px;
+
+    border-radius: 12px;
+    color: #ff5f5f;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.logout-btn:hover {
+    background: #ff5f5f;
+    color: #fff;
+
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255,95,95,0.3);
+}
+
+/* =========================
+   MAIN
+========================= */
+.main-content {
+    flex: 1;
+    padding: 40px 50px;
+    overflow-y: auto;
+    margin-left: 270px;
+}
+
+/* HEADER */
+.page-header h1 {
+    font-size: 2.6rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, white, #d4af37);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.page-header p {
+    color: #8d8d95;
+    margin-top: 10px;
+}
+
+/* =========================
+   FILTERS
+========================= */
+.user-filters {
+    display: flex;
+    gap: 15px;
+    margin: 25px 0;
+    flex-wrap: wrap;
+}
+
+.user-filters input,
+.user-filters select {
+    padding: 16px 18px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.07);
+    background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025));
+    color: white;
+    min-width: 220px;
+    transition: 0.25s;
+}
+
+.user-filters input:focus,
+.user-filters select:focus {
+    border-color: var(--primary-gold);
+    box-shadow: 0 0 0 4px rgba(212,175,55,0.08);
+    outline: none;
+}
+
+/* =========================
+   TABLE USERS
+========================= */
+.user-table-container {
+    background: linear-gradient(145deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 28px;
+    overflow: hidden;
+    backdrop-filter: blur(18px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.user-table thead {
+    background: rgba(255,255,255,0.03);
+}
+
+.user-table th {
+    text-align: left;
+    padding: 18px;
+    font-size: 0.85rem;
+    color: var(--primary-gold);
+    text-transform: uppercase;
+}
+
+.user-table td {
+    padding: 18px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    color: #ddd;
+}
+
+.user-table tbody tr {
+    transition: 0.25s;
+    cursor: pointer;
+}
+
+.user-table tbody tr:hover {
+    background: rgba(212,175,55,0.05);
+}
+
+/* =========================
+   STATUS / BADGES
+========================= */
+.badge {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-block;
+}
+
+/* ONLINE STATUS */
+.online {
+    background: rgba(0,210,106,0.12);
+    color: var(--green);
+}
+
+.offline {
+    background: rgba(255,77,77,0.12);
+    color: var(--red);
+}
+
+/* AVAILABILITY */
+.free {
+    background: rgba(0,184,255,0.12);
+    color: var(--blue);
+}
+
+.busy {
+    background: rgba(255,152,0,0.12);
+    color: var(--orange);
+}
+
+/* =========================
+   ACTION BUTTONS
+========================= */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    color: white;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.action-btn:hover {
+    background: var(--primary-gold);
+    color: black;
+    transform: translateY(-2px);
+}
+
+/* =========================
+   MODAL PROFIL USER
+========================= */
+.modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+}
+
+.modal-content {
+    width: 90%;
+    max-width: 900px;
+    background: #111217;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 28px;
+    padding: 30px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    color: var(--primary-gold);
+}
+
+.modal-header button {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: none;
+    background: rgba(255,255,255,0.05);
+    color: white;
+    cursor: pointer;
+}
+
+/* =========================
+   PROFILE GRID
+========================= */
+.user-profile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.profile-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 18px;
+}
+
+.profile-card span {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.profile-card strong,
+.profile-card p {
+    color: white;
+}
+
+.full {
+    grid-column: span 2;
+}
+
+/* =========================
+   MODAL ACTIONS
+========================= */
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.danger-btn {
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: none;
+    background: rgba(255,77,77,0.15);
+    color: #ff4d4d;
+    cursor: pointer;
+}
+
+.secondary-btn {
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    color: white;
+    cursor: pointer;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 900px) {
+    .sidebar {
+        display: none;
+    }
+
+    .main-content {
+        padding: 20px;
+    }
+
+    .user-profile-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .full {
+        grid-column: span 1;
+    }
+
+    .user-filters {
+        flex-direction: column;
+    }
+}
+.btn-action {
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    color: white;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: 0.2s;
+}
+
+.btn-action:hover {
+    background: #D4AF37;
+    color: black;
+}
+.user-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #D4AF37, #8a6d1f);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 10px;
+    color: black;
+}
+.online {
+    background: rgba(0, 210, 106, 0.15);
+    color: #00d26a;
+    position: relative;
+}
+
+.online::after {
+    content: "";
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    background: #00d26a;
+    border-radius: 50%;
+    transform: translateY(-50%);
+    animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: translateY(-50%) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-50%) scale(2);
+        opacity: 0;
+    }
+}
+/* =========================
+   MODAL - EDIT USER
+========================= */
+
+#editUserModal .modal-content {
+    max-width: 600px;
+    background: linear-gradient(
+        145deg,
+        rgba(255,255,255,0.035),
+        rgba(255,255,255,0.015)
+    );
+
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 28px;
+
+    padding: 30px;
+
+    backdrop-filter: blur(18px);
+
+    box-shadow:
+        0 10px 40px rgba(0,0,0,0.35),
+        inset 0 1px 0 rgba(255,255,255,0.03);
+
+    animation: modalPop 0.25s ease;
+}
+
+/* animation ouverture */
+@keyframes modalPop {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* =========================
+   TITRE MODAL
+========================= */
+
+#editUserModal .modal-header h2 {
+    color: var(--primary-gold);
+    font-size: 1.4rem;
+    font-weight: 800;
+}
+
+/* =========================
+   FORM GROUP (REUSE STYLE CREATE-TASK)
+========================= */
+
+#editUserModal .form-group {
+    margin-bottom: 18px;
+}
+
+#editUserModal label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    color: #aaa;
+    font-weight: 500;
+}
+
+/* INPUTS */
+#editUserModal input,
+#editUserModal select {
+    width: 100%;
+    padding: 14px 16px;
+
+    border-radius: 14px;
+
+    border: 1px solid rgba(255,255,255,0.07);
+
+    background: rgba(255,255,255,0.03);
+
+    color: white;
+
+    outline: none;
+
+    transition: 0.25s;
+}
+
+/* focus gold */
+#editUserModal input:focus,
+#editUserModal select:focus {
+    border-color: var(--primary-gold);
+
+    box-shadow:
+        0 0 0 4px rgba(212,175,55,0.08);
+
+    transform: translateY(-1px);
+}
+
+/* =========================
+   ACTION BUTTONS
+========================= */
+
+#editUserModal .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 25px;
+}
+
+/* bouton save principal */
+#editUserModal .primary-btn {
+    background: linear-gradient(135deg, #d4af37, #f0c84b);
+    color: black;
+
+    padding: 14px 20px;
+
+    border-radius: 14px;
+
+    font-weight: 700;
+
+    border: none;
+
+    cursor: pointer;
+
+    transition: 0.25s;
+}
+
+#editUserModal .primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(212,175,55,0.25);
+}
+
+/* =========================
+   SELECT STYLE CLEAN
+========================= */
+
+#editUserModal select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='white'%3E%3Cpath d='M4 6l3 3 3-3z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 600px) {
+    #editUserModal .modal-content {
+        width: 95%;
+        padding: 20px;
+    }
+}

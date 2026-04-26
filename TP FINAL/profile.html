@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskPRO - Profil</title>
+
+    <link rel="stylesheet" href="profile.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="dashboard-body" data-page="profile">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+    <div class="logo-area">
+        <span class="logo-icon">🟡</span>
+        <span class="logo-text">TaskPRO</span>
+    </div>
+
+    <nav class="side-nav">
+
+        <a href="dashboard.html">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Vue d'ensemble</span>
+        </a>
+
+        <a href="create-task.html">
+            <i data-lucide="plus-square"></i>
+            <span>Créer une tâche</span>
+        </a>
+
+        <a href="task-list.html">
+            <i data-lucide="check-square"></i>
+            <span>Liste des tâches</span>
+        </a>
+
+        <a href="users-list.html">
+            <i data-lucide="users"></i>
+            <span>Utilisateurs</span>
+        </a>
+
+        <a href="profile.html">
+            <i data-lucide="user-cog"></i>
+            <span>Profil</span>
+        </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+        <button class="logout-btn" onclick="logout()">
+            <i data-lucide="log-out"></i>
+            Déconnexion
+        </button>
+    </div>
+
+</aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+        <!-- HEADER -->
+        <div class="profile-header">
+
+            <div class="avatar-box">
+                <div class="avatar">SA</div>
+                <div>
+                    <h1>Super Admin</h1>
+                    <p class="role">Super Administrateur</p>
+                    <span class="status online">En ligne</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- STATS -->
+        <section class="stats-grid">
+
+            <div class="stat-card">
+                <h3>32</h3>
+                <p>Tâches créées</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>18</h3>
+                <p>Tâches assignées</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>25</h3>
+                <p>Complétées</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>7</h3>
+                <p>Utilisateurs gérés</p>
+            </div>
+
+        </section>
+
+        <!-- INFO SECTION -->
+        <section class="info-grid">
+
+            <!-- INFORMATIONS -->
+            <div class="card">
+                <h2>Informations personnelles</h2>
+
+                <div class="info-item">
+                    <span>Nom</span>
+                    <p>Super Admin</p>
+                </div>
+
+                <div class="info-item">
+                    <span>Email</span>
+                    <p>admin@taskpro.com</p>
+                </div>
+
+                <div class="info-item">
+                    <span>Rôle</span>
+                    <p>Super Administrateur</p>
+                </div>
+
+                <div class="info-item">
+                    <span>Dernière connexion</span>
+                    <p>26 Avril 2026</p>
+                </div>
+            </div>
+
+            <!-- SECURITE -->
+            <div class="card">
+                <h2>Sécurité</h2>
+
+                <button class="btn">
+                    Changer mot de passe
+                </button>
+
+                <button class="btn danger">
+                    Déconnecter tous les appareils
+                </button>
+
+                <button class="btn danger">
+                    Désactiver compte
+                </button>
+            </div>
+
+        </section>
+
+        <!-- ACTIVITE -->
+        <section class="card full">
+
+            <h2>Activité récente</h2>
+
+            <ul class="activity-list">
+
+                <li>
+                    <span>Création d’une tâche “Dashboard Analytics”</span>
+                    <small>Il y a 2h</small>
+                </li>
+
+                <li>
+                    <span>Modification utilisateur Sarah Smith</span>
+                    <small>Hier</small>
+                </li>
+
+                <li>
+                    <span>Suppression d’une tâche obsolete</span>
+                    <small>Il y a 2 jours</small>
+                </li>
+
+            </ul>
+
+        </section>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+    </script>
+
+    <script src="profile.js"></script>
+
+</body>
+</html>
