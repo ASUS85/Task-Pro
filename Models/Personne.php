@@ -19,7 +19,7 @@ abstract class Personne
         $this->sexe = $sexe;
         $this->email = $this->validerEmail($email);
         $this->poste = $poste;
-        $this->password = password_hash($password, PASSWORD_BCRYPT); // Hacher le password
+        $this->password = $password;
         $this->role = $role;
     }
 

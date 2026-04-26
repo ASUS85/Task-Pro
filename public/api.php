@@ -23,8 +23,10 @@ require_once __DIR__ . '/../Models/Employe.php';
 require_once __DIR__ . '/../Models/Tache.php';
 require_once __DIR__ . '/../DAOs/UtilisateurDAO.php';
 require_once __DIR__ . '/../DAOs/TacheDAO.php';
+require_once __DIR__ . '/../DAOs/NotificationDAO.php';
 require_once __DIR__ . '/../Services/AuthServices.php';
 require_once __DIR__ . '/../Services/TacheService.php';
+require_once __DIR__ . '/../Services/NotificationService.php';
 
 // ===============================
 // ROUTE PROPRE (FIX PRINCIPAL)
@@ -45,8 +47,12 @@ $data = json_decode($input, true) ?? [];
 // Services
 $utilisateurDAO = new UtilisateurDAO();
 $tacheDAO = new TacheDAO();
+$notificationDAO = new NotificationDAO(); 
+$notificationServices = new NotificationServices($notificationDAO);
+
 $authServices = new AuthServices($utilisateurDAO);
-$tacheServices = new TacheService($tacheDAO, $utilisateurDAO);
+$tacheServices = new TacheService($tacheDAO, $utilisateurDAO, $notificationServices);
+
 
 // Helpers
 function requireAuth()
@@ -87,14 +93,14 @@ try {
         // REGISTER
         if (($parts[1] ?? '') === 'register' && $method === 'POST') {
             $utilisateurDAO->sauvegarder(
-                $data['nom'] ?? '',
-                $data['prenom'] ?? '',
-                $data['sexe'] ?? 'Non spécifié',
-                $data['email'] ?? '',
-                $data['poste'] ?? '',
-                password_hash($data['password'] ?? '', PASSWORD_BCRYPT),
-                'Employé'
-            );
+             $data['nom'] ?? '',
+             $data['prenom'] ?? '',
+             $data['sexe'] ?? 'Non spécifié',
+             $data['poste'] ?? '', // Position 4
+             $data['email'] ?? '', // Position 5
+             password_hash($data['password'] ?? '', PASSWORD_BCRYPT),
+             'Employe'
+         );
 
             echo json_encode(['success' => true, 'message' => 'Inscription réussie']);
             exit;
@@ -186,6 +192,19 @@ try {
             exit;
         }
     }
+
+     //  pour les notifications
+    if ($parts[0] === 'notifications') {
+     requireAuth();
+     $notifDAO = new NotificationDAO();
+
+        if ($method === 'GET') {
+         // On utilise la méthode du DAO plutôt que de réécrire le SQL ici
+         $notifications = $notifDAO->obtenirNonLues($_SESSION['user_id']);
+         echo json_encode(['success' => true, 'notifications' => $notifications]);
+         exit;
+        }
+   }
 
     // ================= ADMIN =================
     if ($parts[0] === 'admin') {

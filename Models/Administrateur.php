@@ -11,8 +11,8 @@ class Administrateur extends Personne
         string $nom, 
         string $prenom, 
         string $sexe, 
+        string $email,
         string $poste, 
-        string $email, 
         string $password, 
         string $role = "Administrateur"
     ) {
