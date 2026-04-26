@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskPRO - Dashboard Super Admin</title>
+
+    <link rel="stylesheet" href="style_dashboard.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="dashboard-body">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="logo-area">
+            <span class="logo-icon">🟡</span>
+            <span class="logo-text">TaskPRO</span>
+        </div>
+
+        <nav class="side-nav">
+
+            <a href="dashboard.html" class="active">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Vue d'ensemble</span>
+            </a>
+
+            <a href="create-task.html">
+                <i data-lucide="plus-square"></i>
+                <span>Créer une nouvelle tâche</span>
+            </a>
+
+            <a href="tasks-list.html">
+                <i data-lucide="check-square"></i>
+                <span>Liste des tâches</span>
+            </a>
+
+            <a href="users-list.html">
+                <i data-lucide="users"></i>
+                <span>Liste des utilisateurs</span>
+            </a>
+
+            <a href="profile.html">
+                <i data-lucide="user-cog"></i>
+                <span>Profil</span>
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <button onclick="logout()" class="logout-btn">
+                <i data-lucide="log-out"></i>
+                Déconnexion
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- TOPBAR -->
+        <header class="top-bar">
+
+            <div class="search-wrapper">
+                <i data-lucide="search"></i>
+                <input type="text" placeholder="Rechercher rapidement...">
+            </div>
+
+            <div class="user-profile">
+
+                <div class="notif-badge">
+                    <i data-lucide="bell"></i>
+                </div>
+
+                <div class="user-details">
+                    <span id="userName">Super Admin</span>
+                    <small>Gestionnaire Principal</small>
+                </div>
+
+                <div class="avatar">SA</div>
+
+            </div>
+
+        </header>
+
+        <!-- CONTENT -->
+        <div class="content-wrapper">
+
+            <!-- STATS -->
+            <section class="stats-grid">
+
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i data-lucide="list"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>48</h4>
+                        <p>Total Tâches</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i data-lucide="clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>17</h4>
+                        <p>Tâches en cours</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i data-lucide="check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>31</h4>
+                        <p>Tâches terminées</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i data-lucide="users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>8</h4>
+                        <p>Utilisateurs Actifs</p>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- OVERVIEW PANEL -->
+            <section class="glass-panel overview-panel">
+
+                <div class="panel-header">
+                    <h3>
+                        <i data-lucide="activity"></i>
+                        Vue d’ensemble du système
+                    </h3>
+                </div>
+
+                <div class="overview-content">
+
+                    <div class="overview-card">
+                        <h4>Bienvenue Super Admin 👋</h4>
+                        <p>
+                            Utilisez le menu latéral pour gérer les tâches, utilisateurs,
+                            comptes administrateurs et votre profil.
+                        </p>
+                    </div>
+
+                    <div class="overview-card">
+                        <h4>Dernière activité</h4>
+                        <ul>
+                            <li>✔ 3 nouvelles tâches créées aujourd’hui</li>
+                            <li>✔ 1 utilisateur ajouté cette semaine</li>
+                            <li>✔ 5 tâches marquées comme terminées</li>
+                        </ul>
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        function logout() {
+            if(confirm("Voulez-vous vraiment vous déconnecter ?")) {
+                window.location.href = "login.html";
+            }
+        }
+    </script>
+
+</body>
+</html>

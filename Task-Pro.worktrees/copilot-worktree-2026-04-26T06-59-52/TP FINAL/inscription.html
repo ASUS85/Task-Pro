@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskPRO - Création de Compte SA</title>
+
+    <link rel="stylesheet" href="style_inscription.css">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="auth-page">
+
+    <!-- Arrière-plan décoratif -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <!-- Container Principal -->
+    <div class="auth-container glass-panel">
+
+        <!-- Header -->
+        <div class="auth-header">
+            <div class="brand-logo">🟡</div>
+            <h1>Compte Super admin</h1>
+            <p>Remplissez les informations pour créer votre accès</p>
+        </div>
+
+        <!-- Formulaire -->
+        <form id="registerForm" class="modern-form" autocomplete="off">
+
+            <div class="row">
+                <div class="input-wrapper">
+                    <i data-lucide="user"></i>
+                    <input type="text" id="nom" placeholder="Nom *" required>
+                </div>
+
+                <div class="input-wrapper">
+                    <i data-lucide="user-plus"></i>
+                    <input type="text" id="prenom" placeholder="Prénom *" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-wrapper">
+                    <i data-lucide="users"></i>
+                    <select id="sexe" required>
+                        <option value="" disabled selected>Sexe</option>
+                        <option value="M">Masculin</option>
+                        <option value="F">Féminin</option>
+                    </select>
+                </div>
+
+                <div class="input-wrapper">
+                    <i data-lucide="briefcase"></i>
+                    <input type="text" id="poste" placeholder="Poste occupé">
+                </div>
+            </div>
+
+            <div class="input-wrapper">
+                <i data-lucide="mail"></i>
+                <input type="email" id="email" placeholder="Adresse Email *" required>
+            </div>
+
+            <div class="input-wrapper">
+                <i data-lucide="lock"></i>
+                <input type="password" id="password" placeholder="Mot de passe *" required autocomplete="new-password">
+            </div>
+
+            <div class="input-wrapper">
+                <i data-lucide="shield-check"></i>
+                <input type="password" id="confirmPassword" placeholder="Confirmer le mot de passe *" required autocomplete="new-password">
+            </div>
+
+            <!-- Déjà un compte -->
+            <div class="form-options">
+                <span>Vous avez déjà un compte ?</span>
+                <a href="login.html" class="magic-link">Se connecter</a>
+            </div>
+
+            <!-- Boutons -->
+            <div class="modal-footer auth-actions">
+                <button type="button" onclick="window.location.href='login.html'" class="btn-secondary">
+                    Annuler
+                </button>
+
+                <button type="submit" class="btn-primary-auth">
+                    <span>Créer le compte</span>
+                    <i data-lucide="check-circle"></i>
+                </button>
+            </div>
+
+        </form>
+
+        <!-- Message -->
+        <p id="message" class="status-msg"></p>
+
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        lucide.createIcons();
+
+        window.addEventListener("load", () => {
+            document.getElementById("registerForm").reset();
+        });
+    </script>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
