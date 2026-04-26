@@ -23,7 +23,6 @@ class MockDAO {
         return null;
     }
 
-    // Simule la recherche d'une tâche
     public function trouverTacheParId($id) {
         if ($id == 10) { // On simule une tâche parente déjà existante
             return new Tache(10, "Tâche Parente", "Desc", "2026-04-26", "5h", "En cours", null, null, 2, 1);
