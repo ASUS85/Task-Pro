@@ -4,8 +4,8 @@ require_once 'Personne.php';
 
 class Administrateur extends Personne
 {
-    public function __construct($nom, $prenom, $sexe, $email, $password, $status)
+    public function __construct($id, $nom, $prenom, $sexe, $email, $password, $role= "Administrateur")
     {
-        parent::__construct($nom, $prenom, $sexe, $email, $password, $status,'Administrateur');
+        parent::__construct($id,$nom, $prenom, $sexe, $email, $password, $role);
     }
 }

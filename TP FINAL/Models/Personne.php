@@ -2,16 +2,17 @@
 
 abstract class Personne
 {
+    protected $id;
     protected $nom;
     protected $prenom;
     protected $sexe;
     protected $email;
-    protected $role;
     protected $password;
-    protected $status;
+    protected $role;
+    
 
 
-    public function __construct($nom, $prenom, $sexe, $email, $password, $status, $role)
+    public function __construct($id, $nom, $prenom, $sexe, $email, $password, $role)
     {
         $this->nom = $nom;
         $this->prenom = $prenom;
@@ -19,7 +20,7 @@ abstract class Personne
         $this->email = $email;
         $this->role = $role;
         $this->password = $password;
-        $this->status = $status;
+        $this->id = $id;
     }
 
     public function getNom()
@@ -52,8 +53,9 @@ abstract class Personne
         return $this->password;
     }
 
-    public function getStatus()
+    public function getId()
     {
-        return $this->status;
+        return $this->id;
     }
+
 }
