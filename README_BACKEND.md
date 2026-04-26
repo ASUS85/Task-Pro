@@ -11,7 +11,7 @@ USE task_pro_db;
 
 ### 2️⃣ **Importer le schéma SQL**
 
-Exécutez le fichier `config/schema.sql` dans PHPMyAdmin(Importer simplement le fichier) ou via MySQL CLI :
+Exécutez le fichier `config/schema.sql` dans PHPMyAdmin(Importer simplement le fichier via importe) ou via MySQL CLI :
 
 ```bash
 mysql -u root task_pro_db < config/schema.sql
@@ -31,23 +31,22 @@ private const PASSWORD = '';
 ### 4️⃣ **Structure des dossiers**
 
 ```
-TP FINAL/
 ├── config/
-│   ├── Database.php (✅ Connexion BD)
-│   └── schema.sql (✅ Schéma BD)
+│   ├── Database.php (Connexion BD)
+│   └── schema.sql (Schéma BD)
 ├── public/
-│   └── api.php (✅ Point d'entrée API)
+│   └── api.php (Point d'entrée API)
 ├── Models/
-│   ├── Personne.php (✅)
-│   ├── Employe.php (✅)
-│   ├── Administrateur.php (✅)
-│   └── Tache.php (✅ Amélioré)
+│   ├── Personne.php 
+│   ├── Employe.php 
+│   ├── Administrateur.php
+│   └── Tache.php 
 ├── DAOs/
-│   ├── UtilisateurDAO.php (✅)
-│   └── TacheDAO.php (✅)
+│   ├── UtilisateurDAO.php 
+│   └── TacheDAO.php 
 └── Services/
-    ├── AuthServices.php (✅)
-    └── TacheService.php (✅ Amélioré)
+    ├── AuthServices.php 
+    └── TacheService.php 
 ```
 
 ---
@@ -109,14 +108,15 @@ non assigné  ──→  assigné  ──(T+10min auto)──→  en cours  ─�
 ### Créer une tâche
 
 ```bash
-POST http://localhost/task-pro/Task-Pro/TP\ FINAL/public/api.php/taches/create
+POST http://localhost/Task-Pro/public/api.php/taches/create
 Content-Type: application/json
 
 {
+  "id" : 1,
   "libelle": "Développer API",
   "description": "Créer les endpoints REST",
   "periode_realisation": "5h",
-  "id_responsable": 2,
+  "id_responsable": 1,
   "id_parent": null,
   "cheminFichier": null
 }
@@ -125,7 +125,7 @@ Content-Type: application/json
 ### Modifier le statut
 
 ```bash
-PUT http://localhost/task-pro/Task-Pro/TP\ FINAL/public/api.php/taches/1/status
+PUT http://localhost/Task-Pro/public/api.php/taches/1/status
 Content-Type: application/json
 
 {

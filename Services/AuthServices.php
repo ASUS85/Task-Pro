@@ -67,7 +67,7 @@ class AuthServices
                 'N/A',
                 'root@taskpro.com',
                 '',
-                'SuperAdmin' // ⚠️ IMPORTANT : on utilise SuperAdmin
+                'SuperAdmin' //  on utilise SuperAdmin
             );
         }
         // Chercher l'utilisateur par email
