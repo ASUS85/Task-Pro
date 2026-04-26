@@ -8,21 +8,24 @@ require_once __DIR__ . '/../Models/Employe.php';
 /**
  * UtilisateurDAO - Gestion des utilisateurs (Admin, Employé)
  */
-class UtilisateurDAO {
+class UtilisateurDAO
+{
     private PDO $pdo;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->pdo = Database::getInstance();
     }
 
     /**
      * Sauvegarder un nouvel utilisateur
      */
-    public function sauvegarder(string $nom, string $prenom, string $sexe, string $email, string $password, string $role): bool {
+    public function sauvegarder(string $nom, string $prenom, string $sexe, string $email, string $password, string $role): bool
+    {
         try {
             $sql = "INSERT INTO utilisateurs (nom, prenom, sexe, email, password, role, created_at) 
                     VALUES (:nom, :prenom, :sexe, :email, :password, :role, NOW())";
-            
+
             $stmt = $this->pdo->prepare($sql);
             return $stmt->execute([
                 ':nom' => $nom,
@@ -40,14 +43,19 @@ class UtilisateurDAO {
     /**
      * Chercher utilisateur par email
      */
-    public function trouverParEmail(string $email): ?object {
+    public function trouverParEmail(string $email): ?object
+    {
         try {
-            $sql = "SELECT id, nom, prenom, sexe, email, password, role FROM utilisateurs WHERE email = :email LIMIT 1";
-            
+            $sql = "SELECT id, nom, prenom, sexe, email, password, role 
+                    FROM utilisateurs 
+                    WHERE email = :email 
+                    LIMIT 1";
+
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([':email' => $email]);
-            
-            $data = $stmt->fetch();
+
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
             if (!$data) {
                 return null;
             }
@@ -61,14 +69,19 @@ class UtilisateurDAO {
     /**
      * Chercher utilisateur par ID
      */
-    public function trouverParId(int $id): ?object {
+    public function trouverParId(int $id): ?object
+    {
         try {
-            $sql = "SELECT id, nom, prenom, sexe, email, password, role FROM utilisateurs WHERE id = :id LIMIT 1";
-            
+            $sql = "SELECT id, nom, prenom, sexe, email, password, role 
+                    FROM utilisateurs 
+                    WHERE id = :id 
+                    LIMIT 1";
+
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([':id' => $id]);
-            
-            $data = $stmt->fetch();
+
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
             if (!$data) {
                 return null;
             }
@@ -82,14 +95,15 @@ class UtilisateurDAO {
     /**
      * Compter total utilisateurs
      */
-    public function compterUtilisateurs(): int {
+    public function compterUtilisateurs(): int
+    {
         try {
-            $sql = "SELECT COUNT(*) as total FROM utilisateurs WHERE role != :supersuper";
-            
+            $sql = "SELECT COUNT(*) as total FROM utilisateurs";
+
             $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([':supersuper' => 'SuperSuperAdmin']);
-            
-            $result = $stmt->fetch();
+            $stmt->execute();
+
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (PDOException $e) {
             throw new Exception("Erreur comptage : " . $e->getMessage());
@@ -99,7 +113,8 @@ class UtilisateurDAO {
     /**
      * Mettre à jour utilisateur
      */
-    public function mettreAJour(int $id, array $donnees): bool {
+    public function mettreAJour(int $id, array $donnees): bool
+    {
         try {
             $colonnes = [];
             $params = [':id' => $id];
@@ -112,11 +127,13 @@ class UtilisateurDAO {
             }
 
             if (empty($colonnes)) {
-                return true; // Rien à mettre à jour
+                return true;
             }
 
-            $sql = "UPDATE utilisateurs SET " . implode(', ', $colonnes) . ", updated_at = NOW() WHERE id = :id";
-            
+            $sql = "UPDATE utilisateurs 
+                    SET " . implode(', ', $colonnes) . ", updated_at = NOW() 
+                    WHERE id = :id";
+
             $stmt = $this->pdo->prepare($sql);
             return $stmt->execute($params);
         } catch (PDOException $e) {
@@ -125,25 +142,27 @@ class UtilisateurDAO {
     }
 
     /**
-     * Obtenir tous les utilisateurs (sauf SuperSuperAdmin)
+     * Obtenir tous les utilisateurs
      */
-    public function obtenirTous(string $role = null): array {
+    public function obtenirTous(string $role = null): array
+    {
         try {
-            $sql = "SELECT id, nom, prenom, sexe, email, password, role FROM utilisateurs WHERE role != :supersuper";
-            $params = [':supersuper' => 'SuperSuperAdmin'];
+            $sql = "SELECT id, nom, prenom, sexe, email, password, role FROM utilisateurs";
+            $params = [];
 
             if ($role !== null) {
-                $sql .= " AND role = :role";
+                $sql .= " WHERE role = :role";
                 $params[':role'] = $role;
             }
 
             $sql .= " ORDER BY created_at DESC";
-            
+
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute($params);
-            
+
             $resultats = [];
-            while ($row = $stmt->fetch()) {
+
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 $resultats[] = $this->hydratiserUtilisateur($row);
             }
 
@@ -156,22 +175,21 @@ class UtilisateurDAO {
     /**
      * Obtenir utilisateurs par rôle
      */
-    public function obtenirParRole(string $role): array {
+    public function obtenirParRole(string $role): array
+    {
         return $this->obtenirTous($role);
     }
 
     /**
-     * Supprimer utilisateur (soft delete possible)
+     * Supprimer utilisateur
      */
-    public function supprimer(int $id): bool {
+    public function supprimer(int $id): bool
+    {
         try {
-            $sql = "DELETE FROM utilisateurs WHERE id = :id AND role != :supersuper";
-            
+            $sql = "DELETE FROM utilisateurs WHERE id = :id";
+
             $stmt = $this->pdo->prepare($sql);
-            return $stmt->execute([
-                ':id' => $id,
-                ':supersuper' => 'SuperSuperAdmin'
-            ]);
+            return $stmt->execute([':id' => $id]);
         } catch (PDOException $e) {
             throw new Exception("Erreur suppression : " . $e->getMessage());
         }
@@ -180,8 +198,10 @@ class UtilisateurDAO {
     /**
      * Hydrater l'objet Utilisateur selon son rôle
      */
-    private function hydratiserUtilisateur(array $data): object {
+    private function hydratiserUtilisateur(array $data): object
+    {
         switch ($data['role']) {
+
             case 'Administrateur':
             case 'SuperAdmin':
                 return new Administrateur(

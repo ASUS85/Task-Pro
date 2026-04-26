@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS activity_logs (
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ========================================
+/* -- ========================================
 -- DATA INIT: SuperSuperAdmin (invisible)
 -- ========================================
 INSERT IGNORE INTO utilisateurs 
@@ -81,3 +81,4 @@ INSERT IGNORE INTO utilisateurs
 VALUES 
 ('System', 'SuperSuperAdmin', 'N/A', 'supersuperadmin@system.local', 
  SHA2('SuperSuperAdmin_SecurePass_2026', 256), 'SuperSuperAdmin');
+ */
