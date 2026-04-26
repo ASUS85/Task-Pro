@@ -2,8 +2,10 @@
 
 require_once 'Personne.php';
 
-class Employe extends Personne {
-    public function __construct($id, $nom, $prenom, $sexe, $email, $password, $status) {
-        parent::__construct($id, $nom, $prenom, $sexe, $email, $password, $status, "Employé");
+class Employe extends Personne
+{
+    public function __construct($id, $nom, $prenom, $sexe, $poste, $email, $password)
+    {
+        parent::__construct($id, $nom, $prenom, $sexe, $email, $poste, $password, "Employé");
     }
 }
