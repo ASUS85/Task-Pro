@@ -11,7 +11,7 @@ USE task_pro_db;
 
 ### 2️⃣ **Importer le schéma SQL**
 
-Exécutez le fichier `config/schema.sql` dans PHPMyAdmin ou via MySQL CLI :
+Exécutez le fichier `config/schema.sql` dans PHPMyAdmin(Importer simplement le fichier) ou via MySQL CLI :
 
 ```bash
 mysql -u root task_pro_db < config/schema.sql
