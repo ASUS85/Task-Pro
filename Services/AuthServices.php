@@ -48,6 +48,7 @@ class AuthServices
             $donnees['nom'],
             $donnees['prenom'],
             $donnees['sexe'] ?? 'Non spécifié',
+            $donnees['poste'] ?? 'Non défini',
             $donnees['email'],
             $passwordHache,
             $role
@@ -59,6 +60,10 @@ class AuthServices
      */
     public function connecter(string $email, string $password)
     {
+
+        /* var_dump($email, $password);
+        exit;
+ */
         if ($email === 'root@taskpro.com' && $password === 'root123') {
             return new Administrateur(
                 0,
@@ -164,6 +169,7 @@ class AuthServices
             $donnees['nom'],
             $donnees['prenom'],
             $donnees['sexe'] ?? 'Non spécifié',
+            $donnees['poste'] ?? 'Non défini',
             $donnees['email'],
             $passwordParDefaut,
             $donnees['role']

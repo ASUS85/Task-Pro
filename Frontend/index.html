@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskPRO - Redirection</title>
+</head>
+<body>
+    <script src="api.js"></script>
+    <script>
+        // Redirection intelligente
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                // Si l'utilisateur est authentifié
+                if (isAuthenticated()) {
+                    window.location.href = 'dashboard.html';
+                } else {
+                    // Sinon, aller au login
+                    window.location.href = 'login.html';
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>

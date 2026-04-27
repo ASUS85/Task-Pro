@@ -3,10 +3,12 @@
 class TacheService {
     private $tacheDAO;
     private $utilisateurDAO;
+    private $notificationService; // Nouveau
 
-    public function __construct($tacheDAO, $utilisateurDAO) {
+    public function __construct($tacheDAO, $utilisateurDAO, $notificationService) {
         $this->tacheDAO = $tacheDAO;
         $this->utilisateurDAO = $utilisateurDAO;
+        $this->notificationService = $notificationService;
     }
 
     /**
@@ -118,7 +120,7 @@ class TacheService {
                 $tachesObjet = $this->tacheDAO->obtenirTous();
                 break;
 
-            case "Employé":
+            case "Employe":
                 // Les employés ne voient que leurs tâches assignées
                 $tachesObjet = $this->tacheDAO->obtenirParResponsable($idUtilisateur);
                 break;
@@ -170,6 +172,28 @@ class TacheService {
      * Assigner une tâche à un employé
      */
     public function assignerTache(int $idTache, int $idResponsable, int $idUtilisateur): bool {
+
+        // 1. On modifie le responsable en BDD via le DAO
+        $result = $this->tacheDAO->modifierResponsable($idTache, $idResponsable);
+
+        if ($result) {
+            // 2. On récupère les infos de la tâche et du responsable
+            $tache = $this->tacheDAO->trouverParId($idTache);
+            $resp = $this->utilisateurDAO->trouverParId($idResponsable);
+
+            // 3. On déclenche la notification via le nouveau service
+            // Ce service va gérer l'email ET l'enregistrement en BDD tout seul
+            $msg = "La tâche '" . $tache->getLibelle() . "' vous a été assignée par l'administrateur.";
+            
+            $this->notificationService->notifierUtilisateur(
+                $idResponsable, 
+                $resp->getEmail(), 
+                $resp->getPrenom(), 
+                $msg, 
+                $idTache
+            );
+        }
+        
         // 1. Vérifier les droits
         $utilisateur = $this->utilisateurDAO->trouverParId($idUtilisateur);
         if (!$utilisateur || ($utilisateur->getRole() !== "Administrateur" && $utilisateur->getRole() !== "SuperAdmin")) {

@@ -1,0 +1,92 @@
+🔧 DÉBOGUER L'ERREUR SERVEUR
+============================
+
+✅ CORRECTIONS APPLIQUÉES:
+
+1. .htaccess simplifié (moins de règles = moins d'erreurs)
+2. index.html maintenant redirige vers login.html
+3. Fichier diagnostic.php créé
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 ÉTAPES DE TEST (faire dans l'ordre)
+
+ÉTAPE 1: Tester le diagnostic
+────────────────────────────────
+
+Ouvrir:
+  http://localhost/Task-Pro/diagnostic.php
+
+✅ Si la page s'affiche:
+   - Vérifier tous les items VERTS
+   - Note l'erreur qui s'affiche en ROUGE
+
+❌ Si erreur 500 persiste:
+   - Aller à ÉTAPE 2
+
+
+ÉTAPE 2: Accéder directement à Frontend
+──────────────────────────────────────────
+
+Essayer ces URLs dans cet ordre:
+
+1. http://localhost/Task-Pro/Frontend/login.html
+   (contourner .htaccess)
+
+2. http://localhost/Task-Pro/Frontend/index.html
+
+3. http://localhost/Task-Pro/test_config.php
+
+✅ Si l'une fonctionne:
+   → Le problème est dans .htaccess
+
+❌ Si toutes les 3 échouent:
+   → Aller ÉTAPE 3
+
+
+ÉTAPE 3: Vérifier les logs Apache
+──────────────────────────────────
+
+WAMP → Apache → Apache error log
+
+Chercher les messages d'erreur avec timestamp récent
+
+
+ÉTAPE 4: Redémarrer complètement
+─────────────────────────────────
+
+1. WAMP → Stop All Services
+2. Attendre 2 secondes
+3. WAMP → Start All Services
+4. Essayer http://localhost/Task-Pro/
+
+
+
+⚡ SOLUTIONS RAPIDES SI ERREUR 500
+
+❌ "Rewrite not allowed"
+→ Vérifier Apache modules: 
+  WAMP tray → Apache modules → ✅ rewrite_module
+  
+❌ "Permission denied"
+→ .htaccess contient une erreur de syntaxe
+→ Télécharger le .htaccess et vérifier
+
+❌ "No such file or directory"
+→ Répertoire Frontend/ absent?
+→ Vérifier: C:\wamp64\www\Task-Pro\Frontend\ existe
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 SI TOUT FONCTIONNE MAINTENANT
+
+✅ Accès: http://localhost/Task-Pro/
+✅ Redirige directement vers login.html
+✅ Formulaire login visible
+✅ Créer un compte via lien inscription
+
+TESTER LOGIN:
+  Email: root@taskpro.com
+  Password: root123
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
