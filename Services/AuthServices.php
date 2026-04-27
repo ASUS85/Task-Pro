@@ -48,6 +48,7 @@ class AuthServices
             $donnees['nom'],
             $donnees['prenom'],
             $donnees['sexe'] ?? 'Non spécifié',
+            $donnees['poste'] ?? 'Non défini',
             $donnees['email'],
             $passwordHache,
             $role
@@ -164,6 +165,7 @@ class AuthServices
             $donnees['nom'],
             $donnees['prenom'],
             $donnees['sexe'] ?? 'Non spécifié',
+            $donnees['poste'] ?? 'Non défini',
             $donnees['email'],
             $passwordParDefaut,
             $donnees['role']
