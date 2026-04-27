@@ -1,0 +1,25 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /Task-Pro/
+
+    # Ne rien réécrire si c'est déjà un fichier ou dossier existant
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Exemple API
+    RewriteRule ^api/(.*)$ public/api.php [L,QSA]
+
+    # Rediriger les autres URLs vers Frontend/
+    RewriteRule ^(.*)$ Frontend/$1 [L]
+</IfModule>
+
+# Interdire l'accès direct aux fichiers sensibles seulement
+<FilesMatch "^(?:config|db|install|setup|test|debug)\.php$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Deny from all
+    </IfModule>
+</FilesMatch>

@@ -45,7 +45,7 @@ $input = file_get_contents("php://input");
 $data = json_decode($input, true) ?? [];
 
 // Services
-$utilisateurDAO = new UtilisateurDAO();
+$utilisateurDAO = new UtilisateurDAO(); 
 $tacheDAO = new TacheDAO();
 $notificationDAO = new NotificationDAO(); 
 $notificationServices = new NotificationServices($notificationDAO);
@@ -92,38 +92,39 @@ try {
 
         // REGISTER
         if (($parts[1] ?? '') === 'register' && $method === 'POST') {
-            $utilisateurDAO->sauvegarder(
-             $data['nom'] ?? '',
-             $data['prenom'] ?? '',
-             $data['sexe'] ?? 'Non spécifié',
-             $data['poste'] ?? '', // Position 4
-             $data['email'] ?? '', // Position 5
-             password_hash($data['password'] ?? '', PASSWORD_BCRYPT),
-             'Employe'
-         );
-
-            echo json_encode(['success' => true, 'message' => 'Inscription réussie']);
+            try {
+                $result = $authServices->inscrire($data);
+                echo json_encode(['success' => true, 'message' => 'Inscription réussie']);
+            } catch (Exception $e) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
             exit;
         }
 
         // LOGIN
         if (($parts[1] ?? '') === 'login' && $method === 'POST') {
-            $user = $authServices->connecter($data['email'], $data['password']);
+            try {
+                $user = $authServices->connecter($data['email'] ?? '', $data['password'] ?? '');
 
-            $_SESSION['user_id'] = $user->getId();
-            $_SESSION['user_role'] = $user->getRole();
+                $_SESSION['user_id'] = $user->getId();
+                $_SESSION['user_role'] = $user->getRole();
 
-            echo json_encode([
-                'success' => true,
-                'message' => 'Connexion réussie',
-                'user' => [
-                    'id' => $user->getId(),
-                    'nom' => $user->getNom(),
-                    'prenom' => $user->getPrenom(),
-                    'email' => $user->getEmail(),
-                    'role' => $user->getRole()
-                ]
-            ]);
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Connexion réussie',
+                    'user' => [
+                        'id' => $user->getId(),
+                        'nom' => $user->getNom(),
+                        'prenom' => $user->getPrenom(),
+                        'email' => $user->getEmail(),
+                        'role' => $user->getRole()
+                    ]
+                ]);
+            } catch (Exception $e) {
+                http_response_code(401);
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
             exit;
         }
 

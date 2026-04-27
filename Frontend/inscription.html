@@ -70,7 +70,7 @@
 
             <div class="input-wrapper">
                 <i data-lucide="shield-check"></i>
-                <input type="password" id="confirmPassword" placeholder="Confirmer le mot de passe *" required autocomplete="new-password">
+                <input type="password" id="confirm_password" placeholder="Confirmer le mot de passe *" required autocomplete="new-password">
             </div>
 
             <!-- Déjà un compte -->
@@ -98,7 +98,9 @@
 
     </div>
 
-    <!-- Scripts -->
+    <script src="api.js"></script>
+    <script src="script.js"></script>
+
     <script>
         lucide.createIcons();
 
@@ -106,8 +108,6 @@
             document.getElementById("registerForm").reset();
         });
     </script>
-
-    <script src="script.js"></script>
 
 </body>
 </html>
