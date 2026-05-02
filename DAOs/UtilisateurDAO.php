@@ -20,26 +20,26 @@ class UtilisateurDAO
     /**
      * Sauvegarder un nouvel utilisateur
      */
-     public function sauvegarder(string $nom, string $prenom, string $sexe, string $poste, string $email, string $password, string $role): bool
-   {
-    try {
-        $sql = "INSERT INTO utilisateurs (nom, prenom, sexe, poste, email, password, role, created_at) 
+    public function sauvegarder(string $nom, string $prenom, string $sexe, string $poste, string $email, string $password, string $role): bool
+    {
+        try {
+            $sql = "INSERT INTO utilisateurs (nom, prenom, sexe, poste, email, password, role, created_at) 
                 VALUES (:nom, :prenom, :sexe, :poste, :email, :password, :role, NOW())";
 
-        $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute([
-            ':nom'      => $nom,
-            ':prenom'   => $prenom,
-            ':sexe'     => $sexe,
-            ':poste'    => $poste, // Maintenant $poste existe bien grâce à l'argument ajouté plus haut
-            ':email'    => $email,
-            ':password' => $password,
-            ':role'     => $role,
-        ]);
-    } catch (PDOException $e) {
-        throw new Exception("Erreur lors de la sauvegarde : " . $e->getMessage());
+            $stmt = $this->pdo->prepare($sql);
+            return $stmt->execute([
+                ':nom'      => $nom,
+                ':prenom'   => $prenom,
+                ':sexe'     => $sexe,
+                ':poste'    => $poste, // Maintenant $poste existe bien grâce à l'argument ajouté plus haut
+                ':email'    => $email,
+                ':password' => $password,
+                ':role'     => $role,
+            ]);
+        } catch (PDOException $e) {
+            throw new Exception("Erreur lors de la sauvegarde : " . $e->getMessage());
+        }
     }
-}
 
     /**
      * Chercher utilisateur par email
@@ -121,7 +121,7 @@ class UtilisateurDAO
             $params = [':id' => $id];
 
             foreach ($donnees as $key => $value) {
-                if (in_array($key, ['nom', 'prenom', 'sexe','poste', 'email', 'password', 'role'])) {
+                if (in_array($key, ['nom', 'prenom', 'sexe', 'poste', 'email', 'password', 'role'])) {
                     $colonnes[] = "$key = :$key";
                     $params[":$key"] = $value;
                 }
@@ -212,7 +212,8 @@ class UtilisateurDAO
                     $data['sexe'],
                     $data['email'],
                     $data['password'],
-                    $data['role']
+                    $data['role'],
+                    $data['poste'] ?? 'Administration'
                 );
 
             case 'Employe':

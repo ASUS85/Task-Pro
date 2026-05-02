@@ -45,7 +45,7 @@ $input = file_get_contents("php://input");
 $data = json_decode($input, true) ?? [];
 
 // Services
-$utilisateurDAO = new UtilisateurDAO();
+$utilisateurDAO = new UtilisateurDAO(); 
 $tacheDAO = new TacheDAO();
 $notificationDAO = new NotificationDAO(); 
 $notificationServices = new NotificationServices($notificationDAO);
@@ -92,38 +92,39 @@ try {
 
         // REGISTER
         if (($parts[1] ?? '') === 'register' && $method === 'POST') {
-            $utilisateurDAO->sauvegarder(
-             $data['nom'] ?? '',
-             $data['prenom'] ?? '',
-             $data['sexe'] ?? 'Non spécifié',
-             $data['poste'] ?? '', // Position 4
-             $data['email'] ?? '', // Position 5
-             password_hash($data['password'] ?? '', PASSWORD_BCRYPT),
-             'Employe'
-         );
-
-            echo json_encode(['success' => true, 'message' => 'Inscription réussie']);
+            try {
+                $result = $authServices->inscrire($data);
+                echo json_encode(['success' => true, 'message' => 'Inscription réussie']);
+            } catch (Exception $e) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
             exit;
         }
 
         // LOGIN
         if (($parts[1] ?? '') === 'login' && $method === 'POST') {
-            $user = $authServices->connecter($data['email'], $data['password']);
+            try {
+                $user = $authServices->connecter($data['email'] ?? '', $data['password'] ?? '');
 
-            $_SESSION['user_id'] = $user->getId();
-            $_SESSION['user_role'] = $user->getRole();
+                $_SESSION['user_id'] = $user->getId();
+                $_SESSION['user_role'] = $user->getRole();
 
-            echo json_encode([
-                'success' => true,
-                'message' => 'Connexion réussie',
-                'user' => [
-                    'id' => $user->getId(),
-                    'nom' => $user->getNom(),
-                    'prenom' => $user->getPrenom(),
-                    'email' => $user->getEmail(),
-                    'role' => $user->getRole()
-                ]
-            ]);
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Connexion réussie',
+                    'user' => [
+                        'id' => $user->getId(),
+                        'nom' => $user->getNom(),
+                        'prenom' => $user->getPrenom(),
+                        'email' => $user->getEmail(),
+                        'role' => $user->getRole()
+                    ]
+                ]);
+            } catch (Exception $e) {
+                http_response_code(401);
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
             exit;
         }
 
@@ -205,6 +206,78 @@ try {
          exit;
         }
    }
+
+    // ================= DASHBOARD =================
+    if ($parts[0] === 'dashboard') {
+        
+        requireAuth();
+        
+        // STATS PAR RÔLE
+        if (($parts[1] ?? '') === 'stats' && $method === 'GET') {
+            $userId = $_SESSION['user_id'];
+            $userRole = $_SESSION['user_role'];
+            $user = $utilisateurDAO->trouverParId($userId);
+            
+            $stats = [];
+            
+            // Récupérer toutes les tâches
+            $allTaches = $tacheDAO->obtenirTous();
+            
+            if ($userRole === 'SuperAdmin' || $userRole === 'Administrateur') {
+                // Admin/SuperAdmin : toutes les stats
+                $stats = [
+                    'totalTaches' => count($allTaches),
+                    'tachesEnCours' => count(array_filter($allTaches, fn($t) => isset($t['status']) && $t['status'] === 'en cours')),
+                    'tachesTerminees' => count(array_filter($allTaches, fn($t) => isset($t['status']) && $t['status'] === 'terminé')),
+                    'tachesNonAssignees' => count(array_filter($allTaches, fn($t) => isset($t['status']) && $t['status'] === 'non assigné')),
+                    'tachesAssignees' => count(array_filter($allTaches, fn($t) => isset($t['status']) && $t['status'] === 'assigné')),
+                    'utilisateurActif' => $user->getNom() . ' ' . $user->getPrenom(),
+                    'role' => $userRole
+                ];
+                
+                // Ajouter nombre d'utilisateurs
+                $allUsers = $utilisateurDAO->obtenirTous();
+                $stats['totalUtilisateurs'] = count($allUsers);
+                $stats['adminCount'] = count(array_filter($allUsers, fn($u) => isset($u['role']) && $u['role'] === 'Administrateur'));
+                $stats['employeCount'] = count(array_filter($allUsers, fn($u) => isset($u['role']) && $u['role'] === 'Employe'));
+                
+            } else if ($userRole === 'Employe') {
+                // Employe : ses tâches seulement
+                $mesTaches = array_filter($allTaches, fn($t) => isset($t['id_responsable']) && $t['id_responsable'] == $userId);
+                
+                $stats = [
+                    'totalTaches' => count($mesTaches),
+                    'tachesEnCours' => count(array_filter($mesTaches, fn($t) => isset($t['status']) && $t['status'] === 'en cours')),
+                    'tachesTerminees' => count(array_filter($mesTaches, fn($t) => isset($t['status']) && $t['status'] === 'terminé')),
+                    'tachesAssignees' => count(array_filter($mesTaches, fn($t) => isset($t['status']) && $t['status'] === 'assigné')),
+                    'utilisateurActif' => $user->getNom() . ' ' . $user->getPrenom(),
+                    'role' => $userRole
+                ];
+            }
+            
+            echo json_encode(['success' => true, 'stats' => $stats]);
+            exit;
+        }
+        
+        // TÂCHES RÉCENTES
+        if (($parts[1] ?? '') === 'recent-tasks' && $method === 'GET') {
+            $userId = $_SESSION['user_id'];
+            $userRole = $_SESSION['user_role'];
+            
+            $allTaches = $tacheDAO->obtenirTous();
+            
+            $taches = [];
+            if ($userRole === 'SuperAdmin' || $userRole === 'Administrateur') {
+                $taches = array_slice($allTaches, 0, 5);
+            } else if ($userRole === 'Employe') {
+                $mesTaches = array_filter($allTaches, fn($t) => isset($t['id_responsable']) && $t['id_responsable'] == $userId);
+                $taches = array_slice(array_values($mesTaches), 0, 5);
+            }
+            
+            echo json_encode(['success' => true, 'tasks' => $taches]);
+            exit;
+        }
+    }
 
     // ================= ADMIN =================
     if ($parts[0] === 'admin') {

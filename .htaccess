@@ -1,0 +1,27 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /Task-Pro/
+
+    # 1. Ne rien faire si le fichier ou dossier existe réellement
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # 2. Gestion de l'API
+    RewriteRule ^api/(.*)$ public/api.php [L,QSA]
+
+    # 3. Rediriger vers Frontend SEULEMENT si on n'y est pas déjà
+    # Cette ligne empêche la boucle infinie
+    RewriteCond %{REQUEST_URI} !^/Task-Pro/Frontend/ [NC]
+    RewriteRule ^(.*)$ Frontend/$1 [L]
+</IfModule>
+
+# Protection des fichiers sensibles
+<FilesMatch "^(?:config|db|install|setup|test|debug)\.php$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Deny from all
+    </IfModule>
+</FilesMatch>

@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskPRO V2.0 - Checklist Déploiement</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .phase {
+            margin-bottom: 30px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .phase-header {
+            background: #f5f5f5;
+            padding: 15px 20px;
+            border-bottom: 2px solid #eee;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+        }
+
+        .phase-header:hover {
+            background: #f0f0f0;
+        }
+
+        .phase-header.completed {
+            background: #e6f7ed;
+            border-bottom-color: #52c41a;
+        }
+
+        .phase-icon {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .phase-content {
+            padding: 20px;
+            display: none;
+        }
+
+        .phase-content.active {
+            display: block;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .checklist-item:hover {
+            background: #f0f0f0;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            cursor: pointer;
+            margin-top: 2px;
+            accent-color: #667eea;
+        }
+
+        .checklist-item.checked {
+            background: #e6f7ed;
+            opacity: 0.7;
+        }
+
+        .checklist-item.checked label {
+            text-decoration: line-through;
+            color: #999;
+        }
+
+        .checklist-item label {
+            flex: 1;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .checklist-item label strong {
+            color: #333;
+        }
+
+        .checklist-item label small {
+            display: block;
+            color: #666;
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #eee;
+        }
+
+        .stat {
+            text-align: center;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-info {
+            background: #e6f7ff;
+            border-left: 4px solid #1890ff;
+            color: #0050b3;
+        }
+
+        .alert-success {
+            background: #f6ffed;
+            border-left: 4px solid #52c41a;
+            color: #274a00;
+        }
+
+        .footer {
+            background: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 2px solid #eee;
+        }
+
+        @media (max-width: 768px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✅ TaskPRO V2.0</h1>
+            <p>Checklist Déploiement Interactif</p>
+        </div>
+
+        <div class="content">
+            <div class="alert alert-info">
+                ℹ️ Cliquez sur chaque phase pour voir les tâches. Cochez les éléments au fur et à mesure.
+            </div>
+
+            <!-- Phase 1 -->
+            <div class="phase" data-phase="1">
+                <div class="phase-header" onclick="togglePhase(1)">
+                    <span>
+                        <span class="phase-icon">🔧</span>
+                        Phase 1 : Vérification Scripts
+                    </span>
+                    <span class="phase-toggle">▼</span>
+                </div>
+                <div class="phase-content">
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task1-1" onchange="updateProgress()">
+                        <label for="task1-1">
+                            <strong>Scripts chargés correctement</strong>
+                            <small>Ouvrir DevTools → Console → Pas d'erreurs 404</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task1-2" onchange="updateProgress()">
+                        <label for="task1-2">
+                            <strong>SessionManager disponible</strong>
+                            <small>Console: typeof sessionManager → 'object'</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task1-3" onchange="updateProgress()">
+                        <label for="task1-3">
+                            <strong>LoaderManager disponible</strong>
+                            <small>Console: typeof loaderManager → 'object'</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task1-4" onchange="updateProgress()">
+                        <label for="task1-4">
+                            <strong>Auth Helper disponible</strong>
+                            <small>Console: typeof requireAuth → 'function'</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 2 -->
+            <div class="phase" data-phase="2">
+                <div class="phase-header" onclick="togglePhase(2)">
+                    <span>
+                        <span class="phase-icon">🔐</span>
+                        Phase 2 : Authentification
+                    </span>
+                    <span class="phase-toggle">▼</span>
+                </div>
+                <div class="phase-content">
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task2-1" onchange="updateProgress()">
+                        <label for="task2-1">
+                            <strong>Accès page login</strong>
+                            <small>http://localhost/Task-Pro/Frontend/login.html</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task2-2" onchange="updateProgress()">
+                        <label for="task2-2">
+                            <strong>Connexion réussie</strong>
+                            <small>Email: admin@test.com / Pwd: password123</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task2-3" onchange="updateProgress()">
+                        <label for="task2-3">
+                            <strong>Redirection dashboard</strong>
+                            <small>URL changée vers dashboard.html après login</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task2-4" onchange="updateProgress()">
+                        <label for="task2-4">
+                            <strong>Session persistée</strong>
+                            <small>localStorage['user'] contient objet utilisateur</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 3 -->
+            <div class="phase" data-phase="3">
+                <div class="phase-header" onclick="togglePhase(3)">
+                    <span>
+                        <span class="phase-icon">📊</span>
+                        Phase 3 : Dashboard
+                    </span>
+                    <span class="phase-toggle">▼</span>
+                </div>
+                <div class="phase-content">
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task3-1" onchange="updateProgress()">
+                        <label for="task3-1">
+                            <strong>Stats chargées</strong>
+                            <small>Total Tâches, En cours, Complétées, En attente affichés</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task3-2" onchange="updateProgress()">
+                        <label for="task3-2">
+                            <strong>Tâches récentes affichées</strong>
+                            <small>Liste de 5 tâches maximum</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task3-3" onchange="updateProgress()">
+                        <label for="task3-3">
+                            <strong>Notifications chargées</strong>
+                            <small>Liste de notifications utilisateur</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task3-4" onchange="updateProgress()">
+                        <label for="task3-4">
+                            <strong>Rafraîchissement auto</strong>
+                            <small>Attendre 30s, stats se mettent à jour automatiquement</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 4 -->
+            <div class="phase" data-phase="4">
+                <div class="phase-header" onclick="togglePhase(4)">
+                    <span>
+                        <span class="phase-icon">📝</span>
+                        Phase 4 : Tâches
+                    </span>
+                    <span class="phase-toggle">▼</span>
+                </div>
+                <div class="phase-content">
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task4-1" onchange="updateProgress()">
+                        <label for="task4-1">
+                            <strong>Liste tâches chargée</strong>
+                            <small>Aller à "Liste des tâches"</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task4-2" onchange="updateProgress()">
+                        <label for="task4-2">
+                            <strong>Filtre par statut</strong>
+                            <small>Sélectionner un statut, liste mise à jour</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task4-3" onchange="updateProgress()">
+                        <label for="task4-3">
+                            <strong>Recherche par titre</strong>
+                            <small>Taper un mot-clé, résultats filtrés</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task4-4" onchange="updateProgress()">
+                        <label for="task4-4">
+                            <strong>Modal détail tâche</strong>
+                            <small>Cliquer une ligne, modal s'ouvre</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task4-5" onchange="updateProgress()">
+                        <label for="task4-5">
+                            <strong>Changement statut (SPA)</strong>
+                            <small>Changer statut, table MAJ sans rechargement page</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 5 -->
+            <div class="phase" data-phase="5">
+                <div class="phase-header" onclick="togglePhase(5)">
+                    <span>
+                        <span class="phase-icon">👥</span>
+                        Phase 5 : Utilisateurs
+                    </span>
+                    <span class="phase-toggle">▼</span>
+                </div>
+                <div class="phase-content">
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task5-1" onchange="updateProgress()">
+                        <label for="task5-1">
+                            <strong>Accès Gestion Utilisateurs</strong>
+                            <small>Aller à "Gestion Utilisateurs"</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task5-2" onchange="updateProgress()">
+                        <label for="task5-2">
+                            <strong>Liste utilisateurs chargée</strong>
+                            <small>Tableau rempli avec utilisateurs API</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task5-3" onchange="updateProgress()">
+                        <label for="task5-3">
+                            <strong>Créer nouvel utilisateur</strong>
+                            <small>Cliquer "Ajouter Utilisateur", formulaire</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task5-4" onchange="updateProgress()">
+                        <label for="task5-4">
+                            <strong>Soumettre création</strong>
+                            <small>Remplir et soumettre, toast succès</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task5-5" onchange="updateProgress()">
+                        <label for="task5-5">
+                            <strong>Table MAJ automatiquement</strong>
+                            <small>Nouvel utilisateur apparaît sans rechargement</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 6 -->
+            <div class="phase" data-phase="6">
+                <div class="phase-header" onclick="togglePhase(6)">
+                    <span>
+                        <span class="phase-icon">➕</span>
+                        Phase 6 : Création Tâche
+                    </span>
+                    <span class="phase-toggle">▼</span>
+                </div>
+                <div class="phase-content">
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task6-1" onchange="updateProgress()">
+                        <label for="task6-1">
+                            <strong>Accès page création</strong>
+                            <small>Aller à "Créer une tâche"</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task6-2" onchange="updateProgress()">
+                        <label for="task6-2">
+                            <strong>Dropdowns populées</strong>
+                            <small>Responsable et Tâche parent remplis</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task6-3" onchange="updateProgress()">
+                        <label for="task6-3">
+                            <strong>Remplir formulaire</strong>
+                            <small>Titre, description, période requis</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task6-4" onchange="updateProgress()">
+                        <label for="task6-4">
+                            <strong>Soumettre création</strong>
+                            <small>Cliquer "Créer la tâche"</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task6-5" onchange="updateProgress()">
+                        <label for="task6-5">
+                            <strong>Redirection task-list</strong>
+                            <small>Après création, affiche page tâches</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 7 -->
+            <div class="phase" data-phase="7">
+                <div class="phase-header" onclick="togglePhase(7)">
+                    <span>
+                        <span class="phase-icon">🎯</span>
+                        Phase 7 : Profil
+                    </span>
+                    <span class="phase-toggle">▼</span>
+                </div>
+                <div class="phase-content">
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task7-1" onchange="updateProgress()">
+                        <label for="task7-1">
+                            <strong>Accès profil utilisateur</strong>
+                            <small>Aller à "Mon Profil"</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task7-2" onchange="updateProgress()">
+                        <label for="task7-2">
+                            <strong>Info profil chargées</strong>
+                            <small>Nom, email, poste affichés</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task7-3" onchange="updateProgress()">
+                        <label for="task7-3">
+                            <strong>Mode édition</strong>
+                            <small>Cliquer "Éditer", champs modifiables</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task7-4" onchange="updateProgress()">
+                        <label for="task7-4">
+                            <strong>Changement mot de passe</strong>
+                            <small>Cliquer "Changer mot de passe"</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 8 -->
+            <div class="phase" data-phase="8">
+                <div class="phase-header" onclick="togglePhase(8)">
+                    <span>
+                        <span class="phase-icon">✨</span>
+                        Phase 8 : UX & Loaders
+                    </span>
+                    <span class="phase-toggle">▼</span>
+                </div>
+                <div class="phase-content">
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task8-1" onchange="updateProgress()">
+                        <label for="task8-1">
+                            <strong>Loaders affichés</strong>
+                            <small>Lors chargement données (fullscreen/section)</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task8-2" onchange="updateProgress()">
+                        <label for="task8-2">
+                            <strong>Toast notifications</strong>
+                            <small>Messages succès/erreur s'affichent</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task8-3" onchange="updateProgress()">
+                        <label for="task8-3">
+                            <strong>SPA sans rechargement</strong>
+                            <small>Changer statut/créer/supprimer sans reload</small>
+                        </label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="task8-4" onchange="updateProgress()">
+                        <label for="task8-4">
+                            <strong>Responsive design</strong>
+                            <small>Pages responsive sur mobile/tablet</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-number" id="completedCount">0</div>
+                    <div class="stat-label">Tâches complétées</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="remainingCount">0</div>
+                    <div class="stat-label">Tâches restantes</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="progressPercent">0%</div>
+                    <div class="stat-label">Progression</div>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <button class="btn-secondary" onclick="resetAll()">Réinitialiser</button>
+                <button class="btn-primary" onclick="printChecklist()">Imprimer</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>TaskPRO V2.0 - Checklist Déploiement | Vérifiez tous les éléments avant production</p>
+        </div>
+    </div>
+
+    <script>
+        function togglePhase(phaseNum) {
+            const phase = document.querySelector(`[data-phase="${phaseNum}"]`);
+            const content = phase.querySelector('.phase-content');
+            content.classList.toggle('active');
+        }
+
+        function updateProgress() {
+            const allCheckboxes = document.querySelectorAll('input[type="checkbox"]');
+            const checkedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            
+            const total = allCheckboxes.length;
+            const completed = checkedCheckboxes.length;
+            const percent = Math.round((completed / total) * 100);
+
+            document.getElementById('completedCount').textContent = completed;
+            document.getElementById('remainingCount').textContent = total - completed;
+            document.getElementById('progressPercent').textContent = percent + '%';
+            document.getElementById('progressBar').style.width = percent + '%';
+
+            // Marquer les phases complètes
+            for (let i = 1; i <= 8; i++) {
+                const phase = document.querySelector(`[data-phase="${i}"]`);
+                const phaseCheckboxes = phase.querySelectorAll('input[type="checkbox"]');
+                const phaseChecked = phase.querySelectorAll('input[type="checkbox"]:checked');
+                
+                if (phaseCheckboxes.length === phaseChecked.length && phaseCheckboxes.length > 0) {
+                    phase.classList.add('completed');
+                    phase.querySelector('.phase-header').classList.add('completed');
+                } else {
+                    phase.classList.remove('completed');
+                    phase.querySelector('.phase-header').classList.remove('completed');
+                }
+            }
+
+            // Marquer les items
+            allCheckboxes.forEach(checkbox => {
+                const item = checkbox.closest('.checklist-item');
+                if (checkbox.checked) {
+                    item.classList.add('checked');
+                } else {
+                    item.classList.remove('checked');
+                }
+            });
+
+            localStorage.setItem('taskproChecklist', JSON.stringify({
+                checkboxes: Array.from(allCheckboxes).map((cb, i) => ({id: cb.id, checked: cb.checked}))
+            }));
+        }
+
+        function resetAll() {
+            if (confirm('Êtes-vous sûr de vouloir réinitialiser?')) {
+                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                localStorage.removeItem('taskproChecklist');
+                updateProgress();
+            }
+        }
+
+        function printChecklist() {
+            window.print();
+        }
+
+        // Charger depuis localStorage au démarrage
+        window.addEventListener('load', () => {
+            const saved = localStorage.getItem('taskproChecklist');
+            if (saved) {
+                const data = JSON.parse(saved);
+                data.checkboxes.forEach(item => {
+                    const cb = document.getElementById(item.id);
+                    if (cb) cb.checked = item.checked;
+                });
+            }
+            updateProgress();
+        });
+
+        // Style d'impression
+        const printStyle = document.createElement('style');
+        printStyle.innerHTML = `
+            @media print {
+                body { background: white; padding: 0; }
+                .container { box-shadow: none; }
+                .actions { display: none; }
+                .phase-content { display: block !important; }
+                .phase-header { cursor: default; }
+            }
+        `;
+        document.head.appendChild(printStyle);
+    </script>
+</body>
+</html>

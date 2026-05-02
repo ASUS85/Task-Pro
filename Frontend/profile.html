@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskPRO - Profil</title>
+
+    <link rel="stylesheet" href="profile.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="dashboard-body" data-page="profile">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="logo-area">
+            <span class="logo-icon">🟡</span>
+            <span class="logo-text">TaskPRO</span>
+        </div>
+
+        <nav class="side-nav">
+            <a href="dashboard.html">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Vue d'ensemble</span>
+            </a>
+
+            <a href="create-task.html">
+                <i data-lucide="plus-square"></i>
+                <span>Créer une tâche</span>
+            </a>
+
+            <a href="task-list.html">
+                <i data-lucide="check-square"></i>
+                <span>Liste des tâches</span>
+            </a>
+
+            <a href="users-list.html">
+                <i data-lucide="users"></i>
+                <span>Utilisateurs</span>
+            </a>
+
+            <a href="profile.html" class="active">
+                <i data-lucide="user-cog"></i>
+                <span>Profil</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="logout()">
+                <i data-lucide="log-out"></i>
+                Déconnexion
+            </button>
+        </div>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- PROFILE HEADER -->
+        <div class="profile-header">
+            <div class="avatar-box">
+                <div class="avatar">SA</div>
+                <div>
+                    <h1>Super Admin</h1>
+                    <p class="role">Super Administrateur</p>
+                    <span class="status online">En ligne</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- STATS -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <h3>32</h3>
+                <p>Tâches créées</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>18</h3>
+                <p>Tâches assignées</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>25</h3>
+                <p>Complétées</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>7</h3>
+                <p>Utilisateurs gérés</p>
+            </div>
+        </section>
+
+        <!-- INFOS / SECURITE -->
+        <section class="info-grid">
+
+            <div class="card">
+                <h2>Informations personnelles</h2>
+
+                <div class="info-item">
+                    <span>Nom</span>
+                    <p>Super Admin</p>
+                </div>
+
+                <div class="info-item">
+                    <span>Email</span>
+                    <p>admin@taskpro.com</p>
+                </div>
+
+                <div class="info-item">
+                    <span>Rôle</span>
+                    <p>Super Administrateur</p>
+                </div>
+
+                <div class="info-item">
+                    <span>Dernière connexion</span>
+                    <p>26 Avril 2026</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Sécurité</h2>
+
+                <button class="btn">Changer mot de passe</button>
+                <button class="btn danger">Déconnecter tous les appareils</button>
+                <button class="btn danger">Désactiver compte</button>
+            </div>
+
+        </section>
+
+        <!-- SUPER ADMIN PANEL -->
+        <section class="card full super-admin-panel">
+
+            <div class="panel-top">
+                <h2>
+                    <i data-lucide="shield-plus"></i>
+                    Gestion des Administrateurs
+                </h2>
+            </div>
+
+            <div class="admin-management-grid">
+
+                <!-- CREATE ADMIN FORM -->
+                <div class="admin-create-card">
+
+                    <h3>Créer un nouvel administrateur</h3>
+                    <p class="admin-subtitle">
+                        Ajoutez un nouveau membre à l’équipe administrative.
+                    </p>
+
+                    <form class="admin-create-form" id="createAdminForm">
+
+                        <div class="form-fields">
+
+                            <input type="text" placeholder="Nom complet administrateur" required>
+
+                            <input type="email" placeholder="Adresse email" required>
+
+                            <input type="password" placeholder="Mot de passe temporaire" required>
+
+                        </div>
+
+                        <button type="submit" class="create-admin-btn">
+                            <i data-lucide="user-plus"></i>
+                            Créer Administrateur
+                        </button>
+
+                    </form>
+
+                </div>
+
+                <!-- ADMINS DIRECTORY -->
+                <div class="admin-directory">
+
+                    <div class="admin-directory-header">
+                        <h3>Administrateurs Existants</h3>
+                        <span class="admin-count">2 Admins</span>
+                    </div>
+
+                    <div class="admins-list">
+
+                        <div class="admin-row">
+                            <div class="admin-left">
+                                <div class="admin-avatar">JD</div>
+                                <div>
+                                    <strong>Jean Dupont</strong>
+                                    <p>jean@taskpro.com</p>
+                                </div>
+                            </div>
+
+                            <div class="admin-actions">
+                                <button class="icon-btn">Voir</button>
+                                <button class="icon-btn">Modifier</button>
+                                <button class="icon-btn danger">Supprimer</button>
+                            </div>
+                        </div>
+
+                        <div class="admin-row">
+                            <div class="admin-left">
+                                <div class="admin-avatar">SM</div>
+                                <div>
+                                    <strong>Sarah Mvondo</strong>
+                                    <p>sarah@taskpro.com</p>
+                                </div>
+                            </div>
+
+                            <div class="admin-actions">
+                                <button class="icon-btn">Voir</button>
+                                <button class="icon-btn">Modifier</button>
+                                <button class="icon-btn danger">Supprimer</button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ACTIVITÉ -->
+        <section class="card full">
+
+            <h2>Activité récente</h2>
+
+            <ul class="activity-list">
+                <li>
+                    <span>Création d’une tâche “Dashboard Analytics”</span>
+                    <small>Il y a 2h</small>
+                </li>
+
+                <li>
+                    <span>Modification utilisateur Sarah Smith</span>
+                    <small>Hier</small>
+                </li>
+
+                <li>
+                    <span>Suppression d’une tâche obsolète</span>
+                    <small>Il y a 2 jours</small>
+                </li>
+            </ul>
+
+        </section>
+
+    </main>
+
+    <!-- MODAL CONFIRMATION CREATE ADMIN -->
+    <div class="modal" id="confirmAdminModal">
+
+        <div class="modal-content">
+
+            <h3>Confirmer la création</h3>
+
+            <p>
+                Voulez-vous vraiment créer ce nouvel administrateur ?
+            </p>
+
+            <div class="modal-actions">
+                <button class="btn" id="cancelAdminCreate">Annuler</button>
+                <button class="btn create-admin-btn" id="confirmAdminCreate">
+                    Confirmer
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function logout() {
+            if(confirm("Voulez-vous vraiment vous déconnecter ?")) {
+                window.location.href = "login.html";
+            }
+        }
+    </script>
+
+    <script src="profile.js"></script>
+    <div class="modal" id="adminActionModal">
+    <div class="modal-content">
+
+        <h3 id="modalTitle">Action Admin</h3>
+
+        <div id="adminDetails"></div>
+
+        <div class="modal-actions">
+
+            <button class="btn" id="closeAdminModal">Fermer</button>
+
+            <button class="btn" id="editAdminBtn">Modifier</button>
+
+            <button class="btn danger" id="deleteAdminBtn">Supprimer</button>
+
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

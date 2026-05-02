@@ -48,6 +48,7 @@ class AuthServices
             $donnees['nom'],
             $donnees['prenom'],
             $donnees['sexe'] ?? 'Non spécifié',
+            $donnees['poste'] ?? 'Non défini',
             $donnees['email'],
             $passwordHache,
             $role
@@ -59,17 +60,6 @@ class AuthServices
      */
     public function connecter(string $email, string $password)
     {
-        if ($email === 'root@taskpro.com' && $password === 'root123') {
-            return new Administrateur(
-                0,
-                'Root',
-                'System',
-                'N/A',
-                'root@taskpro.com',
-                '',
-                'SuperAdmin' //  on utilise SuperAdmin
-            );
-        }
         // Chercher l'utilisateur par email
         $utilisateur = $this->utilisateurDAO->trouverParEmail($email);
 
@@ -164,6 +154,7 @@ class AuthServices
             $donnees['nom'],
             $donnees['prenom'],
             $donnees['sexe'] ?? 'Non spécifié',
+            $donnees['poste'] ?? 'Non défini',
             $donnees['email'],
             $passwordParDefaut,
             $donnees['role']

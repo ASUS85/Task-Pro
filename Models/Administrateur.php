@@ -7,18 +7,19 @@ class Administrateur extends Personne
     private const ROLES_VALIDES = ["Administrateur", "SuperAdmin"];
 
     public function __construct(
-        int $id, 
-        string $nom, 
-        string $prenom, 
-        string $sexe, 
+        int $id,
+        string $nom,
+        string $prenom,
+        string $sexe,
         string $email,
-        string $poste, 
-        string $password, 
-        string $role = "Administrateur"
+        string $password,
+        string $role = "Administrateur",
+        string $poste = "Administration"
     ) {
         if (!in_array($role, self::ROLES_VALIDES)) {
             throw new InvalidArgumentException("Rôle invalide : " . $role);
         }
-        parent::__construct($id, $nom, $prenom, $sexe, $poste, $email, $password, $role);
+
+        parent::__construct($id, $nom, $prenom, $sexe, $email, $poste, $password, $role);
     }
 }

@@ -1,0 +1,407 @@
+/* ============================================================
+   TASKPRO - TASK LIST CSS (HARMONISÉ CREATE TASK STYLE)
+   ============================================================ */
+
+:root {
+    --primary-gold: #D4AF37;
+    --gold-glow: rgba(212, 175, 55, 0.2);
+    --bg-dark: #08080a;
+    --sidebar-bg: #0d0d11;
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --text-dim: #777;
+}
+
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* BODY */
+body.dashboard-body {
+    background: var(--bg-dark);
+    color: white;
+    display: flex;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* =========================
+   SIDEBAR (IDENTIQUE CREATE-TASK)
+========================= */
+/* =========================
+   SIDEBAR
+========================= */
+.sidebar {
+    width: 270px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    background: linear-gradient(180deg, #0d0d11, #111217);
+    border-right: 1px solid rgba(255,255,255,0.06);
+
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+}
+.sidebar-footer {
+    margin-top: auto;
+}
+
+/* LOGO */
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 50px;
+}
+
+.logo-text {
+    font-weight: 800;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+
+    background: linear-gradient(90deg, #fff, #d4af37);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* NAV */
+.side-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* LIENS */
+.side-nav a {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    padding: 14px 18px;
+
+    color: #777;
+    text-decoration: none;
+
+    border-radius: 12px;
+
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+/* EFFET LUMIÈRE AU SURVOL */
+.side-nav a::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(212,175,55,0.15),
+        transparent
+    );
+
+    opacity: 0;
+    transition: 0.3s;
+}
+
+/* HOVER */
+.side-nav a:hover {
+    color: #fff;
+    transform: translateX(6px);
+}
+
+.side-nav a:hover::before {
+    opacity: 1;
+}
+
+/* PAGE ACTIVE */
+.side-nav a.active {
+    background: rgba(212,175,55,0.12);
+    color: #d4af37;
+
+    border-left: 4px solid #d4af37;
+
+    box-shadow: inset 10px 0 20px rgba(212,175,55,0.05);
+}
+
+/* ICON */
+.side-nav i {
+    transition: 0.3s;
+}
+
+.side-nav a:hover i {
+    transform: scale(1.2);
+}
+
+/* LOGOUT */
+.logout-btn {
+    margin-top: auto;
+
+    background: rgba(255, 60, 60, 0.08);
+    border: 1px solid rgba(255, 60, 60, 0.15);
+
+    padding: 12px;
+
+    border-radius: 12px;
+    color: #ff5f5f;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.logout-btn:hover {
+    background: #ff5f5f;
+    color: #fff;
+
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255,95,95,0.3);
+}
+/* =========================
+   MAIN
+========================= */
+.main-content {
+    flex: 1;
+    padding: 40px 50px;
+    overflow-y: auto;
+    margin-left: 270px;
+}
+
+/* HEADER (MÊME STYLE CREATE TASK) */
+.page-header h1 {
+    font-size: 2.6rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, white, #d4af37);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.page-header p {
+    color: #8d8d95;
+    margin-top: 10px;
+}
+
+/* =========================
+   FILTERS (STYLE INPUT CREATE TASK)
+========================= */
+.task-filters {
+    display: flex;
+    gap: 15px;
+    margin: 25px 0;
+    flex-wrap: wrap;
+}
+
+.task-filters input,
+.task-filters select {
+    padding: 16px 18px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.07);
+    background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025));
+    color: white;
+    min-width: 220px;
+    transition: 0.25s;
+}
+
+.task-filters input:focus,
+.task-filters select:focus {
+    border-color: var(--primary-gold);
+    box-shadow: 0 0 0 4px rgba(212,175,55,0.08);
+    outline: none;
+}
+
+/* =========================
+   TABLE (MODERN ENTERPRISE STYLE)
+========================= */
+.task-table-container {
+    background: linear-gradient(145deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 28px;
+    overflow: hidden;
+    backdrop-filter: blur(18px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+}
+
+.task-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.task-table thead {
+    background: rgba(255,255,255,0.03);
+}
+
+.task-table th {
+    text-align: left;
+    padding: 18px;
+    font-size: 0.85rem;
+    color: var(--primary-gold);
+    text-transform: uppercase;
+}
+
+.task-table td {
+    padding: 18px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    color: #ddd;
+}
+
+.task-table tbody tr {
+    transition: 0.25s;
+    cursor: pointer;
+}
+
+.task-table tbody tr:hover {
+    background: rgba(212,175,55,0.05);
+}
+
+/* =========================
+   STATUS BADGES
+========================= */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.status-en_cours { background: rgba(0,184,255,0.12); color: #00b8ff; }
+.status-en_attente { background: rgba(255,152,0,0.12); color: #ff9800; }
+.status-terminee { background: rgba(0,210,106,0.12); color: #00d26a; }
+.status-retard { background: rgba(255,77,77,0.12); color: #ff4d4d; }
+
+/* =========================
+   ACTION BUTTONS (STYLE CREATE TASK)
+========================= */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+    color: white;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.action-btn:hover {
+    background: var(--primary-gold);
+    color: black;
+    transform: translateY(-2px);
+}
+
+/* =========================
+   MODAL (IDENTIQUE CREATE TASK STYLE)
+========================= */
+.modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+}
+
+.modal-content {
+    width: 90%;
+    max-width: 900px;
+    background: #111217;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 28px;
+    padding: 30px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    color: var(--primary-gold);
+}
+
+.modal-header button {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: none;
+    background: rgba(255,255,255,0.05);
+    color: white;
+    cursor: pointer;
+}
+
+/* DETAILS GRID */
+.task-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.detail-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 18px;
+}
+
+.detail-card span {
+    color: #999;
+    font-size: 0.8rem;
+}
+
+.detail-card strong,
+.detail-card p,
+.detail-card a {
+    color: white;
+}
+
+.full-width {
+    grid-column: span 2;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 900px) {
+    .sidebar { display: none; }
+
+    .task-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .full-width {
+        grid-column: span 1;
+    }
+
+    .task-filters {
+        flex-direction: column;
+    }
+
+    .main-content {
+        padding: 20px;
+    }
+}

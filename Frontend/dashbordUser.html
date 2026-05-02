@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskPRO - Dashboard Utilisateur</title>
+    <link rel="stylesheet" href="dashbordstyle.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Styles pour la modale (Popup) */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 8px; width: 400px; color: #333; }
+        .close-btn { float: right; cursor: pointer; font-size: 24px; }
+        
+        /* Style tableau */
+        .task-row { cursor: pointer; transition: background 0.2s; color: inherit; }
+        .task-row:hover { background-color: rgba(0, 0, 0, 0.05); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; color: #333; }
+        th { background-color: #f8f9fa; font-weight: 600; }
+
+        /* Boutons profil */
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-save { background: #2ecc71; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        .btn-cancel { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+
+<body class="dashboard-body">
+
+    <aside class="sidebar">
+        <div class="logo-area">
+            <span class="logo-icon">🟡</span>
+            <span class="logo-text">TaskPRO</span>
+        </div>
+
+        <nav class="side-nav">
+            <a href="#" onclick="showSection('stats-section')" id="nav-stats" class="active">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Vue d'ensemble</span>
+            </a>
+
+            <a href="#" onclick="showSection('tasks-section')" id="nav-tasks">
+                <i data-lucide="check-square"></i>
+                <span>Mes tâches</span>
+            </a>
+
+            <a href="#" onclick="showSection('profile-section')" id="nav-profile">
+                <i data-lucide="user-cog"></i>
+                <span>Profil</span>
+            </a>
+        </nav>
+
+        <button onclick="logout()" class="logout-btn">
+            <i data-lucide="log-out"></i>
+            <span>Déconnexion</span>
+        </button>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="search-wrapper">
+                <i data-lucide="search"></i>
+                <input type="text" placeholder="Rechercher une tâche...">
+            </div>
+
+            <div class="user-profile">
+                <div class="user-details">
+                    <span id="displayUserName">Utilisateur</span>
+                    <small>Membre de l'équipe</small>
+                </div>
+                <div class="avatar">U</div>
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            
+            <section id="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue"><i data-lucide="list"></i></div>
+                        <div class="stat-info"><h4>48</h4><p>Total Tâches</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange"><i data-lucide="clock"></i></div>
+                        <div class="stat-info"><h4>17</h4><p>En cours</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green"><i data-lucide="check-circle"></i></div>
+                        <div class="stat-info"><h4>31</h4><p>Terminées</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tasks-section" class="glass-panel" style="display:none;">
+                <div class="panel-header">
+                    <h3><i data-lucide="list"></i> Mes Tâches Personnelles</h3>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Description</th>
+                            <th>Début</th>
+                            <th>Fin</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody id="task-table-body">
+                        <!-- <tr class="task-row" onclick="openTaskModal(1, 'Analyse des besoins', '01/04/2026', '05/04/2026', 'En cours')">
+                            <td>#102</td>
+                            <td>Analyse des besoins</td>
+                            <td>01/04/2026</td>
+                            <td>05/04/2026</td>
+                            <td><strong>En cours</strong></td>
+                        </tr>
+                        <tr class="task-row" onclick="openTaskModal(2, 'Développement Module A', '06/04/2026', '15/04/2026', 'En attente')">
+                            <td>#103</td>
+                            <td>Développement Module A</td>
+                            <td>06/04/2026</td>
+                            <td>15/04/2026</td>
+                            <td><strong>En attente</strong></td>
+                        </tr> -->
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="profile-section" class="glass-panel" style="display:none;">
+                <div class="panel-header"><h3>Paramètres du profil</h3></div>
+                <div style="padding: 20px;">
+                    <label>Nom complet :</label><br>
+                    <input type="text" id="inputName" value="Utilisateur" style="width:100%; padding:10px; margin: 10px 0;"><br>
+                    <label>Email :</label><br>
+                    <input type="email" id="inputEmail" value="user@taskpro.com" style="width:100%; padding:10px; margin: 10px 0;"><br>
+                    
+                    <div class="btn-group">
+                        <button type="button" class="btn-save" onclick="saveProfile()">Enregistrer les modifications</button>
+                        <button type="button" class="btn-cancel" onclick="cancelProfile()">Annuler</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3>Détails de la tâche</h3>
+            <hr>
+            <p><strong>ID :</strong> <span id="modalId"></span></p>
+            <p><strong>Description :</strong> <span id="modalDesc"></span></p>
+            <p><strong>Dates :</strong> <span id="modalDates"></span></p>
+            <div style="margin-top: 15px;">
+                <label><strong>Changer le Statut :</strong></label><br>
+                <select id="statusSelect" style="width:100%; padding:8px; margin-top:5px;">
+                    <option value="En cours">En cours</option>
+                    <option value="Terminée">Terminée</option>
+                    <option value="En attente">En attente</option>
+                </select>
+            </div>
+            <button onclick="saveStatus()" class="btn-save" style="width:100%; margin-top:15px;">Sauvegarder le statut</button>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Stockage temporaire pour l'annulation
+        let tempUser = { name: "Utilisateur", email: "user@taskpro.com" };
+
+        function showSection(sectionId) {
+            // Cacher toutes les sections
+            Document.getElementById('stats-section').style.display = 'none';
+            document.getElementById('tasks-section').style.display = 'none';
+            document.getElementById('profile-section').style.display = 'none';
+
+            // Afficher la section demandée
+            const targetSection = document.getElementById(sectionId);
+           if (targetSection) {
+             targetSection.style.display = 'block';
+            }
+
+          // --- AJOUT : Si on affiche les tâches, on les charge depuis la BD ---
+           if (sectionId === 'tasks-section') {
+           if (typeof chargerTaches === 'function') {
+             chargerTaches(); 
+            } }
+        }
+
+        // --- Fonctions Profil ---
+        function saveProfile() {
+            const newName = document.getElementById('inputName').value;
+            const newEmail = document.getElementById('inputEmail').value;
+            
+            // Mise à jour de la mémoire temporaire
+            tempUser.name = newName;
+            tempUser.email = newEmail;
+            
+            // Mise à jour visuelle
+            document.getElementById('displayUserName').innerText = newName;
+            alert("Profil mis à jour temporairement !");
+        }
+
+        function cancelProfile() {
+            // Restauration des valeurs depuis la mémoire
+            document.getElementById('inputName').value = tempUser.name;
+            document.getElementById('inputEmail').value = tempUser.email;
+            alert("Modifications annulées.");
+        }
+
+        // --- Fonctions Tâches ---
+        function openTaskModal(id, desc, start, end, status) {
+            document.getElementById('modalId').innerText = "#" + id;
+            document.getElementById('modalDesc').innerText = desc;
+            document.getElementById('modalDates').innerText = "Du " + start + " au " + end;
+            document.getElementById('statusSelect').value = status;
+            document.getElementById('taskModal').style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById('taskModal').style.display = "none";
+        }
+
+        function saveStatus() {
+            alert("Le statut de la tâche a été modifié.");
+            closeModal();
+        }
+
+        function logout() {
+            if(confirm("Se déconnecter ?")) {
+                window.location.href = "login.html";
+            }
+        }
+    </script>
+</body>
+</html>
