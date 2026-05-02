@@ -6,23 +6,54 @@
     <title>TaskPRO - Dashboard Utilisateur</title>
     <link rel="stylesheet" href="dashbordstyle.css">
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+
     <style>
-        /* Styles pour la modale (Popup) */
+
+        /* Styles pour les modales (Popup) */
+
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 8px; width: 400px; color: #333; }
-        .close-btn { float: right; cursor: pointer; font-size: 24px; }
-        
+
+        .modal-content { background-color: #fff; margin: 5% auto; padding: 20px; border-radius: 8px; width: 400px; color: #333; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+
+        .close-btn { float: right; cursor: pointer; font-size: 24px; color: #999; }
+
+       
+
         /* Style tableau */
+
         .task-row { cursor: pointer; transition: background 0.2s; color: inherit; }
+
         .task-row:hover { background-color: rgba(0, 0, 0, 0.05); }
+
         table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden; }
+
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; color: #333; }
+
         th { background-color: #f8f9fa; font-weight: 600; }
 
-        /* Boutons profil */
-        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
-        .btn-save { background: #2ecc71; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
-        .btn-cancel { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+
+
+        /* Boutons */
+
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+
+        .btn-edit { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+
+        .btn-save { background: #2ecc71; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; flex: 1; }
+
+        .btn-cancel { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; flex: 1; }
+
+       
+
+        /* Infos Profil */
+
+        .info-item { margin-bottom: 15px; font-size: 1.1em; display: flex; flex-direction: column; }
+
+        .info-label { font-weight: bold; color: #666; margin-bottom: 2px; }
+
+        .info-value { color: #333; margin-bottom: 10px; }
+
     </style>
 </head>
 
@@ -40,7 +71,7 @@
                 <span>Vue d'ensemble</span>
             </a>
 
-            <a href="#" onclick="showSection('tasks-section')" id="nav-tasks">
+            <a href="#" onclick="showSection('tasks-section')" id="nav-tasks" class="active">
                 <i data-lucide="check-square"></i>
                 <span>Mes tâches</span>
             </a>
@@ -59,11 +90,6 @@
 
     <main class="main-content">
         <header class="top-bar">
-            <div class="search-wrapper">
-                <i data-lucide="search"></i>
-                <input type="text" placeholder="Rechercher une tâche...">
-            </div>
-
             <div class="user-profile">
                 <div class="user-details">
                     <span id="displayUserName">Utilisateur</span>
@@ -126,111 +152,285 @@
             </section>
 
             <section id="profile-section" class="glass-panel" style="display:none;">
-                <div class="panel-header"><h3>Paramètres du profil</h3></div>
-                <div style="padding: 20px;">
-                    <label>Nom complet :</label><br>
-                    <input type="text" id="inputName" value="Utilisateur" style="width:100%; padding:10px; margin: 10px 0;"><br>
-                    <label>Email :</label><br>
-                    <input type="email" id="inputEmail" value="user@taskpro.com" style="width:100%; padding:10px; margin: 10px 0;"><br>
-                    
-                    <div class="btn-group">
-                        <button type="button" class="btn-save" onclick="saveProfile()">Enregistrer les modifications</button>
-                        <button type="button" class="btn-cancel" onclick="cancelProfile()">Annuler</button>
+
+                <div class="panel-header"><h3>Mon Profil</h3></div>
+
+                <div style="padding: 30px;">
+
+                    <div class="info-item">
+
+                        <span class="info-label">Nom :</span>
+
+                        <span id="displayLastName" class="info-value">Utilisateur</span>
+
+                       
+
+                        <span class="info-label">Prénom :</span>
+
+                        <span id="displayFirstName" class="info-value">Non défini</span>
+
+
+
+                        <span class="info-label">Sexe :</span>
+
+                        <span id="displaySexe" class="info-value">Non défini</span>
+
+
+
+                        <span class="info-label">Email :</span>
+
+                        <span id="displayProfileEmail" class="info-value">user@taskpro.com</span>
+
                     </div>
+
+                    <button class="btn-edit" onclick="openProfileModal()">
+
+                        <i data-lucide="edit-3"></i> Modifier mon profil
+
+                    </button>
+
                 </div>
+
             </section>
+
+
         </div>
     </main>
 
-    <div id="taskModal" class="modal">
+    <div id="profileModal" class="modal">
+
         <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h3>Détails de la tâche</h3>
-            <hr>
-            <p><strong>ID :</strong> <span id="modalId"></span></p>
-            <p><strong>Description :</strong> <span id="modalDesc"></span></p>
-            <p><strong>Dates :</strong> <span id="modalDates"></span></p>
-            <div style="margin-top: 15px;">
-                <label><strong>Changer le Statut :</strong></label><br>
-                <select id="statusSelect" style="width:100%; padding:8px; margin-top:5px;">
-                    <option value="En cours">En cours</option>
-                    <option value="Terminée">Terminée</option>
-                    <option value="En attente">En attente</option>
-                </select>
+
+            <span class="close-btn" onclick="closeProfileModal()">&times;</span>
+
+            <h3>Modifier les informations</h3>
+
+            <hr style="margin: 15px 0;">
+
+           
+
+            <label>Nom :</label>
+
+            <input type="text" id="inputLastName" style="width:100%; padding:10px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 4px;">
+
+           
+
+            <label>Prénom :</label>
+
+            <input type="text" id="inputFirstName" style="width:100%; padding:10px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 4px;">
+
+           
+
+            <label>Sexe :</label>
+
+            <select id="inputSexe" style="width:100%; padding:10px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 4px;">
+
+                <option value="Masculin">Masculin</option>
+
+                <option value="Féminin">Féminin</option>
+
+            </select>
+
+            <label>Email :</label>
+
+            <input type="email" id="inputEmail" style="width:100%; padding:10px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 4px;">
+
+           
+
+            <div class="btn-group">
+
+                <button type="button" class="btn-save" onclick="updateProfile()">Ajouter</button>
+
+                <button type="button" class="btn-cancel" onclick="closeProfileModal()">Annuler</button>
+
             </div>
-            <button onclick="saveStatus()" class="btn-save" style="width:100%; margin-top:15px;">Sauvegarder le statut</button>
+
         </div>
+
+    </div>
+
+    <div id="taskModal" class="modal">
+
+        <div class="modal-content">
+
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+
+            <h3>Détails de la tâche</h3>
+
+            <hr>
+
+            <p><strong>ID :</strong> <span id="modalId"></span></p>
+
+            <p><strong>Description :</strong> <span id="modalDesc"></span></p>
+
+            <p><strong>Dates :</strong> <span id="modalDates"></span></p>
+
+            <div style="margin-top: 15px;">
+
+                <label><strong>Changer le Statut :</strong></label><br>
+
+                <select id="statusSelect" style="width:100%; padding:8px; margin-top:5px;">
+
+                    <option value="En cours">En cours</option>
+
+                    <option value="Terminée">Terminée</option>
+
+                    <option value="En attente">En attente</option>
+
+                </select>
+
+            </div>
+
+            <button onclick="saveStatus()" class="btn-save" style="width:100%; margin-top:15px;">Sauvegarder</button>
+
+        </div>
+
     </div>
 
     <script>
+
         lucide.createIcons();
 
-        // Stockage temporaire pour l'annulation
-        let tempUser = { name: "Utilisateur", email: "user@taskpro.com" };
+
+
+        let currentUser = {
+
+            lastName: "Utilisateur",
+
+            firstName: "Prénom",
+
+            sexe: "Masculin",
+
+            email: "user@taskpro.com"
+
+        };
+
+
 
         function showSection(sectionId) {
-            // Cacher toutes les sections
-            Document.getElementById('stats-section').style.display = 'none';
+
+            document.getElementById('stats-section').style.display = 'none';
+
             document.getElementById('tasks-section').style.display = 'none';
+
             document.getElementById('profile-section').style.display = 'none';
 
-            // Afficher la section demandée
-            const targetSection = document.getElementById(sectionId);
-           if (targetSection) {
-             targetSection.style.display = 'block';
-            }
+            document.querySelectorAll('.side-nav a').forEach(a => a.classList.remove('active'));
 
-          // --- AJOUT : Si on affiche les tâches, on les charge depuis la BD ---
-           if (sectionId === 'tasks-section') {
-           if (typeof chargerTaches === 'function') {
-             chargerTaches(); 
-            } }
+
+
+            document.getElementById(sectionId).style.display = 'block';
+
+            if(sectionId === 'stats-section') document.getElementById('nav-stats').classList.add('active');
+
+            if(sectionId === 'tasks-section') document.getElementById('nav-tasks').classList.add('active');
+
+            if(sectionId === 'profile-section') document.getElementById('nav-profile').classList.add('active');
+
         }
 
-        // --- Fonctions Profil ---
-        function saveProfile() {
-            const newName = document.getElementById('inputName').value;
-            const newEmail = document.getElementById('inputEmail').value;
-            
-            // Mise à jour de la mémoire temporaire
-            tempUser.name = newName;
-            tempUser.email = newEmail;
-            
-            // Mise à jour visuelle
-            document.getElementById('displayUserName').innerText = newName;
-            alert("Profil mis à jour temporairement !");
+
+
+        function openProfileModal() {
+
+            document.getElementById('inputLastName').value = currentUser.lastName;
+
+            document.getElementById('inputFirstName').value = currentUser.firstName;
+
+            document.getElementById('inputSexe').value = currentUser.sexe;
+
+            document.getElementById('inputEmail').value = currentUser.email;
+
+            document.getElementById('profileModal').style.display = "block";
+
         }
 
-        function cancelProfile() {
-            // Restauration des valeurs depuis la mémoire
-            document.getElementById('inputName').value = tempUser.name;
-            document.getElementById('inputEmail').value = tempUser.email;
-            alert("Modifications annulées.");
+
+
+        function closeProfileModal() {
+
+            document.getElementById('profileModal').style.display = "none";
+
         }
 
-        // --- Fonctions Tâches ---
+
+
+        function updateProfile() {
+
+            currentUser.lastName = document.getElementById('inputLastName').value;
+
+            currentUser.firstName = document.getElementById('inputFirstName').value;
+
+            currentUser.sexe = document.getElementById('inputSexe').value;
+
+            currentUser.email = document.getElementById('inputEmail').value;
+
+
+
+            document.getElementById('displayLastName').innerText = currentUser.lastName;
+
+            document.getElementById('displayFirstName').innerText = currentUser.firstName;
+
+            document.getElementById('displaySexe').innerText = currentUser.sexe;
+
+            document.getElementById('displayProfileEmail').innerText = currentUser.email;
+
+            document.getElementById('headerUserName').innerText = currentUser.lastName;
+
+
+
+            closeProfileModal();
+
+            alert("Profil mis à jour !");
+
+        }
+
+
+
         function openTaskModal(id, desc, start, end, status) {
+
             document.getElementById('modalId').innerText = "#" + id;
+
             document.getElementById('modalDesc').innerText = desc;
+
             document.getElementById('modalDates').innerText = "Du " + start + " au " + end;
+
             document.getElementById('statusSelect').value = status;
+
             document.getElementById('taskModal').style.display = "block";
+
         }
+
+
 
         function closeModal() {
+
             document.getElementById('taskModal').style.display = "none";
+
         }
+
+
 
         function saveStatus() {
-            alert("Le statut de la tâche a été modifié.");
+
+            alert("Le statut a été mis à jour.");
+
             closeModal();
+
         }
 
+
+
         function logout() {
+
             if(confirm("Se déconnecter ?")) {
+
                 window.location.href = "login.html";
+
             }
+
         }
+
     </script>
 </body>
 </html>
