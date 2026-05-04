@@ -45,9 +45,9 @@ $input = file_get_contents("php://input");
 $data = json_decode($input, true) ?? [];
 
 // Services
-$utilisateurDAO = new UtilisateurDAO(); 
+$utilisateurDAO = new UtilisateurDAO();
 $tacheDAO = new TacheDAO();
-$notificationDAO = new NotificationDAO(); 
+$notificationDAO = new NotificationDAO();
 $notificationServices = new NotificationServices($notificationDAO);
 
 $authServices = new AuthServices($utilisateurDAO);
@@ -229,18 +229,18 @@ try {
         }
     }
 
-     //  pour les notifications
+    //  pour les notifications
     if ($parts[0] === 'notifications') {
-     requireAuth();
-     $notifDAO = new NotificationDAO();
+        requireAuth();
+        $notifDAO = new NotificationDAO();
 
         if ($method === 'GET') {
-         // On utilise la méthode du DAO plutôt que de réécrire le SQL ici
-         $notifications = $notifDAO->obtenirNonLues($_SESSION['user_id']);
-         echo json_encode(['success' => true, 'notifications' => $notifications]);
-         exit;
+            // On utilise la méthode du DAO plutôt que de réécrire le SQL ici
+            $notifications = $notifDAO->obtenirNonLues($_SESSION['user_id']);
+            echo json_encode(['success' => true, 'notifications' => $notifications]);
+            exit;
         }
-   }
+    }
 
     // ================= DASHBOARD =================
     if ($parts[0] === 'dashboard' && $method === 'GET') {
@@ -275,19 +275,19 @@ try {
         }
 
         $totalTasks = count($tasks);
-        $inProgressTasks = count(array_filter($tasks, function($task) {
+        $inProgressTasks = count(array_filter($tasks, function ($task) {
             return $task->getStatus() === 'en cours';
         }));
-        $doneTasks = count(array_filter($tasks, function($task) {
+        $doneTasks = count(array_filter($tasks, function ($task) {
             return $task->getStatus() === 'terminé';
         }));
         $completionPercent = $totalTasks > 0 ? round(($doneTasks / $totalTasks) * 100) : 0;
 
         $today = date('Y-m-d');
-        $createdToday = count(array_filter($tasks, function($task) use ($today) {
+        $createdToday = count(array_filter($tasks, function ($task) use ($today) {
             return substr($task->getDateCreation(), 0, 10) === $today;
         }));
-        $completedToday = count(array_filter($tasks, function($task) use ($today) {
+        $completedToday = count(array_filter($tasks, function ($task) use ($today) {
             return $task->getStatus() === 'terminé' && $task->getDateFinReelle() && substr($task->getDateFinReelle(), 0, 10) === $today;
         }));
 
@@ -375,7 +375,22 @@ try {
 
         if (($parts[1] ?? '') === 'users' && $method === 'GET') {
             $users = $utilisateurDAO->obtenirTous();
-            echo json_encode(['success' => true, 'users' => $users]);
+
+            $formattedUsers = array_map(function ($user) {
+                return [
+                    'id' => $user->getId(),
+                    'nom' => $user->getNom(),
+                    'prenom' => $user->getPrenom(),
+                    'email' => $user->getEmail(),
+                    'role' => $user->getRole(),
+                    'poste' => $user->getPoste()
+                ];
+            }, $users);
+
+            echo json_encode([
+                'success' => true,
+                'users' => $formattedUsers
+            ]);
             exit;
         }
     }

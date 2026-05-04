@@ -270,8 +270,8 @@ body {
 }
 
 .form-group select option {
-    background: #111217;
-    color: white;
+  background: #111217;
+  color: white;
 }
 
 /* ROW */
@@ -313,7 +313,6 @@ body {
   color: black;
 }
 
-
 /* BUTTONS */
 .primary-btn {
   background: linear-gradient(135deg, #d4af37, #f0c84b);
@@ -347,6 +346,9 @@ body {
   background: rgba(255, 255, 255, 0.05);
   color: white;
   border: 1px solid var(--glass-border);
+  padding: 20px;
+  border-radius: 25px;
+  width: 100%;
 }
 
 .secondary-btn:hover {

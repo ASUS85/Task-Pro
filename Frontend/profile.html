@@ -48,7 +48,7 @@
 
         <div class="sidebar-footer">
             <button class="logout-btn" onclick="openLogoutModal()">
-                <i data-lucide="log-out"></i>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="log-out" aria-hidden="true" class="lucide lucide-log-out"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>
                 Déconnexion
             </button>
         </div>
@@ -146,7 +146,7 @@
 
                     <h3>Créer un nouvel administrateur</h3>
                     <p class="admin-subtitle">
-                        Ouvre le formulaire complet pour enregistrer un administrateur.
+                        Ouvrez le formulaire pour enregistrer un administrateur.
                     </p>
 
                     <button type="button" class="create-admin-btn" id="openCreateAdminModalBtn">
@@ -211,11 +211,11 @@
 
             <form class="admin-create-form" id="createAdminForm">
                 <div class="form-fields">
-                    <input type="text" id="createAdminPrenom" placeholder="Prénom" required>
-                    <input type="text" id="createAdminNom" placeholder="Nom" required>
-                    <input type="email" id="createAdminEmail" placeholder="Adresse email" required>
-                    <input type="text" id="createAdminPoste" placeholder="Poste" required>
-                    <select id="createAdminSexe" required>
+                    <input type="text" id="createAdminPrenom" placeholder="Prénom*" required>
+                    <input type="text" id="createAdminNom" placeholder="Nom*" required>
+                    <input type="email" id="createAdminEmail" placeholder="Adresse email*" required>
+                    <input type="text" id="createAdminPoste" placeholder="Poste" >
+                    <select id="createAdminSexe" >
                         <option value="">Sélectionner le sexe</option>
                         <option value="Homme">Homme</option>
                         <option value="Femme">Femme</option>
@@ -229,7 +229,7 @@
                 </div>
 
                 <div class="modal-actions">
-                    <button type="button" class="btn" id="cancelCreateAdmin">Annuler</button>
+                    <button type="button" class="btn annule-admin-btn" id="cancelCreateAdmin">Annuler</button>
                     <button type="submit" class="btn create-admin-btn">Enregistrer</button>
                 </div>
             </form>
