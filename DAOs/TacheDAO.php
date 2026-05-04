@@ -107,6 +107,26 @@ class TacheDAO {
     }
 
     /**
+     * Obtenir tâches créées par un administrateur
+     */
+    public function obtenirParCreateur(int $idCreateur): array {
+        try {
+            $sql = "SELECT * FROM taches WHERE id_createur = :id_createur ORDER BY dateCreation DESC";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':id_createur' => $idCreateur]);
+
+            $resultats = [];
+            while ($row = $stmt->fetch()) {
+                $resultats[] = $this->hydratiserTache($row);
+            }
+
+            return $resultats;
+        } catch (PDOException $e) {
+            throw new Exception("Erreur récupération par créateur : " . $e->getMessage());
+        }
+    }
+
+    /**
      * Obtenir tâches parentes (pour trouver les enfants)
      */
     public function obtenirParenteDe(int $idParent): array {

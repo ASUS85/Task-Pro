@@ -162,7 +162,8 @@ class AuthServices
         }
 
         // 6. Hachage du mot de passe par défaut
-        $passwordParDefaut = password_hash("Password123", PASSWORD_BCRYPT);
+        $password = !empty($donnees['password']) ? $donnees['password'] : '12345';
+        $passwordHache = password_hash($password, PASSWORD_BCRYPT);
 
         // 7. Appel au DAO pour sauvegarder le nouvel utilisateur
         return $this->utilisateurDAO->sauvegarder(
@@ -171,7 +172,7 @@ class AuthServices
             $donnees['sexe'] ?? 'Non spécifié',
             $donnees['poste'] ?? 'Non défini',
             $donnees['email'],
-            $passwordParDefaut,
+            $passwordHache,
             $donnees['role']
         );
     }

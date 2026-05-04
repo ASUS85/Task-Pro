@@ -47,7 +47,7 @@
         </nav>
 
         <div class="sidebar-footer">
-            <button class="logout-btn" onclick="logout()">
+            <button class="logout-btn" onclick="openLogoutModal()">
                 <i data-lucide="log-out"></i>
                 Déconnexion
             </button>
@@ -61,11 +61,11 @@
         <!-- PROFILE HEADER -->
         <div class="profile-header">
             <div class="avatar-box">
-                <div class="avatar">SA</div>
+                <div class="avatar" id="profileAvatar">SA</div>
                 <div>
-                    <h1>Super Admin</h1>
-                    <p class="role">Super Administrateur</p>
-                    <span class="status online">En ligne</span>
+                    <h1 id="profileName">Super Admin</h1>
+                    <p class="role" id="profileRole">Super Administrateur</p>
+                    <span class="status online" id="profileStatus">En ligne</span>
                 </div>
             </div>
         </div>
@@ -73,22 +73,22 @@
         <!-- STATS -->
         <section class="stats-grid">
             <div class="stat-card">
-                <h3>32</h3>
+                <h3 id="tasksCreated">--//--</h3>
                 <p>Tâches créées</p>
             </div>
 
             <div class="stat-card">
-                <h3>18</h3>
+                <h3 id="tasksAssigned">--//--</h3>
                 <p>Tâches assignées</p>
             </div>
 
             <div class="stat-card">
-                <h3>25</h3>
+                <h3 id="tasksDone">--//--</h3>
                 <p>Complétées</p>
             </div>
 
             <div class="stat-card">
-                <h3>7</h3>
+                <h3 id="usersManaged">--//--</h3>
                 <p>Utilisateurs gérés</p>
             </div>
         </section>
@@ -101,37 +101,37 @@
 
                 <div class="info-item">
                     <span>Nom</span>
-                    <p>Super Admin</p>
+                    <p id="infoName">Super Admin</p>
                 </div>
 
                 <div class="info-item">
                     <span>Email</span>
-                    <p>admin@taskpro.com</p>
+                    <p id="infoEmail">admin@taskpro.com</p>
                 </div>
 
                 <div class="info-item">
                     <span>Rôle</span>
-                    <p>Super Administrateur</p>
+                    <p id="infoRole">Super Administrateur</p>
                 </div>
 
                 <div class="info-item">
                     <span>Dernière connexion</span>
-                    <p>26 Avril 2026</p>
+                    <p id="infoLastLogin">26 Avril 2026</p>
                 </div>
             </div>
 
             <div class="card">
                 <h2>Sécurité</h2>
 
-                <button class="btn">Changer mot de passe</button>
-                <button class="btn danger">Déconnecter tous les appareils</button>
-                <button class="btn danger">Désactiver compte</button>
+                <button class="btn" id="changePasswordBtn">Changer mot de passe</button>
+                <button class="btn danger" id="logoutSessionBtn">Déconnecter tous les appareils</button>
+                <button class="btn danger" id="disableAccountBtn">Désactiver compte</button>
             </div>
 
         </section>
 
         <!-- SUPER ADMIN PANEL -->
-        <section class="card full super-admin-panel">
+        <section id="adminSection" class="card full super-admin-panel hidden">
 
             <div class="panel-top">
                 <h2>
@@ -142,32 +142,17 @@
 
             <div class="admin-management-grid">
 
-                <!-- CREATE ADMIN FORM -->
                 <div class="admin-create-card">
 
                     <h3>Créer un nouvel administrateur</h3>
                     <p class="admin-subtitle">
-                        Ajoutez un nouveau membre à l’équipe administrative.
+                        Ouvre le formulaire complet pour enregistrer un administrateur.
                     </p>
 
-                    <form class="admin-create-form" id="createAdminForm">
-
-                        <div class="form-fields">
-
-                            <input type="text" placeholder="Nom complet administrateur" required>
-
-                            <input type="email" placeholder="Adresse email" required>
-
-                            <input type="password" placeholder="Mot de passe temporaire" required>
-
-                        </div>
-
-                        <button type="submit" class="create-admin-btn">
-                            <i data-lucide="user-plus"></i>
-                            Créer Administrateur
-                        </button>
-
-                    </form>
+                    <button type="button" class="create-admin-btn" id="openCreateAdminModalBtn">
+                        <i data-lucide="user-plus"></i>
+                        Ajouter un administrateur
+                    </button>
 
                 </div>
 
@@ -176,43 +161,11 @@
 
                     <div class="admin-directory-header">
                         <h3>Administrateurs Existants</h3>
-                        <span class="admin-count">2 Admins</span>
+                        <span class="admin-count" id="adminCount">0 Admins</span>
                     </div>
 
-                    <div class="admins-list">
-
-                        <div class="admin-row">
-                            <div class="admin-left">
-                                <div class="admin-avatar">JD</div>
-                                <div>
-                                    <strong>Jean Dupont</strong>
-                                    <p>jean@taskpro.com</p>
-                                </div>
-                            </div>
-
-                            <div class="admin-actions">
-                                <button class="icon-btn">Voir</button>
-                                <button class="icon-btn">Modifier</button>
-                                <button class="icon-btn danger">Supprimer</button>
-                            </div>
-                        </div>
-
-                        <div class="admin-row">
-                            <div class="admin-left">
-                                <div class="admin-avatar">SM</div>
-                                <div>
-                                    <strong>Sarah Mvondo</strong>
-                                    <p>sarah@taskpro.com</p>
-                                </div>
-                            </div>
-
-                            <div class="admin-actions">
-                                <button class="icon-btn">Voir</button>
-                                <button class="icon-btn">Modifier</button>
-                                <button class="icon-btn danger">Supprimer</button>
-                            </div>
-                        </div>
-
+                    <div class="admins-list" id="adminList">
+                        <!-- Les deux derniers administrateurs seront injectés ici -->
                     </div>
 
                 </div>
@@ -247,39 +200,42 @@
 
     </main>
 
-    <!-- MODAL CONFIRMATION CREATE ADMIN -->
-    <div class="modal" id="confirmAdminModal">
-
+    <div class="modal" id="createAdminModal">
         <div class="modal-content">
-
-            <h3>Confirmer la création</h3>
-
-            <p>
-                Voulez-vous vraiment créer ce nouvel administrateur ?
-            </p>
-
-            <div class="modal-actions">
-                <button class="btn" id="cancelAdminCreate">Annuler</button>
-                <button class="btn create-admin-btn" id="confirmAdminCreate">
-                    Confirmer
-                </button>
+            <div class="loader-overlay" id="adminLoader">
+                <div class="loader"></div>
+                <p>Chargement en cours...</p>
             </div>
+            <h3>Nouvel administrateur</h3>
+            <p style="margin-bottom: 20px;">Remplissez toutes les informations nécessaires pour créer un administrateur.</p>
 
+            <form class="admin-create-form" id="createAdminForm">
+                <div class="form-fields">
+                    <input type="text" id="createAdminPrenom" placeholder="Prénom" required>
+                    <input type="text" id="createAdminNom" placeholder="Nom" required>
+                    <input type="email" id="createAdminEmail" placeholder="Adresse email" required>
+                    <input type="text" id="createAdminPoste" placeholder="Poste" required>
+                    <select id="createAdminSexe" required>
+                        <option value="">Sélectionner le sexe</option>
+                        <option value="Homme">Homme</option>
+                        <option value="Femme">Femme</option>
+                        <option value="Autre">Autre</option>
+                    </select>
+                    <input type="hidden" id="createAdminRole" value="Administrateur">
+                </div>
+
+                <div class="admin-note">
+                    Mot de passe par défaut : <strong>12345</strong> (modifiable après connexion)
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn" id="cancelCreateAdmin">Annuler</button>
+                    <button type="submit" class="btn create-admin-btn">Enregistrer</button>
+                </div>
+            </form>
         </div>
-
     </div>
 
-    <script>
-        lucide.createIcons();
-
-        function logout() {
-            if(confirm("Voulez-vous vraiment vous déconnecter ?")) {
-                window.location.href = "login.html";
-            }
-        }
-    </script>
-
-    <script src="profile.js"></script>
     <div class="modal" id="adminActionModal">
     <div class="modal-content">
 
@@ -300,5 +256,35 @@
     </div>
 </div>
 
+    <div class="modal" id="createAdminSuccessModal">
+        <div class="modal-content">
+            <h3>Administrateur créé</h3>
+            <p>Le compte administrateur a bien été généré.</p>
+            <div class="success-details">
+                <p><strong>Nom :</strong> <span id="createdAdminName">--//--</span></p>
+                <p><strong>Email :</strong> <span id="createdAdminEmail">--//--</span></p>
+                <p><strong>Mot de passe :</strong> <span id="createdAdminPassword">12345</span></p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="closeCreateAdminSuccess">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="modal" id="logoutModal">
+        <div class="modal-content confirm-modal">
+            <h3>Confirmer la déconnexion</h3>
+            <p>Voulez-vous vraiment vous déconnecter de votre session ?</p>
+            <div class="modal-actions">
+                <button class="btn" id="cancelLogoutBtn">Annuler</button>
+                <button class="btn danger" id="confirmLogoutBtn">Déconnexion</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="profile.js"></script>
 </body>
 </html>

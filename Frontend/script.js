@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function initializePage() {
     const isLoginPage = window.location.pathname.includes("login");
     const isInscriptionPage = window.location.pathname.includes("inscription");
+    const isDashboardPage = window.location.pathname.includes("dashboard.html");
     
     if (isLoginPage) {
         initializeLoginForm();
@@ -33,7 +34,11 @@ function initializePage() {
         initializeInscriptionForm();
     } else {
         checkUser();
-        chargerTaches();
+        if (isDashboardPage) {
+            loadDashboard();
+        } else {
+            chargerTaches();
+        }
     }
 }
 
@@ -48,7 +53,11 @@ function checkUser() {
 
     const userNameEl = document.getElementById("userName");
     if (userNameEl && user) {
-        userNameEl.innerHTML = `👋 <span style="color: var(--primary)">${user.nom} ${user.prenom || ''}</span>`;
+        userNameEl.innerHTML = `<span style="color: var(--primary)">${user.nom} ${user.prenom || ''}</span>`;
+    }
+
+    if (window.location.pathname.includes("dashboard.html") && user && user.role !== 'Administrateur' && user.role !== 'SuperAdmin') {
+        window.location.href = "login.html";
     }
 }
 

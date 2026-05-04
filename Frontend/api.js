@@ -100,6 +100,22 @@ async function apiLogin(email, password) {
 }
 
 /**
+ * Changement de mot de passe
+ */
+async function apiChangePassword(password, confirm_password) {
+    if (!password || !confirm_password) {
+        throw new Error('Les deux champs de mot de passe sont obligatoires.');
+    }
+
+    const response = await apiCall('/auth/me', 'PUT', {
+        password,
+        confirm_password
+    });
+
+    return response;
+}
+
+/**
  * Déconnexion
  */
 async function apiLogout() {
@@ -210,6 +226,14 @@ async function apiCreateUser(userData) {
 async function apiListUsers() {
     const response = await apiCall('/admin/users', 'GET');
     return response.users || [];
+}
+
+/**
+ * Récupère les statistiques du dashboard pour Admin / SuperAdmin
+ */
+async function apiGetDashboard() {
+    const response = await apiCall('/dashboard', 'GET');
+    return response.dashboard;
 }
 
 // ========================================

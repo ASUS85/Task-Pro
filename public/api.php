@@ -140,8 +140,43 @@ try {
             requireAuth();
 
             $user = $utilisateurDAO->trouverParId($_SESSION['user_id']);
+            if (!$user) {
+                http_response_code(401);
+                echo json_encode(['success' => false, 'message' => 'Utilisateur introuvable']);
+                exit;
+            }
 
-            echo json_encode(['success' => true, 'user' => $user]);
+            echo json_encode(['success' => true, 'user' => [
+                'id' => $user->getId(),
+                'nom' => $user->getNom(),
+                'prenom' => $user->getPrenom(),
+                'email' => $user->getEmail(),
+                'role' => $user->getRole(),
+                'poste' => $user->getPoste()
+            ]]);
+            exit;
+        }
+
+        if (($parts[1] ?? '') === 'me' && $method === 'PUT') {
+            requireAuth();
+
+            $user = $utilisateurDAO->trouverParId($_SESSION['user_id']);
+            if (!$user) {
+                http_response_code(401);
+                echo json_encode(['success' => false, 'message' => 'Utilisateur introuvable']);
+                exit;
+            }
+
+            // On passe l'email actuel pour satisfaire la validation du service
+            $data['email'] = $user->getEmail();
+
+            try {
+                $result = $authServices->modifierProfil($_SESSION['user_id'], $data);
+                echo json_encode(['success' => $result]);
+            } catch (Exception $e) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
             exit;
         }
     }
@@ -206,6 +241,126 @@ try {
          exit;
         }
    }
+
+    // ================= DASHBOARD =================
+    if ($parts[0] === 'dashboard' && $method === 'GET') {
+        requireAuth();
+
+        $user = $utilisateurDAO->trouverParId($_SESSION['user_id']);
+        if (!$user) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Utilisateur introuvable']);
+            exit;
+        }
+
+        if ($user->getRole() !== 'Administrateur' && $user->getRole() !== 'SuperAdmin') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Accès refusé']);
+            exit;
+        }
+
+        if ($user->getRole() === 'SuperAdmin') {
+            $tasks = $tacheDAO->obtenirTous();
+            $users = $utilisateurDAO->obtenirTous();
+            $userCount = count($users);
+        } else {
+            $tasks = $tacheDAO->obtenirParCreateur($user->getId());
+            $responsables = [];
+            foreach ($tasks as $task) {
+                if ($task->getIdResponsable()) {
+                    $responsables[$task->getIdResponsable()] = true;
+                }
+            }
+            $userCount = count($responsables);
+        }
+
+        $totalTasks = count($tasks);
+        $inProgressTasks = count(array_filter($tasks, function($task) {
+            return $task->getStatus() === 'en cours';
+        }));
+        $doneTasks = count(array_filter($tasks, function($task) {
+            return $task->getStatus() === 'terminé';
+        }));
+        $completionPercent = $totalTasks > 0 ? round(($doneTasks / $totalTasks) * 100) : 0;
+
+        $today = date('Y-m-d');
+        $createdToday = count(array_filter($tasks, function($task) use ($today) {
+            return substr($task->getDateCreation(), 0, 10) === $today;
+        }));
+        $completedToday = count(array_filter($tasks, function($task) use ($today) {
+            return $task->getStatus() === 'terminé' && $task->getDateFinReelle() && substr($task->getDateFinReelle(), 0, 10) === $today;
+        }));
+
+        $teamPerformance = [];
+        $statsByResponsable = [];
+        foreach ($tasks as $task) {
+            $responsableId = $task->getIdResponsable();
+            if (!$responsableId) {
+                continue;
+            }
+            if (!isset($statsByResponsable[$responsableId])) {
+                $statsByResponsable[$responsableId] = 0;
+            }
+            $statsByResponsable[$responsableId]++;
+        }
+
+        if (!empty($statsByResponsable)) {
+            $employes = $utilisateurDAO->obtenirParRole('Employe');
+            $employeMap = [];
+            foreach ($employes as $emp) {
+                $employeMap[$emp->getId()] = $emp->getNom() . ' ' . $emp->getPrenom();
+            }
+
+            arsort($statsByResponsable);
+            foreach ($statsByResponsable as $responsableId => $count) {
+                if (count($teamPerformance) >= 3) {
+                    break;
+                }
+                $teamPerformance[] = [
+                    'name' => $employeMap[$responsableId] ?? 'Utilisateur #' . $responsableId,
+                    'progress' => $totalTasks > 0 ? round(($count / $totalTasks) * 100) : 0
+                ];
+            }
+        }
+
+        if (empty($teamPerformance)) {
+            $teamPerformance = [
+                ['name' => 'Aucun employé', 'progress' => 0],
+                ['name' => '--//--', 'progress' => 0],
+                ['name' => '--//--', 'progress' => 0],
+            ];
+        }
+
+        $dashboard = [
+            'user' => [
+                'id' => $user->getId(),
+                'nom' => $user->getNom(),
+                'prenom' => $user->getPrenom(),
+                'role' => $user->getRole()
+            ],
+            'stats' => [
+                'totalTasks' => $totalTasks,
+                'inProgressTasks' => $inProgressTasks,
+                'doneTasks' => $doneTasks,
+                'usersActive' => $userCount,
+                'completionPercent' => $completionPercent
+            ],
+            'overview' => [
+                'message' => $user->getRole() === 'SuperAdmin'
+                    ? 'Accès total aux données du système'
+                    : 'Statistiques centrées sur vos tâches créées',
+                'activity' => [
+                    "✔ {$createdToday} nouvelles tâches créées aujourd'hui",
+                    "✔ {$completedToday} tâches terminées aujourd'hui",
+                    "✔ {$userCount} utilisateurs concernés"
+                ]
+            ],
+            'teamPerformance' => $teamPerformance
+        ];
+
+        echo json_encode(['success' => true, 'dashboard' => $dashboard]);
+        exit;
+    }
 
     // ================= ADMIN =================
     if ($parts[0] === 'admin') {
