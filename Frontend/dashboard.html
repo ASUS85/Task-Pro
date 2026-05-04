@@ -10,6 +10,7 @@
 </head>
 
 <body class="dashboard-body">
+    <a href="dashboard.html" class="active"></a>
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
@@ -20,7 +21,6 @@
         </div>
 
         <nav class="side-nav">
-
             <a href="dashboard.html" class="active">
                 <i data-lucide="layout-dashboard"></i>
                 <span>Vue d'ensemble</span>
@@ -28,10 +28,10 @@
 
             <a href="create-task.html">
                 <i data-lucide="plus-square"></i>
-                <span>Créer une nouvelle tâche</span>
+                <span>Créer une tâche</span>
             </a>
 
-            <a href="tasks-list.html">
+            <a href="task-list.html">
                 <i data-lucide="check-square"></i>
                 <span>Liste des tâches</span>
             </a>
@@ -45,15 +45,12 @@
                 <i data-lucide="user-cog"></i>
                 <span>Profil</span>
             </a>
-
         </nav>
 
-        <div class="sidebar-footer">
-            <button onclick="logout()" class="logout-btn">
-                <i data-lucide="log-out"></i>
-                Déconnexion
-            </button>
-        </div>
+        <button onclick="logout()" class="logout-btn">
+            <i data-lucide="log-out"></i>
+            <span>Déconnexion</span>
+        </button>
 
     </aside>
 
@@ -89,7 +86,7 @@
         <div class="content-wrapper">
 
             <!-- STATS -->
-            <section class="stats-grid">
+<section class="stats-grid">
 
                 <div class="stat-card">
                     <div class="stat-icon blue">
@@ -130,8 +127,53 @@
                         <p>Utilisateurs Actifs</p>
                     </div>
                 </div>
+    <section class="analytics-grid">
 
-            </section>
+                        <!-- Progression Globale -->
+                        <div class="glass-panel progress-panel">
+                            <div class="panel-header">
+                                <h3><i data-lucide="gauge"></i> Progression Générale</h3>
+                            </div>
+
+                            <div class="progress-circle-wrapper">
+                                <div class="progress-circle">
+                                    <span>65%</span>
+                                </div>
+
+                                <div class="progress-details">
+                                    <p>31 / 48 tâches terminées</p>
+                                    <small>Performance hebdomadaire positive</small>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Performance équipe -->
+                        <div class="glass-panel team-panel">
+                            <div class="panel-header">
+                                <h3><i data-lucide="bar-chart-3"></i> Performance Équipe</h3>
+                            </div>
+
+                            <div class="team-stats">
+                                <div class="team-item">
+                                    <span>Jean Claude</span>
+                                    <div class="bar"><div style="width:90%"></div></div>
+                                </div>
+
+                                <div class="team-item">
+                                    <span>Marie Louise</span>
+                                    <div class="bar"><div style="width:70%"></div></div>
+                                </div>
+
+                                <div class="team-item">
+                                    <span>Patrick Ngono</span>
+                                    <div class="bar"><div style="width:55%"></div></div>
+                                </div>
+                            </div>
+                        </div>
+
+    </section>
+</section>
 
             <!-- OVERVIEW PANEL -->
             <section class="glass-panel overview-panel">

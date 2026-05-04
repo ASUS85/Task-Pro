@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskPRO - Liste des Tâches</title>
+    <link rel="stylesheet" href="task-list.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="dashboard-body" data-page="task-list">
+
+    <!-- SIDEBAR -->
+    <!-- SIDEBAR UNIFIÉE TASKPRO -->
+<aside class="sidebar">
+
+    <div class="logo-area">
+        <span class="logo-icon">🟡</span>
+        <span class="logo-text">TaskPRO</span>
+    </div>
+
+    <nav class="side-nav">
+        <a href="dashboard.html">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Vue d'ensemble</span>
+        </a>
+
+        <a href="create-task.html">
+            <i data-lucide="plus-square"></i>
+            <span>Créer une nouvelle tâche</span>
+        </a>
+
+        <a href="task-list.html" class="active">
+            <i data-lucide="check-square"></i>
+            <span>Liste des tâches</span>
+        </a>
+
+        <a href="users-list.html">
+            <i data-lucide="users"></i>
+            <span>Liste des utilisateurs</span>
+        </a>
+
+        <a href="profile.html">
+            <i data-lucide="user-cog"></i>
+            <span>Profil</span>
+        </a>
+    </nav>
+
+    <!-- IMPORTANT: wrapper footer -->
+    <div class="sidebar-footer">
+        <button onclick="logout()" class="logout-btn">
+            <i data-lucide="log-out"></i>
+            <span>Déconnexion</span>
+        </button>
+    </div>
+
+</aside>
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <header class="page-header">
+            <div>
+                <h1>Liste des Tâches</h1>
+                <p>Consultez, modifiez et gérez toutes les tâches du système.</p>
+            </div>
+        </header>
+
+        <!-- FILTRES -->
+        <section class="task-filters">
+            <input type="text" id="searchTask" placeholder="Rechercher une tâche...">
+
+            <select id="filterStatus">
+                <option value="">Tous les statuts</option>
+                <option value="en_attente">En attente</option>
+                <option value="en_cours">En cours</option>
+                <option value="terminee">Terminée</option>
+                <option value="retard">En retard</option>
+            </select>
+
+            <select id="filterType">
+                <option value="">Tous les types</option>
+                <option value="principale">Principale</option>
+                <option value="sous_tache">Sous-tâche</option>
+            </select>
+        </section>
+
+        <!-- TABLEAU DES TÂCHES -->
+        <section class="task-table-container glass-panel">
+            <table class="task-table">
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Type</th>
+                        <th>Statut</th>
+                        <th>Assignée à</th>
+                        <th>Date création</th>
+                        <th>Échéance</th>
+                        <th>Priorité</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="taskTableBody">
+                    <!-- Injecté dynamiquement via JS -->
+                </tbody>
+            </table>
+        </section>
+
+    </main>
+
+    <!-- MODAL DETAILS TÂCHE -->
+    <div id="taskDetailsModal" class="modal">
+        <div class="modal-content large-modal">
+
+            <div class="modal-header">
+                <h2>Détails de la Tâche</h2>
+                <button id="closeTaskModal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="task-details-grid">
+
+                <div class="detail-card full-width">
+                    <h3 id="detailTitle">Nom de la tâche</h3>
+                    <p id="detailDescription">Description complète...</p>
+                </div>
+
+                <div class="detail-card">
+                    <span>Créée par</span>
+                    <strong id="detailCreator">-</strong>
+                </div>
+
+                <div class="detail-card">
+                    <span>Assignée à</span>
+                    <strong id="detailAssigned">-</strong>
+                </div>
+
+                <div class="detail-card">
+                    <span>Date de création</span>
+                    <strong id="detailCreatedAt">-</strong>
+                </div>
+
+                <div class="detail-card">
+                    <span>Échéance / Temps restant</span>
+                    <strong id="detailDeadline">-</strong>
+                </div>
+
+                <div class="detail-card">
+                    <span>Statut</span>
+                    <strong id="detailStatus">-</strong>
+                </div>
+
+                <div class="detail-card">
+                    <span>Priorité</span>
+                    <strong id="detailPriority">-</strong>
+                </div>
+
+                <div class="detail-card full-width" id="parentTaskBlock">
+                    <span>Tâche Parent / Dépendance</span>
+                    <a href="#" id="detailParentTaskLink">Voir la tâche parent</a>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+    <script src="task-list.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,686 @@
+
+/* ============================================================
+   TASKPRO - PROFILE CSS (ULTRA PREMIUM GLASS + GOLD UI)
+   ============================================================ */
+
+:root {
+    --primary-gold: #D4AF37;
+    --gold-glow: rgba(212, 175, 55, 0.25);
+    --bg-dark: #08080a;
+    --sidebar-bg: #0d0d11;
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --text-dim: #8d8d95;
+
+    --green: #00d26a;
+    --red: #ff4d4d;
+}
+
+/* =========================
+   RESET
+========================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* =========================
+   BODY
+========================= */
+body.dashboard-body {
+    background: var(--bg-dark);
+    color: white;
+    display: flex;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+.sidebar {
+    width: 270px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    background: linear-gradient(180deg, #0d0d11, #111217);
+    border-right: 1px solid rgba(255,255,255,0.06);
+
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+}
+.sidebar-footer {
+    margin-top: auto;
+}
+
+/* LOGO */
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 50px;
+}
+
+.logo-text {
+    font-weight: 800;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+
+    background: linear-gradient(90deg, #fff, #d4af37);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* NAV */
+.side-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* LIENS */
+.side-nav a {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    padding: 14px 18px;
+
+    color: #777;
+    text-decoration: none;
+
+    border-radius: 12px;
+
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+/* EFFET LUMIÈRE AU SURVOL */
+.side-nav a::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(212,175,55,0.15),
+        transparent
+    );
+
+    opacity: 0;
+    transition: 0.3s;
+}
+
+/* HOVER */
+.side-nav a:hover {
+    color: #fff;
+    transform: translateX(6px);
+}
+
+.side-nav a:hover::before {
+    opacity: 1;
+}
+
+/* PAGE ACTIVE */
+.side-nav a.active {
+    background: rgba(212,175,55,0.12);
+    color: #d4af37;
+
+    border-left: 4px solid #d4af37;
+
+    box-shadow: inset 10px 0 20px rgba(212,175,55,0.05);
+}
+
+/* ICON */
+.side-nav i {
+    transition: 0.3s;
+}
+
+.side-nav a:hover i {
+    transform: scale(1.2);
+}
+
+/* LOGOUT */
+.logout-btn {
+    margin-top: auto;
+
+    background: rgba(255, 60, 60, 0.08);
+    border: 1px solid rgba(255, 60, 60, 0.15);
+
+    padding: 12px;
+
+    border-radius: 12px;
+    color: #ff5f5f;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.logout-btn:hover {
+    background: #ff5f5f;
+    color: #fff;
+
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255,95,95,0.3);
+}
+
+/* MAIN IMPORTANT PARTOUT */
+.main-content {
+    margin-left: 260px;
+    padding: 40px;
+}
+
+/* =========================
+   MAIN
+========================= */
+.main-content {
+    flex: 1;
+    padding: 40px 50px;
+    overflow-y: auto;
+    margin-left: 270px;
+}
+
+/* =========================
+   HEADER PROFILE
+========================= */
+.profile-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.avatar-box {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+    padding: 20px;
+
+    background: linear-gradient(
+        145deg,
+        rgba(255,255,255,0.04),
+        rgba(255,255,255,0.015)
+    );
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    border-radius: 24px;
+
+    backdrop-filter: blur(18px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+}
+
+/* AVATAR */
+.avatar {
+    width: 80px;
+    height: 80px;
+
+    border-radius: 50%;
+
+    background: linear-gradient(135deg, #D4AF37, #8a6d1f);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: black;
+
+    box-shadow: 0 0 25px var(--gold-glow);
+}
+
+.avatar-box h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+}
+
+.role {
+    color: var(--text-dim);
+    margin-top: 4px;
+}
+
+/* STATUS */
+.status {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.status.online {
+    background: rgba(0,210,106,0.15);
+    color: var(--green);
+    position: relative;
+}
+
+.status.online::after {
+    content: "";
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    transform: translateY(-50%);
+    animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: translateY(-50%) scale(1); opacity: 1; }
+    100% { transform: translateY(-50%) scale(2); opacity: 0; }
+}
+
+/* =========================
+   STATS GRID
+========================= */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+
+    padding: 20px;
+
+    backdrop-filter: blur(15px);
+
+    transition: 0.25s;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(212,175,55,0.08);
+}
+
+.stat-card h3 {
+    font-size: 1.8rem;
+    color: var(--primary-gold);
+}
+
+.stat-card p {
+    color: var(--text-dim);
+    margin-top: 5px;
+}
+
+/* =========================
+   INFO GRID
+========================= */
+.info-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+/* CARD */
+.card {
+    background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+
+    padding: 25px;
+
+    backdrop-filter: blur(18px);
+
+    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+}
+
+.card h2 {
+    color: var(--primary-gold);
+    margin-bottom: 20px;
+}
+
+/* INFO ITEMS */
+.info-item {
+    margin-bottom: 15px;
+}
+
+.info-item span {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+}
+
+.info-item p {
+    margin-top: 5px;
+    color: white;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+.btn {
+    width: 100%;
+    padding: 12px 16px;
+
+    border-radius: 14px;
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    background: rgba(255,255,255,0.04);
+
+    color: white;
+
+    cursor: pointer;
+
+    margin-bottom: 10px;
+
+    transition: 0.25s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary-gold);
+}
+
+.btn.danger {
+    background: rgba(255,77,77,0.1);
+    border-color: rgba(255,77,77,0.2);
+    color: #ff4d4d;
+}
+
+/* =========================
+   ACTIVITY LIST
+========================= */
+.activity-list {
+    list-style: none;
+    gap: 30px;
+    margin-bottom: 30
+}
+
+.activity-list li {
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.activity-list span {
+    color: white;
+}
+
+.activity-list small {
+    color: var(--text-dim);
+}
+
+/* =========================
+   FULL CARD
+========================= */
+.full {
+    grid-column: span 2;
+}
+/* ============================================================
+   SUPER ADMIN PANEL - VERSION PRO (FORM LEFT / LIST RIGHT)
+   ============================================================ */
+
+.super-admin-panel {
+    margin-top: 40px;
+}
+
+/* GRID PRINCIPALE */
+.admin-management-grid {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+/* =========================
+   FORMULAIRE (GAUCHE)
+========================= */
+.admin-create-card {
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 22px;
+
+    backdrop-filter: blur(18px);
+    position: sticky;
+    top: 30px;
+}
+
+/* FORM */
+.admin-create-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* INPUTS + SELECT */
+.admin-create-form input,
+.admin-create-form select {
+    width: 100%;
+    padding: 14px 16px;
+
+    border-radius: 14px;
+    border: 1px solid var(--glass-border);
+
+    background: rgba(255,255,255,0.04);
+    color: white;
+
+    outline: none;
+    transition: 0.25s ease;
+}
+
+.admin-create-form input:focus,
+.admin-create-form select:focus {
+    border-color: var(--primary-gold);
+    box-shadow: 0 0 0 4px rgba(212,175,55,0.08);
+}
+
+/* OPTION SELECT */
+.admin-create-form select option {
+    background: #111217;
+    color: white;
+}
+
+/* BOUTON CREATE */
+.create-admin-btn {
+    margin-top: 10px;
+
+    padding: 14px;
+    border: none;
+    border-radius: 14px;
+
+    background: linear-gradient(135deg, #d4af37, #f0c84b);
+    color: black;
+
+    font-weight: 700;
+    cursor: pointer;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+
+    transition: 0.25s ease;
+}
+
+.create-admin-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(212,175,55,0.25);
+}
+
+/* =========================
+   LISTE (DROITE)
+========================= */
+.admin-directory {
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 22px;
+
+    backdrop-filter: blur(18px);
+}
+
+.admin-directory-header h3 {
+    color: var(--primary-gold);
+    margin-bottom: 18px;
+}
+
+/* LISTE */
+.admins-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* CARD ADMIN */
+.admin-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 16px 18px;
+
+    border-radius: 18px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+
+    transition: 0.25s ease;
+}
+
+.admin-row:hover {
+    transform: translateY(-3px);
+    border-color: rgba(212,175,55,0.15);
+}
+
+/* LEFT */
+.admin-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.admin-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+
+    background: linear-gradient(135deg, #d4af37, #8a6d1f);
+    color: black;
+
+    font-weight: 800;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.admin-left strong {
+    font-size: 0.95rem;
+}
+
+.admin-left p {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    margin-top: 3px;
+}
+
+/* ACTIONS */
+.admin-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* BOUTONS */
+.icon-btn {
+    min-width: 80px;
+    height: 38px;
+
+    border: none;
+    border-radius: 12px;
+
+    background: rgba(255,255,255,0.05);
+    color: white;
+
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.icon-btn:hover {
+    background: var(--primary-gold);
+    color: black;
+}
+
+.icon-btn.danger {
+    background: rgba(255,77,77,0.1);
+    color: #ff4d4d;
+}
+
+.icon-btn.danger:hover {
+    background: #ff4d4d;
+    color: white;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 1100px) {
+    .admin-management-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-create-card {
+        position: static;
+    }
+}
+
+@media (max-width: 700px) {
+    .admin-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .admin-actions {
+        width: 100%;
+    }
+
+    .icon-btn {
+        flex: 1;
+    }
+}
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    justify-content: center;
+    align-items: center;
+}
+
+.admin-create-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px; /* 🔥 plus d’espace entre les champs */
+}
+
+.form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 14px; /* espace entre inputs */
+}
