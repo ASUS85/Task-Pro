@@ -338,15 +338,26 @@ function openAdminActionModal(action, admin) {
 
   if (action === "view") {
     adminDetails.innerHTML = `
-            <p><strong>Nom :</strong> ${admin.nom || admin.name || admin.prenom || "--//--"}</p>
+            <p><strong>Nom :</strong> ${admin.nom || "--//--"}</p>
+            <p><strong>Prénom :</strong> ${admin.prenom || "--//--"}</p>
             <p><strong>Email :</strong> ${admin.email || "--//--"}</p>
             <p><strong>Rôle :</strong> ${formatRoleLabel(admin.role)}</p>
+            <p><strong>Poste :</strong> ${admin.poste || "--//--"}</p>
+            <p><strong>Sexe :</strong> ${admin.sexe || "--//--"}</p>
         `;
   } else if (action === "edit") {
     adminDetails.innerHTML = `
             <div class="form-fields">
-                <input id="editAdminName" value="${admin.nom || admin.name || admin.prenom || ""}" />
+                <input id="editAdminName" value="${admin.nom || ""}" />
+                <input id="editAdminName" value="${admin.prenom || ""}" />
                 <input id="editAdminEmail" value="${admin.email || ""}" />
+                <input type="text" id="createAdminPoste" placeholder="Poste" value="${admin.poste || ""}" />
+                <select id="createAdminSexe" >
+                        <option value="${admin.sexe || ""}" >Sélectionner le sexe</option>
+                        <option value="Homme">Homme</option>
+                        <option value="Femme">Femme</option>
+                        <option value="Autre">Autre</option>
+                    </select>
             </div>
         `;
   } else {
