@@ -2,7 +2,6 @@
  * TASKMANAGER PRO - LOGIQUE CLIENT
  * Complémentaire au style Glassmorphism & Animations
  */
-
 // =======================
 // INITIALISATION & SESSION
 // =======================
@@ -73,29 +72,32 @@ function initializeLoginForm() {
 
 async function handleLogin(email, password, messageEl) {
     const messageEl_actual = messageEl || document.getElementById("message");
+    
+    // 1. On vide le message précédent et on lance le loader
+    messageEl_actual.textContent = ""; 
     toggleLoader(true);
 
     try {
         const result = await apiLogin(email, password);
         
-        if (result.success) {
-            showMessage("Connexion réussie! Redirection...", "lightgreen", messageEl_actual);
-
-            //recuperation des roles depuuis l'objet utilisateur
-            const userRole = result.user.role;
-
+        // 2. Vérification stricte du résultat
+        if (result && result.success === true) {
+            showMessage("Connexion réussie ! Redirection...", "lightgreen", messageEl_actual);
+            
+            // Redirection selon le rôle
+            const userRole = result.user?.role;
             setTimeout(() => {
-                if (userRole === 'SuperAdmin') {
-                    window.location.href = "dashboard.html";
-                } else {
-                    window.location.href = "dashbordUser.html";
-                }
-            }, 1500);
+                window.location.href = (userRole === 'SuperAdmin') ? "dashboard.html" : "dashbordUser.html";
+            }, 1000);
         } else {
-            showMessage(result.message || "Erreur de connexion", "red", messageEl_actual);
+            // 3. Affichage du message d'erreur venant de Laravel (ex: "Email incorrect")
+            const errorMsg = result?.message || "Identifiants invalides.";
+            showMessage(errorMsg, "#ff4d4d", messageEl_actual);
         }
     } catch (error) {
-        showMessage(error.message || "Erreur de connexion", "red", messageEl_actual);
+        // 4. Capture des erreurs réseau ou crash serveur
+        console.error("Erreur API:", error);
+        showMessage("Serveur injoignable ou erreur de saisie.", "#ff4d4d", messageEl_actual);
     } finally {
         toggleLoader(false);
     }
@@ -245,70 +247,51 @@ async function chargerTaches() {
 }
 
 function renderTaches(data) {
+    console.log("Données reçues pour affichage:", data);
     const tableBody = document.getElementById("task-table-body");
-    const tasksSection = document.getElementById("tasks-section");
-
+    
     if (!tableBody) return;
 
-    // 1. On vide le tableau (supprime les lignes statiques de l'exemple HTML)
+    // 1. On vide le tableau
     tableBody.innerHTML = "";
 
-    // 2. On rend la section visible dès qu'on tente d'afficher
-    if (tasksSection) tasksSection.style.display = "block";
-
-    // 3. Gestion du cas : Aucune tâche trouvée
-    if (!data || data.length === 0) {
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="5" style="text-align:center; padding:40px; color:var(--text-dim)">
-                    <div style="opacity: 0.6;">
-                        <i data-lucide="ghost" style="width:48px; height:48px; margin-bottom:10px"></i>
-                        <p style="font-size: 1.1rem;">Aucune tâche assignée pour le moment.</p>
-                    </div>
-                </td>
-            </tr>`;
-        
-        // Réinitialiser les icônes Lucide pour faire apparaître le petit fantôme
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-        return; 
+    // 2. Vérification si le tableau est vide ou n'est pas un tableau
+    if (!data || !Array.isArray(data) || data.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px;">Aucune tâche ne vous a ete assignée</td></tr>`;
+        return;
     }
 
-    // 4. Si des tâches existent, on les affiche
+    // 3. Boucle sur les données reçues
     data.forEach((t, index) => {
         const tr = document.createElement("tr");
         tr.className = "task-row";
 
-        // Animation d'entrée progressive
-        tr.style.animation = `slideUp 0.4s ease forwards ${index * 0.05}s`;
-        tr.style.opacity = "0";
+        // IMPORTANT : On utilise les noms exacts de ton objet (vu en console)
+        const id = t.id;
+        const libelle = t.libelle || "Sans titre";
+        const debut = t.dateCreation || "-"; // Ton objet a 'dateCreation'
+        const fin = t.periode_realisation || "-"; // Ton objet a 'periode_realisation'
+        const status = t.status || "en attente";
 
-        // Extraction sécurisée des données (selon les noms possibles dans votre BD)
-        const id = t.id || "N/A";
-        const titre = t.libelle || t.titre || "Sans titre";
-        const debut = t.date_creation || t.dateDebutReelle || "-";
-        const fin = t.date_echeance || t.dateFinReelle || "-";
-        const statusRaw = (t.status || t.statut || "en attente").toLowerCase();
-        
-        // Formatage du statut pour l'affichage (ex: "en_cours" -> "en cours")
-        const statusClean = statusRaw.replace(/_/g, ' ');
-
-        // Action au clic
         tr.onclick = () => {
             if (typeof openTaskModal === 'function') {
-                openTaskModal(id, titre, debut, fin, statusRaw);
+                openTaskModal(id, libelle, debut, fin, status);
             }
         };
 
         tr.innerHTML = `
-            <td>#${id}</td>
-            <td>${titre}</td>
+            <td>${id}</td>
+            <td>${libelle}</td>
             <td>${debut}</td>
             <td>${fin}</td>
-            <td><strong class="status-badge ${statusRaw}">${statusClean}</strong></td>
+            <td><strong class="status-badge ${status.replace(' ', '-')}">${status}</strong></td>
         `;
         
         tableBody.appendChild(tr);
     });
+
+    // Recréer les icônes si nécessaire
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function updateStats(data) {
@@ -441,3 +424,38 @@ document.getElementById("search")?.addEventListener("input", () => {
 });
 
 document.getElementById("filterStatus")?.addEventListener("change", chargerTaches);
+
+
+function showSection(sectionId) {
+    // 1. Liste de toutes les sections
+    const sections = ['stats-section', 'tasks-section', 'profile-section'];
+    
+    // 2. On cache tout proprement
+    sections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+
+    // 3. On affiche la section demandée
+    const target = document.getElementById(sectionId);
+    if (target) {
+        target.style.display = 'block';
+        
+        // 4. Si on va sur les tâches, on les recharge pour être sûr qu'elles sont à jour
+        if (sectionId === 'tasks-section') {
+            chargerTaches(); 
+        }
+    }
+
+    // 5. Gestion des classes 'active' sur les liens
+    document.querySelectorAll('.side-nav a').forEach(a => a.classList.remove('active'));
+    
+    const navMap = {
+        'stats-section': 'nav-stats',
+        'tasks-section': 'nav-tasks',
+        'profile-section': 'nav-profile'
+    };
+    
+    const activeNav = document.getElementById(navMap[sectionId]);
+    if (activeNav) activeNav.classList.add('active');
+}

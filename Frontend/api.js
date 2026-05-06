@@ -1,5 +1,5 @@
 /**
- * TASKPRO - API CLIENT
+ * TASKPRO - API.js
  * Gestion centralisée des appels API vers le backend
  */
 

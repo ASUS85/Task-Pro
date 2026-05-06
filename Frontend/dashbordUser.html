@@ -30,7 +30,7 @@
 
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; color: #333; }
 
-        th { background-color: #f8f9fa; font-weight: 600; }
+        th { background-color: #d4af37; font-size: 16px; font-family: Arial, Helvetica, sans-serif; color: black; }
 
 
 
@@ -71,12 +71,12 @@
                 <span>Vue d'ensemble</span>
             </a>
 
-            <a href="#" onclick="showSection('tasks-section')" id="nav-tasks" class="active">
+            <a href="javascript:void(0)" onclick="showSection('tasks-section')" id="nav-tasks" >
                 <i data-lucide="check-square"></i>
                 <span>Mes tâches</span>
             </a>
 
-            <a href="#" onclick="showSection('profile-section')" id="nav-profile">
+            <a href="javascript:void(0)" onclick="showSection('profile-section')" id="nav-profile">
                 <i data-lucide="user-cog"></i>
                 <span>Profil</span>
             </a>
@@ -125,7 +125,7 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>Numero</th>
                             <th>Description</th>
                             <th>Début</th>
                             <th>Fin</th>
@@ -133,65 +133,49 @@
                         </tr>
                     </thead>
                     <tbody id="task-table-body">
-                        <!-- <tr class="task-row" onclick="openTaskModal(1, 'Analyse des besoins', '01/04/2026', '05/04/2026', 'En cours')">
-                            <td>#102</td>
-                            <td>Analyse des besoins</td>
-                            <td>01/04/2026</td>
-                            <td>05/04/2026</td>
-                            <td><strong>En cours</strong></td>
-                        </tr>
-                        <tr class="task-row" onclick="openTaskModal(2, 'Développement Module A', '06/04/2026', '15/04/2026', 'En attente')">
-                            <td>#103</td>
-                            <td>Développement Module A</td>
-                            <td>06/04/2026</td>
-                            <td>15/04/2026</td>
-                            <td><strong>En attente</strong></td>
-                        </tr> -->
+                     
                     </tbody>
                 </table>
             </section>
 
-            <section id="profile-section" class="glass-panel" style="display:none;">
+            <section id="profile-section" class="profile-layout" style="display:none;">
+    <div class="glass-panel info-card">
+        <h3 class="panel-title">Informations personnelles</h3>
+        
+        <div class="profile-info-list">
+            <div class="info-group">
+                <span class="info-label">Nom</span>
+                <span id="displayLastName" class="info-value">Utilisateur</span>
+            </div>
 
-                <div class="panel-header"><h3>Mon Profil</h3></div>
+            <div class="info-group">
+                <span class="info-label">Prénom</span>
+                <span id="displayFirstName" class="info-value">Prénom</span>
+            </div>
 
-                <div style="padding: 30px;">
+            <div class="info-group">
+                <span class="info-label">Sexe</span>
+                <span id="displaySexe" class="info-value">Masculin</span>
+            </div>
 
-                    <div class="info-item">
+            <div class="info-group">
+                <span class="info-label">Email</span>
+                <span id="displayProfileEmail" class="info-value">user@taskpro.com</span>
+            </div>
+        </div>
+    </div>
 
-                        <span class="info-label">Nom :</span>
-
-                        <span id="displayLastName" class="info-value">Utilisateur</span>
-
-                       
-
-                        <span class="info-label">Prénom :</span>
-
-                        <span id="displayFirstName" class="info-value">Non défini</span>
-
-
-
-                        <span class="info-label">Sexe :</span>
-
-                        <span id="displaySexe" class="info-value">Non défini</span>
-
-
-
-                        <span class="info-label">Email :</span>
-
-                        <span id="displayProfileEmail" class="info-value">user@taskpro.com</span>
-
-                    </div>
-
-                    <button class="btn-edit" onclick="openProfileModal()">
-
-                        <i data-lucide="edit-3"></i> Modifier mon profil
-
-                    </button>
-
-                </div>
-
-            </section>
+    <div class="glass-panel security-card">
+        <h3 class="panel-title">Sécurité</h3>
+        
+        <div class="action-buttons">
+            <button class="btn-outline">Changer mot de passe</button>
+            <button class="btn-danger-outline" onclick="openProfileModal()">
+                Modifier le profil
+            </button>
+        </div>
+    </div>
+</section> 
 
 
         </div>
@@ -287,150 +271,7 @@
 
     </div>
 
-    <script>
-
-        lucide.createIcons();
-
-
-
-        let currentUser = {
-
-            lastName: "Utilisateur",
-
-            firstName: "Prénom",
-
-            sexe: "Masculin",
-
-            email: "user@taskpro.com"
-
-        };
-
-
-
-        function showSection(sectionId) {
-
-            document.getElementById('stats-section').style.display = 'none';
-
-            document.getElementById('tasks-section').style.display = 'none';
-
-            document.getElementById('profile-section').style.display = 'none';
-
-            document.querySelectorAll('.side-nav a').forEach(a => a.classList.remove('active'));
-
-
-
-            document.getElementById(sectionId).style.display = 'block';
-
-            if(sectionId === 'stats-section') document.getElementById('nav-stats').classList.add('active');
-
-            if(sectionId === 'tasks-section') document.getElementById('nav-tasks').classList.add('active');
-
-            if(sectionId === 'profile-section') document.getElementById('nav-profile').classList.add('active');
-
-        }
-
-
-
-        function openProfileModal() {
-
-            document.getElementById('inputLastName').value = currentUser.lastName;
-
-            document.getElementById('inputFirstName').value = currentUser.firstName;
-
-            document.getElementById('inputSexe').value = currentUser.sexe;
-
-            document.getElementById('inputEmail').value = currentUser.email;
-
-            document.getElementById('profileModal').style.display = "block";
-
-        }
-
-
-
-        function closeProfileModal() {
-
-            document.getElementById('profileModal').style.display = "none";
-
-        }
-
-
-
-        function updateProfile() {
-
-            currentUser.lastName = document.getElementById('inputLastName').value;
-
-            currentUser.firstName = document.getElementById('inputFirstName').value;
-
-            currentUser.sexe = document.getElementById('inputSexe').value;
-
-            currentUser.email = document.getElementById('inputEmail').value;
-
-
-
-            document.getElementById('displayLastName').innerText = currentUser.lastName;
-
-            document.getElementById('displayFirstName').innerText = currentUser.firstName;
-
-            document.getElementById('displaySexe').innerText = currentUser.sexe;
-
-            document.getElementById('displayProfileEmail').innerText = currentUser.email;
-
-            document.getElementById('headerUserName').innerText = currentUser.lastName;
-
-
-
-            closeProfileModal();
-
-            alert("Profil mis à jour !");
-
-        }
-
-
-
-        function openTaskModal(id, desc, start, end, status) {
-
-            document.getElementById('modalId').innerText = "#" + id;
-
-            document.getElementById('modalDesc').innerText = desc;
-
-            document.getElementById('modalDates').innerText = "Du " + start + " au " + end;
-
-            document.getElementById('statusSelect').value = status;
-
-            document.getElementById('taskModal').style.display = "block";
-
-        }
-
-
-
-        function closeModal() {
-
-            document.getElementById('taskModal').style.display = "none";
-
-        }
-
-
-
-        function saveStatus() {
-
-            alert("Le statut a été mis à jour.");
-
-            closeModal();
-
-        }
-
-
-
-        function logout() {
-
-            if(confirm("Se déconnecter ?")) {
-
-                window.location.href = "login.html";
-
-            }
-
-        }
-
-    </script>
+    <script src="api.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

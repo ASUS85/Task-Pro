@@ -25,7 +25,7 @@
                     <label for="email">Adresse Email</label>
                     <div class="input-wrapper">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" id="email" placeholder="admin@taskpro.com" required>
+                        <input type="email" id="email" placeholder="admin@taskpro.com" autocomplete="off" required>
                     </div>
                 </div>
                 
@@ -36,37 +36,24 @@
                     </div>
                     <div class="input-wrapper">
                         <i class="fas fa-lock"></i>
-                        <input type="password" id="password" required>
+                        <input type="password" id="password" autocomplete="new-password" required>
                     </div>
                 </div>
                 
                 <button type="submit" class="btn-login">Se connecter</button>
                 
+                <div id="message" style="min-height: 20px; margin-top: 10px; text-align: center; font-weight: normal;">
+
+                </div>    
+                
                 <div class="footer-link">
-                    Pas encore de compte ? <a href="#">S'inscrire</a>
+                    Pas encore de compte ? <a href="inscription.html">S'inscrire</a>
                 </div>
             </form>
         </div>
     </div>
 
-    <script>
-        // Gestion de la redirection
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            // 1. On empêche le rechargement de la page par défaut
-            e.preventDefault(); 
-
-            // 2. Petite animation visuelle (optionnel mais pro)
-            const loginBox = document.querySelector('.login-box');
-            loginBox.style.opacity = '0.5';
-            loginBox.style.transform = 'scale(0.98)';
-            
-            // 3. Redirection directe vers le dashboard
-            // IMPORTANT : Vérifie que ton fichier de dashboard s'appelle bien index.html
-            // Si tu l'as nommé dashboard.html, remplace "index.html" par "dashboard.html" ci-dessous
-            setTimeout(() => {
-                window.location.href = "dashbord.html"; 
-            }, 300); // Délai de 300ms pour laisser l'utilisateur voir le clic
-        });
-    </script>
+    <script src="api.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
