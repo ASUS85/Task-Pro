@@ -295,9 +295,23 @@ function renderTaches(data) {
 }
 
 function updateStats(data) {
+
+    if (!data || !Array.isArray(data)) {
+        return;
+    }
+    //calcul les nombres
     const total = data.length;
-    const pending = data.filter(t => (t.status || t.statut) === "en cours").length;
-    const done = data.filter(t => (t.status || t.statut) === "terminé").length;
+    const pending = data.filter(t => 
+        t.status?.toLowerCase() === "en cours" || 
+        t.statut?.toLowerCase() === "assignée"
+    ).length;
+
+
+    // On filtre selon les ENUM de ta base de données
+    const done = data.filter(t => 
+        t.status?.toLowerCase() === "terminé" || 
+        t.statut?.toLowerCase() === "terminée"
+    ).length;
 
     animateValue("totalTasks", total);
     animateValue("pendingTasks", pending);
@@ -425,37 +439,44 @@ document.getElementById("search")?.addEventListener("input", () => {
 
 document.getElementById("filterStatus")?.addEventListener("change", chargerTaches);
 
-
 function showSection(sectionId) {
-    // 1. Liste de toutes les sections
-    const sections = ['stats-section', 'tasks-section', 'profile-section'];
-    
-    // 2. On cache tout proprement
-    sections.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-    });
+    // 1. Récupération des éléments
+    const stats = document.getElementById('stats-section');
+    const tasks = document.getElementById('tasks-section');
+    const profile = document.getElementById('profile-section');
 
-    // 3. On affiche la section demandée
-    const target = document.getElementById(sectionId);
-    if (target) {
-        target.style.display = 'block';
+    // 2. Logique d'affichage
+    if (sectionId === 'stats-section') {
+        // Mode "Vue d'ensemble" : On montre les Stats ET le Tableau
+        if (stats) stats.style.display = 'block';
+        if (tasks) tasks.style.display = 'block';
+        if (profile) profile.style.display = 'none';
         
-        // 4. Si on va sur les tâches, on les recharge pour être sûr qu'elles sont à jour
-        if (sectionId === 'tasks-section') {
-            chargerTaches(); 
-        }
+        // On rafraîchit les données
+        chargerTaches(); 
+    } 
+    else if (sectionId === 'tasks-section') {
+        // Mode "Mes tâches" uniquement : On cache les stats
+        if (stats) stats.style.display = 'none';
+        if (tasks) tasks.style.display = 'block';
+        if (profile) profile.style.display = 'none';
+        
+        chargerTaches();
+    } 
+    else if (sectionId === 'profile-section') {
+        // Mode "Profil" : On cache tout le reste
+        if (stats) stats.style.display = 'none';
+        if (tasks) tasks.style.display = 'none';
+        if (profile) profile.style.display = 'block';
     }
 
-    // 5. Gestion des classes 'active' sur les liens
+    // 3. Gestion visuelle du menu (classe 'active')
     document.querySelectorAll('.side-nav a').forEach(a => a.classList.remove('active'));
-    
     const navMap = {
         'stats-section': 'nav-stats',
         'tasks-section': 'nav-tasks',
         'profile-section': 'nav-profile'
     };
-    
     const activeNav = document.getElementById(navMap[sectionId]);
     if (activeNav) activeNav.classList.add('active');
 }
