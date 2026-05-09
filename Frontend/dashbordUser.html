@@ -156,7 +156,10 @@
             <div class="icon-box"><i data-lucide="user-round"></i></div>
             <div class="text-content">
                 <span class="detail-label">Nom complet</span>
-                <span class="detail-value"><span id="displayFirstName">Prénom</span> <span id="displayLastName">Utilisateur</span></span>
+                <span class="detail-value">
+                 <span id="displayFirstName">Prénom</span>
+                 <span id="displayLastName">Utilisateur</span>
+                </span>
             </div>
         </div>
 
@@ -186,23 +189,75 @@
     </div>
     </div>
 
-    <div class="glass-panel security-card">
-        <h3 class="panel-title">Sécurité</h3>
-        
-        <div class="action-buttons">
-            <button class="btn-outline" onclick="openPasswordModal()">
-                Changer mot de passe
-            </button>
-            <button class="btn-danger-outline" onclick="openEditProfile()">
-                Modifier le profil
-            </button>
-        </div>
+    <div class="glass-panel security-card" style="margin-top: 20px; padding: 20px; border-radius: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);">
+    
+    <div class="panel-header" style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: #ffcc00;">
+        <h3 class="panel-title" style="margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;"> 
+            <i data-lucide="lock" style="width: 18px;"></i>Sécurité
+        </h3>
     </div>
+
+    <div class="action-buttons" style="display: flex; gap: 15px; flex-wrap: wrap;">
+        <!-- Bouton Changer mot de passe -->
+        <button class="btn-outline" onclick="openPasswordModal()" style="
+            background: rgba(255, 204, 0, 0.1);
+            color: #ffcc00;
+            border: 1px solid rgba(255, 204, 0, 0.3);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;">
+            <i data-lucide="key" style="width: 16px;"></i>
+            Changer mot de passe
+        </button>
+
+        <!-- Bouton Modifier le profil -->
+        <button class="btn-danger-outline" onclick="openEditProfile()" style="
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;">
+            <i data-lucide="user-cog" style="width: 16px;"></i>
+            Modifier le profil
+        </button>
+    </div>
+
+    <style>
+        /* Effets de survol pour le dynamisme */
+        .btn-outline:hover {
+            background: rgba(255, 204, 0, 0.2) !important;
+            border-color: #ffcc00 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 204, 0, 0.15);
+        }
+        .btn-danger-outline:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-color: rgba(255, 255, 255, 0.5) !important;
+            transform: translateY(-2px);
+        }
+        .btn-outline:active, .btn-danger-outline:active {
+            transform: translateY(0);
+        }
+    </style>
+</div>
     </section> 
     </div>
     </main>
 
-    <div id="" class="modal">
+    <div id="profileModal" class="modal">
 
         <div class="modal-content">
 
@@ -214,19 +269,19 @@
 
             <label>Nom :</label>
 
-            <input type="text" id="inputLastName" style="width:100%; padding:10px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 4px;">
+            <input type="text" id="editLastName" style="width:100%; padding:10px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 4px;">
 
            
 
             <label>Prénom :</label>
 
-            <input type="text" id="inputFirstName" style="width:100%; padding:10px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 4px;">
+            <input type="text" id="editFirstName" style="width:100%; padding:10px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 4px;">
 
            
 
             <label>Sexe :</label>
 
-            <select id="inputSexe" style="width:100%; padding:10px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 4px;">
+            <select id="editSexe" style="width:100%; padding:10px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 4px;">
 
                 <option value="Masculin">Masculin</option>
 
@@ -236,13 +291,13 @@
 
             <label>Email :</label>
 
-            <input type="email" id="inputEmail" style="width:100%; padding:10px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 4px;">
+            <input type="email" id="editEmail" style="width:100%; padding:10px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 4px;">
 
            
 
             <div class="btn-group">
 
-                <button type="button" class="btn-save" onclick="updateProfile()">Ajouter</button>
+                <button type="button" class="btn-save" onclick="updateProfile()">Modifier</button>
 
                 <button type="button" class="btn-cancel" onclick="closeProfileModal()">Annuler</button>
 
@@ -299,26 +354,26 @@
 <div id="editProfileModal" class="modal">
     <div class="modal-content custom-task-modal">
         <div class="modal-header">
-            <h3><i data-lucide="user-cog"></i> Modifier mon profil</h3>
+            <h3><i data-lucide="user-cog" ></i> Modifier mon profil</h3>
             <span class="close-btn" onclick="closeModal('editProfileModal')">&times;</span>
         </div>
         <div class="modal-body">
             <form id="editProfileForm">
                 <div class="input-group">
-                    <label>Prénom</label>
-                    <input type="text" id="displayFirstName" placeholder="Votre prénom">
+                    <label>Nom</label>
+                    <input type="text" id="editLastName" placeholder="Votre nom">
                 </div>
                 <div class="input-group">
-                    <label>Nom</label>
-                    <input type="text" id="displayLastName" placeholder="Votre nom">
+                    <label>Prénom</label>
+                    <input type="text" id="editFirstName" placeholder="Votre prénom">
                 </div>
                 <div class="input-group">
                     <label>Email</label>
-                    <input type="email" id="displayProfileEmail" placeholder="votre@email.com">
+                    <input type="email" id="editEmail" placeholder="votre@email.com">
                 </div>
                 <div class="input-group">
                     <label>Sexe</label>
-                    <select id="displaySexe">
+                    <select id="editSexe">
                         <option value="Masculin">Masculin</option>
                         <option value="Féminin">Féminin</option>
                     </select>
@@ -347,7 +402,7 @@
             </div>
             <div class="input-group">
                 <label>Ancien mot de passe</label>
-                <input type="password" id="oldPassword" placeholder="••••••••">
+                <input type="password" id="currentPassword" placeholder="••••••••">
             </div>
             <div class="input-group">
                 <label>Nouveau mot de passe</label>

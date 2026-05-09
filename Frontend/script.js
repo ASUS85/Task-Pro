@@ -491,38 +491,26 @@ function showSection(sectionId) {
 async function chargerInfosProfil() {
     try {
         const res = await apiCall('/auth/me', 'GET');
-        console.log("Données reçues :", res.user);
-
         if (res.success && res.user) {
             const u = res.user;
 
-            // 1. On prépare les données
-            const dataToDisplay = {
+            // Mapping des IDs HTML -> Données BD
+            const mapping = {
                 'displayFirstName': u.prenom,
                 'displayLastName': u.nom,
                 'displayProfileEmail': u.email,
                 'displaySexe': u.sexe,
-                'displayFullName': `${u.prenom} ${u.nom}` // Pour l'affichage combiné
+                'displayRole': u.role, // <-- AJOUTE CET ID DANS TON HTML
+                'displayFullName': `${u.prenom} ${u.nom}`
             };
 
-            // 2. On injecte dans le HTML
-            for (let id in dataToDisplay) {
-                const element = document.getElementById(id);
-                if (element) {
-                    element.innerText = dataToDisplay[id] || 'Non renseigné';
-                } else {
-                    console.warn(`Attention : L'élément avec l'ID "${id}" est introuvable dans le HTML.`);
-                }
-            }
-            
-            // 3. Mise à jour de l'avatar ou du message de bienvenue en haut si besoin
-            const welcomeName = document.getElementById("userName");
-            if (welcomeName) {
-                welcomeName.innerText = u.prenom;
+            for (let id in mapping) {
+                const el = document.getElementById(id);
+                if (el) el.innerText = mapping[id] || 'Non renseigné';
             }
         }
     } catch (error) {
-        console.error("Erreur lors du rendu du profil :", error);
+        console.error("Erreur profil :", error);
     }
 }
 
@@ -564,15 +552,22 @@ function openPasswordModal() {
 
 
 // Ouvrir la modale de profil en pré-remplissant les champs
+// Ouvrir la modale de profil en pré-remplissant les champs
 function openEditProfile() {
-    // On récupère les valeurs actuelles affichées sur la page
-    document.getElementById('editFirstName').value = document.getElementById('displayFirstName').innerText;
-    document.getElementById('editLastName').value = document.getElementById('displayLastName').innerText;
-    document.getElementById('editEmail').value = document.getElementById('displayProfileEmail').innerText;
-    document.getElementById('editSexe').value = document.getElementById('displaySexe').innerText;
+    // On vérifie que les éléments source existent avant de lire leur texte
+    const fName = document.getElementById('displayFirstName');
+    const lName = document.getElementById('displayLastName');
+    const email = document.getElementById('displayProfileEmail');
+    const sexe = document.getElementById('displaySexe');
+
+    if (fName) document.getElementById('editFirstName').value = fName.innerText;
+    if (lName) document.getElementById('editLastName').value = lName.innerText;
+    if (email) document.getElementById('editEmail').value = email.innerText;
+    if (sexe) document.getElementById('editSexe').value = sexe.innerText;
     
     document.getElementById('editProfileModal').style.display = 'flex';
-    lucide.createIcons(); // Toujours rafraîchir les icônes
+    
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 
@@ -611,45 +606,70 @@ async function saveStatus() {
     }
 }
 // sauvegarder les infos du profil
+// Sauvegarder les infos du profil
 async function updateProfile() {
+    // On récupère les valeurs depuis les nouveaux IDs de la modale
     const userDate = {
         nom: document.getElementById('editLastName').value,
-        prenom : document.getElementById('editFirstName').value,
-        email : document.getElementById('editEmail').value,
-        sexe : document.getElementById('editSexe').value
+        prenom: document.getElementById('editFirstName').value,
+        email: document.getElementById('editEmail').value,
+        sexe: document.getElementById('editSexe').value
     };
 
+    toggleLoader(true); // Toujours bien de montrer qu'on travaille
     try {
         const res = await apiUpdateProfile(userDate);
         if (res.success) {
             notify("Profil mis à jour !", "lightgreen");
-            // mise a jour du stockage local poir l'affichage immediat
-            let user = JSON.parse(localStorage.getItem('user'));
-            localStorage.setItem('user', JSON.stringify({...user, ... userDate}));
-            setTimeout(() => {
-                location.reload(); // Recharge la page pour afficher les nouvelles infos
-            }, 1000);
             
+            // Mise à jour du stockage local pour la cohérence
+            let user = JSON.parse(localStorage.getItem('user')) || {};
+            localStorage.setItem('user', JSON.stringify({...user, ...userDate}));
+            
+            closeModal('editProfileModal'); // On ferme la modale après succès
+            
+            setTimeout(() => {
+                location.reload(); // Recharge pour rafraîchir l'affichage partout
+            }, 800);
         }
     } catch (error) {
-        notify("Erreur lors de la mise à jour du profil: " + error.message, "red");
+        notify("Erreur : " + error.message, "red");
+    } finally {
+        toggleLoader(false);
     }
 }
 
 
 async function updatePassword() {
+    // Vérifie bien que ces IDs existent dans ton HTML (modale sécurité)
+    const oldField = document.getElementById('currentPassword');
+    const newField = document.getElementById('newPassword');
+    const confirmField = document.getElementById('confirmPassword');
+
+    // Sécurité : on vérifie s'ils existent avant de lire .value
+    if (!oldField || !newField || !confirmField) {
+        console.error("Un des IDs de mot de passe est introuvable dans le HTML !");
+        return;
+    }
+
     const data = {
-        old_password :document.getElementById('oldPassword').value,
-        new_password : document.getElementById('newPassword').value,
-        confirm_password : document.getElementById('confirmNewPassword').value
+        old_password: oldField.value,
+        new_password: newField.value,
+        confirm_password: confirmField.value
     };
+
+    if (data.new_password !== data.confirm_password) {
+        notify("Les mots de passe ne correspondent pas", "red");
+        return;
+    }
+
     try {
         const res = await apiUpdatePassword(data);
         if (res.success) {
-            notify("securite mise a jour !", "lightgreen");
+            notify("Sécurité mise à jour !", "lightgreen");
             closeModal('passwordModal');
         }
     } catch (error) {
-        notify("Erreur lors de la mise à jour du mot de passe: " + error.message, "red");
+        notify("Erreur : " + error.message, "red");
     }
 }
