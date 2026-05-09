@@ -100,14 +100,16 @@ class AuthServices
 
         // Gestion du mot de passe
         if (!empty($donnees['password'])) {
+
+        $user = $this->utilisateurDAO->trouverParId($id);
+        if (!password_verify($donnees['old_password'], $user->getPassword())) {
+             throw new Exception("L'ancien mot de passe est incorrect.");
+        }
             if ($donnees['password'] !== $donnees['confirm_password']) {
-                throw new Exception("Les mots de passe ne correspondent pas.");
+                throw new Exception("Les nouveaux mots de passe ne correspondent pas !");
             }
             $donnees['password'] = password_hash($donnees['password'], PASSWORD_BCRYPT);
-        } else {
-            // Si le mot de passe est vide, on le supprime pour que le DAO ne l'écrase pas
-            unset($donnees['password']);
-        }
+        } 
 
         // Mise à jour
         return $this->utilisateurDAO->mettreAJour($id, $donnees);

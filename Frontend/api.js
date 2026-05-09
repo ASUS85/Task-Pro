@@ -157,6 +157,14 @@ async function apiUpdateTaskStatus(taskId, status) {
     return response;
 }
 
+async function apiUpdateProfile(userDate) {
+    return await apiCall('/auth/update-profile', 'POST', userDate);
+}
+
+async function apiChangePassword(passwords) {
+   return await apiCall('/auth/update-password', 'POST', passwords);
+}
+
 /**
  * Assigne une tâche à un utilisateur
  */

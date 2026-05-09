@@ -145,49 +145,64 @@
             </section>
 
             <section id="profile-section" class="profile-layout" style="display:none;">
-    <div class="glass-panel info-card">
-        <h3 class="panel-title">Informations personnelles</h3>
-        
-        <div class="profile-info-list">
-            <div class="info-group">
-                <span class="info-label">Nom</span>
-                <span id="displayLastName" class="info-value">Utilisateur</span>
-            </div>
 
-            <div class="info-group">
-                <span class="info-label">Prénom</span>
-                <span id="displayFirstName" class="info-value">Prénom</span>
-            </div>
-
-            <div class="info-group">
-                <span class="info-label">Sexe</span>
-                <span id="displaySexe" class="info-value">Masculin</span>
-            </div>
-
-            <div class="info-group">
-                <span class="info-label">Email</span>
-                <span id="displayProfileEmail" class="info-value">user@taskpro.com</span>
+    <div class="glass-panel profile-card-premium">
+    <div class="panel-header">
+        <h3><i data-lucide="user"></i> Informations personnelles</h3>
+    </div>
+    
+    <div class="profile-details-grid">
+        <div class="detail-item">
+            <div class="icon-box"><i data-lucide="user-round"></i></div>
+            <div class="text-content">
+                <span class="detail-label">Nom complet</span>
+                <span class="detail-value"><span id="displayFirstName">Prénom</span> <span id="displayLastName">Utilisateur</span></span>
             </div>
         </div>
+
+        <div class="detail-item">
+            <div class="icon-box"><i data-lucide="mail"></i></div>
+            <div class="text-content">
+                <span class="detail-label">Adresse Email</span>
+                <span id="displayProfileEmail" class="detail-value">user@taskpro.com</span>
+            </div>
+        </div>
+
+        <div class="detail-item">
+            <div class="icon-box"><i data-lucide="users"></i></div>
+            <div class="text-content">
+                <span class="detail-label">Sexe</span>
+                <span id="displaySexe" class="detail-value">Masculin</span>
+            </div>
+        </div>
+
+        <div class="detail-item">
+            <div class="icon-box"><i data-lucide="shield-check"></i></div>
+            <div class="text-content">
+                <span class="detail-label">Rôle système</span>
+                <span class="detail-value highlight-gold">Membre de l'équipe</span>
+            </div>
+        </div>
+    </div>
     </div>
 
     <div class="glass-panel security-card">
         <h3 class="panel-title">Sécurité</h3>
         
         <div class="action-buttons">
-            <button class="btn-outline">Changer mot de passe</button>
-            <button class="btn-danger-outline" onclick="openProfileModal()">
+            <button class="btn-outline" onclick="openPasswordModal()">
+                Changer mot de passe
+            </button>
+            <button class="btn-danger-outline" onclick="openEditProfile()">
                 Modifier le profil
             </button>
         </div>
     </div>
-</section> 
-
-
-        </div>
+    </section> 
+    </div>
     </main>
 
-    <div id="profileModal" class="modal">
+    <div id="" class="modal">
 
         <div class="modal-content">
 
@@ -196,8 +211,6 @@
             <h3>Modifier les informations</h3>
 
             <hr style="margin: 15px 0;">
-
-           
 
             <label>Nom :</label>
 
@@ -239,43 +252,121 @@
 
     </div>
 
-    <div id="taskModal" class="modal">
-
-        <div class="modal-content">
-
+   
+        <div id="taskModal" class="modal">
+    <div class="modal-content custom-task-modal">
+        <div class="modal-header">
+            <h3><i data-lucide="info"></i> Détails de la tâche</h3>
             <span class="close-btn" onclick="closeModal()">&times;</span>
-
-            <h3>Détails de la tâche</h3>
-
-            <hr>
-
-            <p><strong>ID :</strong> <span id="modalId"></span></p>
-
-            <p><strong>Description :</strong> <span id="modalDesc"></span></p>
-
-            <p><strong>Dates :</strong> <span id="modalDates"></span></p>
-
-            <div style="margin-top: 15px;">
-
-                <label><strong>Changer le Statut :</strong></label><br>
-
-                <select id="statusSelect" style="width:100%; padding:8px; margin-top:5px;">
-
-                    <option value="En cours">En cours</option>
-
-                    <option value="Terminée">Terminée</option>
-
-                    <option value="En attente">En attente</option>
-
-                </select>
-
+        </div>
+        
+        <div class="modal-body">
+            <div class="info-row">
+                <span class="info-tag">ID : <span id="modalId"></span></span>
             </div>
 
-            <button onclick="saveStatus()" class="btn-save" style="width:100%; margin-top:15px;">Sauvegarder</button>
+            <div class="detail-group">
+                <label><i data-lucide="align-left"></i> Description</label>
+                <p id="modalDesc" class="description-text"></p>
+            </div>
 
+            <div class="detail-group">
+                <label><i data-lucide="calendar"></i> Période</label>
+                <p id="modalDates" class="date-text"></p>
+            </div>
+
+            <div class="status-update-zone">
+                <label for="statusSelect"><strong>Statut de progression</strong></label>
+                <div class="select-wrapper">
+                    <select id="statusSelect">
+                        <option value="terminé">Achevée</option>
+                        <option value="non terminé"> Non achevée</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
+        <div class="modal-footer">
+            <button onclick="saveStatus()" class="btn-save-action">
+                <i data-lucide="save"></i> Sauvegarder les modifications
+            </button>
+        </div>
     </div>
+    </div>
+
+
+
+<div id="editProfileModal" class="modal">
+    <div class="modal-content custom-task-modal">
+        <div class="modal-header">
+            <h3><i data-lucide="user-cog"></i> Modifier mon profil</h3>
+            <span class="close-btn" onclick="closeModal('editProfileModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="editProfileForm">
+                <div class="input-group">
+                    <label>Prénom</label>
+                    <input type="text" id="displayFirstName" placeholder="Votre prénom">
+                </div>
+                <div class="input-group">
+                    <label>Nom</label>
+                    <input type="text" id="displayLastName" placeholder="Votre nom">
+                </div>
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="displayProfileEmail" placeholder="votre@email.com">
+                </div>
+                <div class="input-group">
+                    <label>Sexe</label>
+                    <select id="displaySexe">
+                        <option value="Masculin">Masculin</option>
+                        <option value="Féminin">Féminin</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button onclick="updateProfile()" class="btn-save-action">
+                <i data-lucide="check"></i> Enregistrer les modifications
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="passwordModal" class="modal">
+    <div class="modal-content custom-task-modal">
+        <div class="modal-header">
+            <h3><i data-lucide="lock"></i> Sécurité du compte</h3>
+            <span class="close-btn" onclick="closeModal('passwordModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="status-update-zone" style="background: #fff5f5; border-color: #feb2b2; margin-bottom: 15px;">
+                <p style="color: #c53030; font-size: 0.85rem; margin: 0;">
+                    <i data-lucide="alert-triangle"></i> Le nouveau mot de passe doit être différent de l'ancien.
+                </p>
+            </div>
+            <div class="input-group">
+                <label>Ancien mot de passe</label>
+                <input type="password" id="oldPassword" placeholder="••••••••">
+            </div>
+            <div class="input-group">
+                <label>Nouveau mot de passe</label>
+                <input type="password" id="newPassword" placeholder="••••••••">
+            </div>
+            <div class="input-group">
+                <label>Confirmer le mot de passe</label>
+                <input type="password" id="confirmPassword" placeholder="••••••••">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="updatePassword()" class="btn-save-action" style="background: #e67e22;">
+                <i data-lucide="shield-alert"></i> Mettre à jour le mot de passe
+            </button>
+        </div>
+    </div>
+</div>
+
+
 
     <script src="api.js"></script>
     <script src="script.js"></script>

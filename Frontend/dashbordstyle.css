@@ -494,6 +494,40 @@ td { padding: 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,25
 }
 
 
+/* Style de base des badges */
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 900;
+    text-transform: capitalize;
+}
+
+/* Orange : En cours */
+.en-cours {
+    background-color: rgba(255, 165, 0, 0.2);
+    color: #ffa500;
+}
+
+/* Vert : Terminé (Achevé) */
+.terminé {
+    background-color: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+}
+
+/* Rouge : Non terminé (Non achevé) */
+.non-terminé {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+}
+
+/* Gris : Autres cas (ex: non assigné) */
+.non-assigné {
+    background-color: rgba(150, 150, 150, 0.2);
+    color: #999;
+}
+
+
 
 
 
@@ -575,4 +609,238 @@ td { padding: 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,25
     background: rgba(255,77,77,0.1);
     border-color: rgba(255,77,77,0.2);
     color: #ff4d4d;
+}
+
+
+/* ============================================================
+   TASKPRO - STYLE DE LA MODALE TACHE (V3 RETOUCHÉE)
+   ============================================================ */
+
+/* Custom Task Modal Styling */
+.custom-task-modal {
+    max-width: 450px !important; /* Force la largeur sur ton design */
+    border-radius: 16px !important;
+    padding: 0 !important; 
+    overflow: hidden;
+    border: 1px solid var(--glass-border) !important;
+    background: #ffffff !important; /* Fond blanc pour contraste sur le dashboard sombre */
+    color: #333 !important;
+}
+
+.modal-header {
+    background: #f8f9fa;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #2d3436;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.info-row {
+    margin-bottom: 15px;
+}
+
+.info-tag {
+    background: #e1f5fe;
+    color: #0288d1;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+
+.detail-group {
+    margin-top: 20px;
+}
+
+.detail-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #636e72;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.description-text {
+    background: #f1f2f6;
+    padding: 12px;
+    border-radius: 8px;
+    color: #2d3436;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.status-update-zone {
+    margin-top: 25px;
+    background: #fff9e6;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid #ffeaa7;
+}
+
+.status-update-zone label {
+    color: #8a6d3b;
+    font-size: 0.85rem;
+}
+
+#statusSelect {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: white;
+    font-size: 1rem;
+    margin-top: 10px;
+    cursor: pointer;
+    color: #333;
+}
+
+.modal-footer {
+    padding: 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #eee;
+}
+
+.btn-save-action {
+    width: 100%;
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s;
+}
+
+.btn-save-action:hover {
+    background: #219150;
+    transform: translateY(-2px);
+}
+
+
+/* Style des champs dans les modales blanches */
+.custom-task-modal .input-group {
+    margin-bottom: 15px;
+}
+
+.custom-task-modal .input-group label {
+    color: #4a5568;
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.custom-task-modal .input-group input, 
+.custom-task-modal .input-group select {
+    background: #f7fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #2d3748 !important;
+    padding: 12px !important;
+}
+
+.custom-task-modal .input-group input:focus {
+    border-color: var(--primary-gold) !important;
+    outline: none;
+}
+
+/* Correction pour le bouton fermer */
+.custom-task-modal .close-btn {
+    font-size: 24px;
+    color: #999;
+    cursor: pointer;
+    line-height: 1;
+}
+
+
+/* --- PROFILE CARD PREMIUM --- */
+.profile-card-premium {
+    padding: 30px !important;
+    margin-bottom: 25px;
+    background: var(--card-bg) !important;
+    border: 1px solid var(--glass-border) !important;
+}
+
+.profile-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 colonnes */
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 14px;
+    transition: all 0.3s ease;
+}
+
+.detail-item:hover {
+    background: rgba(212, 175, 55, 0.05);
+    transform: translateX(5px);
+}
+
+.icon-box {
+    width: 45px;
+    height: 45px;
+    background: rgba(212, 175, 55, 0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-gold);
+}
+
+.text-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-label {
+    font-size: 0.75rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.detail-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    margin-top: 2px;
+}
+
+.highlight-gold {
+    color: var(--primary-gold);
+}
+
+/* Adaptation Mobile */
+@media (max-width: 768px) {
+    .profile-details-grid {
+        grid-template-columns: 1fr;
+    }
 }

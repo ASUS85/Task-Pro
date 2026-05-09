@@ -88,39 +88,17 @@ try {
     }
 
     // ================= AUTH =================
+    // ================= AUTH =================
     if ($parts[0] === 'auth') {
+        $action = $parts[1] ?? '';
 
-        // REGISTER
-        if (($parts[1] ?? '') === 'register' && $method === 'POST') {
-            try {
-                $result = $authServices->inscrire($data);
-                echo json_encode(['success' => true, 'message' => 'Inscription réussie']);
-            } catch (Exception $e) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-            }
-            exit;
-        }
-
-        // LOGIN
-        if (($parts[1] ?? '') === 'login' && $method === 'POST') {
+        // 1. LOGIN
+        if ($action === 'login' && $method === 'POST') {
             try {
                 $user = $authServices->connecter($data['email'] ?? '', $data['password'] ?? '');
-
                 $_SESSION['user_id'] = $user->getId();
                 $_SESSION['user_role'] = $user->getRole();
-
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Connexion réussie',
-                    'user' => [
-                        'id' => $user->getId(),
-                        'nom' => $user->getNom(),
-                        'prenom' => $user->getPrenom(),
-                        'email' => $user->getEmail(),
-                        'role' => $user->getRole()
-                    ]
-                ]);
+                echo json_encode(['success' => true, 'user' => ['id' => $user->getId(), 'nom' => $user->getNom(), 'prenom' => $user->getPrenom(), 'email' => $user->getEmail(), 'role' => $user->getRole()]]);
             } catch (Exception $e) {
                 http_response_code(401);
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -128,20 +106,45 @@ try {
             exit;
         }
 
-        // LOGOUT
-        if (($parts[1] ?? '') === 'logout' && $method === 'POST') {
-            session_destroy();
-            echo json_encode(['success' => true]);
+        // 2. REGISTER
+        if ($action === 'register' && $method === 'POST') {
+            try {
+                $authServices->inscrire($data);
+                echo json_encode(['success' => true]);
+            } catch (Exception $e) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
             exit;
         }
 
-        // ME
-        if (($parts[1] ?? '') === 'me' && $method === 'GET') {
+        // 3. ME (Infos utilisateur connecté)
+        if ($action === 'me' && $method === 'GET') {
             requireAuth();
-
             $user = $utilisateurDAO->trouverParId($_SESSION['user_id']);
-
+            error_log(print_r($user, true));
             echo json_encode(['success' => true, 'user' => $user]);
+            exit;
+        }
+
+        // 4. UPDATE PROFILE
+        if ($action === 'update-profile' && $method === 'POST') {
+            requireAuth();
+            try {
+                // Correction ici : on utilise mettreAJour que tu as créé dans le DAO
+                $result = $utilisateurDAO->mettreAJour($_SESSION['user_id'], $data);
+                echo json_encode(['success' => $result]);
+            } catch (Exception $e) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+            exit;
+        }
+
+        // 5. LOGOUT
+        if ($action === 'logout' && $method === 'POST') {
+            session_destroy();
+            echo json_encode(['success' => true]);
             exit;
         }
     }

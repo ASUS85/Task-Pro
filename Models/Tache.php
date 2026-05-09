@@ -26,7 +26,7 @@ class Tache
         ?int $id_parent,
         string $periode_realisation,
         string $dateCreation,
-        string $dateDebutAssignation,
+        ?string $dateDebutAssignation,
         ?string $dateFinReelle,
         ?string $cheminFichier,
         int $id_responsable,
