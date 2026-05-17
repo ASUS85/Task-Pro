@@ -8,15 +8,15 @@
 ========================= */
 
 const mockTasks = [
-    { id: 1, title: "Mettre en place l'authentification", date: "2026-04-20" },
-    { id: 2, title: "Créer le dashboard admin", date: "2026-04-22" },
-    { id: 3, title: "Design du système de paiement", date: "2026-04-24" }
+  { id: 1, title: "Mettre en place l'authentification", date: "2026-04-20" },
+  { id: 2, title: "Créer le dashboard admin", date: "2026-04-22" },
+  { id: 3, title: "Design du système de paiement", date: "2026-04-24" },
 ];
 
 const mockUsers = [
-    { id: 1, name: "Jean Claude", role: "developpeur" },
-    { id: 2, name: "Marie Louise", role: "designer" },
-    { id: 3, name: "Patrick Ngono", role: "manager" }
+  { id: 1, name: "Jean Claude", role: "developpeur" },
+  { id: 2, name: "Marie Louise", role: "designer" },
+  { id: 3, name: "Patrick Ngono", role: "manager" },
 ];
 
 /* =========================
@@ -65,38 +65,38 @@ let selectedFiles = [];
 ========================= */
 
 attachFileBtn.addEventListener("click", () => {
-    fileInput.click();
+  fileInput.click();
 });
 
 fileInput.addEventListener("change", (e) => {
-    const files = Array.from(e.target.files);
+  const files = Array.from(e.target.files);
 
-    files.forEach(file => {
-        selectedFiles.push(file);
-    });
+  files.forEach((file) => {
+    selectedFiles.push(file);
+  });
 
-    renderFiles();
+  renderFiles();
 });
 
 function renderFiles() {
-    filePreview.innerHTML = "";
+  filePreview.innerHTML = "";
 
-    selectedFiles.forEach((file, index) => {
-        const div = document.createElement("div");
-        div.classList.add("file-chip");
-        div.innerHTML = `
+  selectedFiles.forEach((file, index) => {
+    const div = document.createElement("div");
+    div.classList.add("file-chip");
+    div.innerHTML = `
             📎 ${file.name}
             <span style="cursor:pointer;margin-left:10px;" data-index="${index}">✖</span>
         `;
 
-        div.querySelector("span").addEventListener("click", (e) => {
-            const i = e.target.getAttribute("data-index");
-            selectedFiles.splice(i, 1);
-            renderFiles();
-        });
-
-        filePreview.appendChild(div);
+    div.querySelector("span").addEventListener("click", (e) => {
+      const i = e.target.getAttribute("data-index");
+      selectedFiles.splice(i, 1);
+      renderFiles();
     });
+
+    filePreview.appendChild(div);
+  });
 }
 
 /* =========================
@@ -104,17 +104,17 @@ function renderFiles() {
 ========================= */
 
 function openModal(modal) {
-    modal.style.display = "flex";
+  modal.style.display = "flex";
 }
 
 function closeModal(modal) {
-    modal.style.display = "none";
+  modal.style.display = "none";
 }
 
 window.addEventListener("click", (e) => {
-    if (e.target === parentModal) closeModal(parentModal);
-    if (e.target === userModal) closeModal(userModal);
-    if (e.target === confirmModal) closeModal(confirmModal);
+  if (e.target === parentModal) closeModal(parentModal);
+  if (e.target === userModal) closeModal(userModal);
+  if (e.target === confirmModal) closeModal(confirmModal);
 });
 
 /* =========================
@@ -122,44 +122,43 @@ window.addEventListener("click", (e) => {
 ========================= */
 
 parentBtn.addEventListener("click", () => {
-    renderParentTasks(mockTasks);
-    openModal(parentModal);
+  renderParentTasks(mockTasks);
+  openModal(parentModal);
 });
 
 function renderParentTasks(tasks) {
+  // TRI PAR DATE (plus récent en premier)
+  tasks.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    // TRI PAR DATE (plus récent en premier)
-    tasks.sort((a, b) => new Date(b.date) - new Date(a.date));
+  parentList.innerHTML = "";
 
-    parentList.innerHTML = "";
+  tasks.forEach((task) => {
+    const div = document.createElement("div");
+    div.classList.add("modal-item");
+    div.textContent = task.title;
 
-    tasks.forEach(task => {
-        const div = document.createElement("div");
-        div.classList.add("modal-item");
-        div.textContent = task.title;
+    div.addEventListener("click", () => {
+      selectedParentTask = task;
+      parentDisplay.value = task.title;
+      closeModal(parentModal);
 
-        div.addEventListener("click", () => {
-            selectedParentTask = task;
-            parentDisplay.value = task.title;
-            closeModal(parentModal);
-
-            // LOGIQUE METIER
-            document.getElementById("taskStatus").value = "en_attente";
-        });
-
-        parentList.appendChild(div);
+      // LOGIQUE METIER
+      document.getElementById("taskStatus").value = "en_attente";
     });
+
+    parentList.appendChild(div);
+  });
 }
 
 // SEARCH PARENT
 searchParent.addEventListener("input", (e) => {
-    const value = e.target.value.toLowerCase();
+  const value = e.target.value.toLowerCase();
 
-    const filtered = mockTasks.filter(t =>
-        t.title.toLowerCase().includes(value)
-    );
+  const filtered = mockTasks.filter((t) =>
+    t.title.toLowerCase().includes(value),
+  );
 
-    renderParentTasks(filtered);
+  renderParentTasks(filtered);
 });
 
 /* =========================
@@ -167,38 +166,37 @@ searchParent.addEventListener("input", (e) => {
 ========================= */
 
 userBtn.addEventListener("click", () => {
-    renderUsers(mockUsers);
-    openModal(userModal);
+  renderUsers(mockUsers);
+  openModal(userModal);
 });
 
 function renderUsers(users) {
+  // TRI par rôle (ordre logique)
+  const roleOrder = {
+    manager: 1,
+    developpeur: 2,
+    designer: 3,
+  };
 
-    // TRI par rôle (ordre logique)
-    const roleOrder = {
-        manager: 1,
-        developpeur: 2,
-        designer: 3
-    };
+  users.sort((a, b) => roleOrder[a.role] - roleOrder[b.role]);
 
-    users.sort((a, b) => roleOrder[a.role] - roleOrder[b.role]);
+  userList.innerHTML = "";
 
-    userList.innerHTML = "";
+  users.forEach((user) => {
+    const div = document.createElement("div");
+    div.classList.add("modal-item");
+    div.textContent = `${user.name} (${user.role})`;
 
-    users.forEach(user => {
-        const div = document.createElement("div");
-        div.classList.add("modal-item");
-        div.textContent = `${user.name} (${user.role})`;
+    div.addEventListener("click", () => {
+      selectedUser = user;
+      userDisplay.value = user.name;
+      closeModal(userModal);
 
-        div.addEventListener("click", () => {
-            selectedUser = user;
-            userDisplay.value = user.name;
-            closeModal(userModal);
-
-            document.getElementById("taskStatus").value = "en_cours";
-        });
-
-        userList.appendChild(div);
+      document.getElementById("taskStatus").value = "en_cours";
     });
+
+    userList.appendChild(div);
+  });
 }
 
 // SEARCH USER
@@ -206,24 +204,24 @@ searchUser.addEventListener("input", filterUsers);
 filterRole.addEventListener("change", filterUsers);
 
 function filterUsers() {
-    const text = searchUser.value.toLowerCase();
-    const role = filterRole.value;
+  const text = searchUser.value.toLowerCase();
+  const role = filterRole.value;
 
-    const filtered = mockUsers.filter(u => {
-        const matchName = u.name.toLowerCase().includes(text);
-        const matchRole = role ? u.role === role : true;
-        return matchName && matchRole;
-    });
+  const filtered = mockUsers.filter((u) => {
+    const matchName = u.name.toLowerCase().includes(text);
+    const matchRole = role ? u.role === role : true;
+    return matchName && matchRole;
+  });
 
-    renderUsers(filtered);
+  renderUsers(filtered);
 }
 function resetField(input) {
-    input.value = "";
-    input.classList.add("reset-effect");
+  input.value = "";
+  input.classList.add("reset-effect");
 
-    setTimeout(() => {
-        input.classList.remove("reset-effect");
-    }, 300);
+  setTimeout(() => {
+    input.classList.remove("reset-effect");
+  }, 300);
 }
 
 /* =========================
@@ -231,24 +229,24 @@ function resetField(input) {
 ========================= */
 
 form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const title = document.getElementById("taskTitle").value.trim();
-    const duration = document.getElementById("taskDuration").value;
+  const title = document.getElementById("taskTitle").value.trim();
+  const duration = document.getElementById("taskDuration").value;
 
-    // VALIDATION MINIMALE
-    if (!title) {
-        alert("Le libellé est obligatoire");
-        return;
-    }
+  // VALIDATION MINIMALE
+  if (!title) {
+    alert("Le libellé est obligatoire");
+    return;
+  }
 
-    if (!duration) {
-        alert("La durée ou échéance est obligatoire");
-        return;
-    }
+  if (!duration) {
+    alert("La durée ou échéance est obligatoire");
+    return;
+  }
 
-    // OUVRIR CONFIRMATION
-    openModal(confirmModal);
+  // OUVRIR CONFIRMATION
+  openModal(confirmModal);
 });
 
 /* =========================
@@ -256,34 +254,56 @@ form.addEventListener("submit", (e) => {
 ========================= */
 
 cancelConfirmBtn.addEventListener("click", () => {
-    closeModal(confirmModal);
+  closeModal(confirmModal);
 });
 
-confirmCreateBtn.addEventListener("click", () => {
+confirmCreateBtn.addEventListener("click", async () => {
 
-    const taskData = {
-        title: document.getElementById("taskTitle").value,
-        description: document.getElementById("taskDescription").value,
-        parentTask: selectedParentTask,
-        user: selectedUser,
-        duration: document.getElementById("taskDuration").value,
-        status: document.getElementById("taskStatus").value,
-        files: selectedFiles.map(f => f.name)
-    };
+    try {
 
-    console.log("TASK CREATED :", taskData);
+        const taskData = {
+            libelle: document.getElementById("taskTitle").value.trim(),
+            description: document.getElementById("taskDescription").value.trim(),
 
-    closeModal(confirmModal);
+            id_parent: selectedParentTask ? selectedParentTask.id : null,
 
-    alert("Tâche créée avec succès !");
+            id_responsable: selectedUser ? selectedUser.id : null,
 
-    form.reset();
-    selectedFiles = [];
-    selectedParentTask = null;
-    selectedUser = null;
-    filePreview.innerHTML = "";
-    parentDisplay.value = "";
-    userDisplay.value = "";
+            periode_realisation: document.getElementById("taskDuration").value,
+
+            status: document.getElementById("taskStatus").value,
+
+            cheminFichier: selectedFiles.length
+                ? selectedFiles.map(f => f.name).join(', ')
+                : null
+        };
+
+        const response = await apiCreateTask(taskData);
+
+        if (!response.success) {
+            throw new Error(response.message || "Erreur création tâche");
+        }
+
+        closeModal(confirmModal);
+
+        alert("Tâche créée avec succès !");
+
+        form.reset();
+
+        selectedFiles = [];
+        selectedParentTask = null;
+        selectedUser = null;
+
+        filePreview.innerHTML = "";
+        parentDisplay.value = "";
+        userDisplay.value = "";
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(error.message);
+    }
 });
 
 /* =========================
@@ -291,7 +311,7 @@ confirmCreateBtn.addEventListener("click", () => {
 ========================= */
 
 document.getElementById("taskStatus").addEventListener("change", (e) => {
-    // exemple extension future logique métier
+  // exemple extension future logique métier
 });
 
 /* =========================
@@ -300,26 +320,20 @@ document.getElementById("taskStatus").addEventListener("change", (e) => {
 
 console.log("TaskPRO Create Task JS chargé");
 clearParentTaskBtn.addEventListener("click", () => {
-    selectedParentTask = null;
-    parentDisplay.value = "";
-    document.getElementById("taskStatus").value = "non_assignee";
-    closeModal(parentModal);
+  selectedParentTask = null;
+  parentDisplay.value = "";
+  document.getElementById("taskStatus").value = "non_assignee";
+  closeModal(parentModal);
 });
 clearUserSelectionBtn.addEventListener("click", () => {
-    selectedUser = null;
-    userDisplay.value = "";
-    document.getElementById("taskStatus").value = "non_assignee";
-    closeModal(userModal);
-});
-clearParentTaskBtn.addEventListener("click", () => {
-    selectedParentTask = null;
-    resetField(parentDisplay);
-    document.getElementById("taskStatus").value = "non_assignee";
-    closeModal(parentModal);
+  selectedUser = null;
+  userDisplay.value = "";
+  document.getElementById("taskStatus").value = "non_assignee";
+  closeModal(userModal);
 });
 clearUserSelectionBtn.addEventListener("click", () => {
-    selectedUser = null;
-    resetField(userDisplay);
-    document.getElementById("taskStatus").value = "non_assignee";
-    closeModal(userModal);
+  selectedUser = null;
+  resetField(userDisplay);
+  document.getElementById("taskStatus").value = "non_assignee";
+  closeModal(userModal);
 });

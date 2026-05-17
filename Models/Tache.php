@@ -15,7 +15,7 @@ class Tache
     private string $dateDebutAssignation; // T0 quand assignée
     private ?string $dateFinReelle; // Quand vraiment terminée
     private ?string $cheminFichier; // Chemin du fichier joint
-    private int $id_responsable; // ID de l'Employé assigné
+    private ?int $id_responsable; // ID de l'Employé assigné
     private int $id_createur; // ID de l'Admin qui a créé
 
     public function __construct(
@@ -29,7 +29,7 @@ class Tache
         string $dateDebutAssignation,
         ?string $dateFinReelle,
         ?string $cheminFichier,
-        int $id_responsable,
+        ?int $id_responsable,
         int $id_createur
     ) {
         if (!in_array($status, self::STATUTS_VALIDES)) {
@@ -61,7 +61,7 @@ class Tache
     public function getDateDebutAssignation(): string { return $this->dateDebutAssignation; }
     public function getDateFinReelle(): ?string { return $this->dateFinReelle; }
     public function getCheminFichier(): ?string { return $this->cheminFichier; }
-    public function getIdResponsable(): int { return $this->id_responsable; }
+    public function getIdResponsable(): ?int { return $this->id_responsable; }
     public function getIdCreateur(): int { return $this->id_createur; }
 
     // Setters
@@ -74,7 +74,7 @@ class Tache
 
     public function setLibelle(string $libelle): void { $this->libelle = $libelle; }
     public function setDescription(string $description): void { $this->description = $description; }
-    public function setIdResponsable(int $id_responsable): void { $this->id_responsable = $id_responsable; }
+    public function setIdResponsable(?int $id_responsable): void { $this->id_responsable = $id_responsable; }
     public function setCheminFichier(?string $chemin): void { $this->cheminFichier = $chemin; }
     public function setDateDebutAssignation(string $date): void { $this->dateDebutAssignation = $date; }
     public function setDateFinReelle(?string $date): void { $this->dateFinReelle = $date; }

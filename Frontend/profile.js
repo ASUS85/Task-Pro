@@ -393,26 +393,58 @@ function bindProfileActions() {
 }
 
 async function handleChangePassword() {
-  const newPassword = prompt("Nouveau mot de passe :");
-  if (!newPassword) {
-    return;
-  }
+  if (!adminActionModal) return;
+  const modalAction = document.getElementsByClassName("modal-actions");
 
-  const confirmPassword = prompt("Confirmez le nouveau mot de passe :");
-  if (newPassword !== confirmPassword) {
-    showToast("Les mots de passe ne correspondent pas.", "error");
-    return;
-  }
+  adminActionModal.querySelector("#modalTitle").textContent =
+    "changement de mot de passe";
+  adminActionModal.querySelector("#adminDetails").innerHTML = `
+        <p>Entrez un nouveau mot de passe pour votre compte.</p>
+        <input type="password" id="newPassword" placeholder="Nouveau mot de passe" />
+        <input type="password" id="confirmPassword" placeholder="Confirmez le mot de passe" />
+          `;
+  editAdminBtn.classList.add("show");
+  deleteAdminBtn.classList.add("hidden");
+  adminActionModal.classList.add("show");
 
-  try {
-    await apiChangePassword(newPassword, confirmPassword);
-    showToast("Mot de passe mis à jour avec succès.", "success");
-  } catch (error) {
-    showToast(
-      error.message || "Erreur lors du changement de mot de passe.",
-      "error",
-    );
-  }
+  editAdminBtn.onclick = async () => {
+    const newPassword = document.getElementById("newPassword")?.value.trim();
+
+    const confirmPassword = document
+      .getElementById("confirmPassword")
+      ?.value.trim();
+
+    if (!newPassword || !confirmPassword) {
+      showToast("Veuillez remplir tous les champs.", "error");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      showToast("Les mots de passe ne correspondent pas.", "error");
+      return;
+    }
+
+    if (newPassword.length < 3) {
+      showToast(
+        "Le mot de passe doit contenir au moins 6 caractères.",
+        "error",
+      );
+      return;
+    }
+
+    try {
+      await apiChangePassword(newPassword, confirmPassword);
+
+      showToast("Mot de passe mis à jour avec succès.", "success");
+
+      adminActionModal.classList.remove("show");
+    } catch (error) {
+      showToast(
+        error.message || "Erreur lors du changement de mot de passe.",
+        "error",
+      );
+    }
+  };
 }
 
 function bindLogoutModal() {

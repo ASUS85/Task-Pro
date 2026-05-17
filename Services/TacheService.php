@@ -1,11 +1,13 @@
 <?php
 
-class TacheService {
+class TacheService
+{
     private $tacheDAO;
     private $utilisateurDAO;
     private $notificationService; // Nouveau
 
-    public function __construct($tacheDAO, $utilisateurDAO, $notificationService) {
+    public function __construct($tacheDAO, $utilisateurDAO, $notificationService)
+    {
         $this->tacheDAO = $tacheDAO;
         $this->utilisateurDAO = $utilisateurDAO;
         $this->notificationService = $notificationService;
@@ -14,7 +16,8 @@ class TacheService {
     /**
      * Créer une tâche - Admin ou SuperAdmin uniquement
      */
-    public function creerTache(array $donnees, int $idCreateur): bool {
+    public function creerTache(array $donnees, int $idCreateur): bool
+    {
         // 1. Vérification des droits
         $createur = $this->utilisateurDAO->trouverParId($idCreateur);
         if (!$createur || ($createur->getRole() !== "Administrateur" && $createur->getRole() !== "SuperAdmin")) {
@@ -26,9 +29,8 @@ class TacheService {
             throw new Exception("Libellé, description et période de réalisation sont obligatoires.");
         }
 
-        // 3. Validation du format de période (ex: '10h' ou '2j')
-        if (!preg_match('/^[0-9]+[hj]$/', $donnees['periode_realisation'])) {
-            throw new Exception("Format de période invalide (ex: '10h' ou '2j').");
+        if (empty($donnees['periode_realisation'])) {
+            throw new Exception("La période de réalisation est obligatoire.");
         }
 
         // 4. Vérifier que le responsable existe (optionnel à la création)
@@ -65,7 +67,8 @@ class TacheService {
      * - Employé peut modifier le statut de ses tâches
      * - Admin/SuperAdmin peuvent modifier n'importe quelle tâche
      */
-    public function modifierStatut(int $idTache, string $nouveauStatut, int $idUtilisateur): bool {
+    public function modifierStatut(int $idTache, string $nouveauStatut, int $idUtilisateur): bool
+    {
         // 1. Vérifier que la tâche existe
         $tache = $this->tacheDAO->trouverParId($idTache);
         if (!$tache) {
@@ -90,7 +93,7 @@ class TacheService {
             if ($tache->getIdResponsable() !== $idUtilisateur) {
                 throw new Exception("Action interdite : vous ne pouvez modifier que vos propres tâches.");
             }
-            
+
             // Les employés ne peuvent passer de "assigné" à "en cours" ou à "terminé"
             // Transition automatique "assigné" -> "en cours" se fait via scheduler (T+10min)
             if ($tache->getStatus() === "assigné" && $nouveauStatut === "en cours") {
@@ -105,14 +108,15 @@ class TacheService {
     /**
      * Récupérer les tâches selon le rôle
      */
-    public function getTaches(int $idUtilisateur): array {
+    public function getTaches(int $idUtilisateur): array
+    {
         $utilisateur = $this->utilisateurDAO->trouverParId($idUtilisateur);
         if (!$utilisateur) {
             throw new Exception("Utilisateur introuvable.");
         }
 
         $tachesObjet = [];
-        
+
         switch ($utilisateur->getRole()) {
             case "SuperAdmin":
             case "Administrateur":
@@ -130,7 +134,7 @@ class TacheService {
         }
 
         // Sérialiser les objets Tache pour l'API
-        return array_map(function(Tache $tache) {
+        return array_map(function (Tache $tache) {
             return [
                 'id' => $tache->getId(),
                 'libelle' => $tache->getLibelle(),
@@ -151,7 +155,8 @@ class TacheService {
     /**
      * Supprimer une tâche - Admin ou SuperAdmin uniquement
      */
-    public function supprimerTache(int $idTache, int $idUtilisateur): bool {
+    public function supprimerTache(int $idTache, int $idUtilisateur): bool
+    {
         // 1. Vérifier les droits
         $utilisateur = $this->utilisateurDAO->trouverParId($idUtilisateur);
         if (!$utilisateur || ($utilisateur->getRole() !== "Administrateur" && $utilisateur->getRole() !== "SuperAdmin")) {
@@ -171,29 +176,9 @@ class TacheService {
     /**
      * Assigner une tâche à un employé
      */
-    public function assignerTache(int $idTache, int $idResponsable, int $idUtilisateur): bool {
+    public function assignerTache(int $idTache, int $idResponsable, int $idUtilisateur): bool
+    {
 
-        // 1. On modifie le responsable en BDD via le DAO
-        $result = $this->tacheDAO->modifierResponsable($idTache, $idResponsable);
-
-        if ($result) {
-            // 2. On récupère les infos de la tâche et du responsable
-            $tache = $this->tacheDAO->trouverParId($idTache);
-            $resp = $this->utilisateurDAO->trouverParId($idResponsable);
-
-            // 3. On déclenche la notification via le nouveau service
-            // Ce service va gérer l'email ET l'enregistrement en BDD tout seul
-            $msg = "La tâche '" . $tache->getLibelle() . "' vous a été assignée par l'administrateur.";
-            
-            $this->notificationService->notifierUtilisateur(
-                $idResponsable, 
-                $resp->getEmail(), 
-                $resp->getPrenom(), 
-                $msg, 
-                $idTache
-            );
-        }
-        
         // 1. Vérifier les droits
         $utilisateur = $this->utilisateurDAO->trouverParId($idUtilisateur);
         if (!$utilisateur || ($utilisateur->getRole() !== "Administrateur" && $utilisateur->getRole() !== "SuperAdmin")) {
@@ -215,6 +200,27 @@ class TacheService {
         // 4. Vérifier que le responsable n'est pas SuperAdmin
         if ($responsable->getRole() === "SuperAdmin") {
             throw new Exception("Impossible d'assigner une tâche au SuperAdmin.");
+        }
+
+        // 1. On modifie le responsable en BDD via le DAO
+        $result = $this->tacheDAO->modifierResponsable($idTache, $idResponsable);
+
+        if ($result) {
+            // 2. On récupère les infos de la tâche et du responsable
+            $tache = $this->tacheDAO->trouverParId($idTache);
+            $resp = $this->utilisateurDAO->trouverParId($idResponsable);
+
+            // 3. On déclenche la notification via le nouveau service
+            // Ce service va gérer l'email ET l'enregistrement en BDD tout seul
+            $msg = "La tâche '" . $tache->getLibelle() . "' vous a été assignée par l'administrateur.";
+
+            $this->notificationService->notifierUtilisateur(
+                $idResponsable,
+                $resp->getEmail(),
+                $resp->getPrenom(),
+                $msg,
+                $idTache
+            );
         }
 
         // 5. Mise à jour
