@@ -3,62 +3,10 @@
 // ===============================
 
 // -------------------------------
-// MOCK DATABASE
+// DONNÉES RÉELLES (depuis API)
 // -------------------------------
-let tasks = [
-    {
-        id: 1,
-        name: "Créer dashboard analytics",
-        type: "principale",
-        status: "en_cours",
-        assignedTo: "John Doe",
-        createdBy: "Admin",
-        createdAt: "2026-04-20",
-        deadline: "2026-04-30",
-        priority: "Haute",
-        description: "Développement du dashboard enterprise avec analytics avancées.",
-        parentTask: null
-    },
-    {
-        id: 2,
-        name: "API gestion utilisateurs",
-        type: "sous_tache",
-        status: "en_attente",
-        assignedTo: "Jane Smith",
-        createdBy: "Admin",
-        createdAt: "2026-04-18",
-        deadline: "2026-05-05",
-        priority: "Moyenne",
-        description: "Créer une API REST pour gérer les utilisateurs.",
-        parentTask: 1
-    },
-    {
-        id: 3,
-        name: "UI page login",
-        type: "principale",
-        status: "terminee",
-        assignedTo: "Mike",
-        createdBy: "Super Admin",
-        createdAt: "2026-04-10",
-        deadline: "2026-04-15",
-        priority: "Basse",
-        description: "Interface de connexion moderne et sécurisée.",
-        parentTask: null
-    },
-    {
-        id: 4,
-        name: "Fix bug authentification",
-        type: "sous_tache",
-        status: "retard",
-        assignedTo: "Sarah",
-        createdBy: "Admin",
-        createdAt: "2026-04-12",
-        deadline: "2026-04-22",
-        priority: "Haute",
-        description: "Correction des erreurs de login utilisateur.",
-        parentTask: 3
-    }
-];
+let tasks = [];
+let allTasks = []; // pour les filtres
 
 // -------------------------------
 // DOM
@@ -85,10 +33,69 @@ const statusFilter = document.getElementById("filterStatus");
 const typeFilter = document.getElementById("filterType");
 
 // -------------------------------
+// TRANSFORMER DONNÉES API → FRONTEND
+// -------------------------------
+/**
+ * Transforme une tâche de l'API au format du frontend
+ */
+function transformTaskFromAPI(apiTask, responsibleUser = null) {
+    // Déterminer le type de tâche (principale ou sous-tâche)
+    const type = apiTask.id_parent ? "sous_tache" : "principale";
+    
+    // Mapper le statut API vers le format frontend
+    const statusMap = {
+        "non assigné": "en_attente",
+        "assigné": "en_attente",
+        "en cours": "en_cours",
+        "non terminé": "en_attente",
+        "terminé": "terminee"
+    };
+    
+    const status = statusMap[apiTask.status] || "en_attente";
+    
+    // Récupérer le nom du responsable si disponible
+    let assignedTo = "-";
+    if (responsibleUser) {
+        assignedTo = `${responsibleUser.prenom} ${responsibleUser.nom}`;
+    }
+    
+    return {
+        id: apiTask.id,
+        name: apiTask.libelle,
+        type: type,
+        status: status,
+        assignedTo: assignedTo,
+        createdBy: "Admin", // TODO: récupérer du créateur réel si disponible
+        createdAt: apiTask.dateCreation ? apiTask.dateCreation.split(' ')[0] : "-",
+        deadline: apiTask.periode_realisation ? apiTask.periode_realisation.split(' ')[0] : "-",
+        priority: "Moyenne", // TODO: ajouter priorité en BD
+        description: apiTask.description || "Aucune description",
+        parentTask: apiTask.id_parent || null
+    };
+}
+
+// filters
+
+// -------------------------------
 // RENDER TABLE
 // -------------------------------
 function renderTasks(data) {
+    console.log("[RENDER] Affichage de", data.length, "tâche(s)");
+    
     tableBody.innerHTML = "";
+
+    // Si aucune tâche
+    if (data.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 30px; color: #999;">
+                    <p>Aucune tâche à afficher</p>
+                    <small>Vous n'avez aucune tâche créée ou correspondant aux filtres appliqués.</small>
+                </td>
+            </tr>
+        `;
+        return;
+    }
 
     // tri par date la plus récente
     data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -110,9 +117,9 @@ function renderTasks(data) {
             <td>${task.priority}</td>
             <td>
                 <div class="action-buttons">
-                    <button class="action-btn view-btn" data-id="${task.id}">👁</button>
-                    <button class="action-btn edit-btn" data-id="${task.id}">✏️</button>
-                    <button class="action-btn delete-btn" data-id="${task.id}">🗑</button>
+                    <button class="action-btn view-btn" data-id="${task.id}" title="Voir">👁</button>
+                    <button class="action-btn edit-btn" data-id="${task.id}" title="Éditer">✏️</button>
+                    <button class="action-btn delete-btn" data-id="${task.id}" title="Supprimer">🗑</button>
                 </div>
             </td>
         `;
@@ -162,8 +169,13 @@ function getRemainingTime(deadline) {
 // MODAL DETAILS
 // -------------------------------
 function openModal(id) {
-    const task = tasks.find(t => t.id === id);
-    if (!task) return;
+    const task = tasks.find(t => t.id === id) || allTasks.find(t => t.id === id);
+    if (!task) {
+        console.warn("[MODAL] Tâche non trouvée:", id);
+        return;
+    }
+
+    console.log("[MODAL] Ouverture détails tâche:", task.name);
 
     detailTitle.textContent = task.name;
     detailDescription.textContent = task.description;
@@ -176,7 +188,7 @@ function openModal(id) {
 
     // parent task
     if (task.parentTask) {
-        const parent = tasks.find(t => t.id === task.parentTask);
+        const parent = tasks.find(t => t.id === task.parentTask) || allTasks.find(t => t.id === task.parentTask);
         parentTaskBlock.style.display = "block";
 
         if (parent) {
@@ -208,15 +220,31 @@ window.addEventListener("click", (e) => {
 // -------------------------------
 // ACTIONS (DELETE / EDIT / VIEW)
 // -------------------------------
-tableBody.addEventListener("click", (e) => {
+tableBody.addEventListener("click", async (e) => {
     const id = parseInt(e.target.dataset.id);
 
     if (e.target.classList.contains("delete-btn")) {
         e.stopPropagation();
 
         if (confirm("Supprimer cette tâche ?")) {
-            tasks = tasks.filter(t => t.id !== id);
-            applyFilters();
+            try {
+                console.log("[DELETE] Suppression de la tâche", id);
+                const result = await apiDeleteTask(id);
+                
+                if (result.success) {
+                    console.log("✅ Tâche supprimée avec succès");
+                    // Supprimer du tableau local
+                    tasks = tasks.filter(t => t.id !== id);
+                    allTasks = allTasks.filter(t => t.id !== id);
+                    applyFilters();
+                    alert("Tâche supprimée avec succès");
+                } else {
+                    throw new Error(result.message || "Erreur lors de la suppression");
+                }
+            } catch (error) {
+                console.error("Erreur suppression:", error);
+                alert("Erreur: " + error.message);
+            }
         }
     }
 
@@ -235,7 +263,8 @@ tableBody.addEventListener("click", (e) => {
 // FILTRES AVANCÉS
 // -------------------------------
 function applyFilters() {
-    let filtered = [...tasks];
+    // Utiliser allTasks comme source (ne pas modifier tasks directement)
+    let filtered = [...allTasks];
 
     const search = searchInput.value.toLowerCase();
     const status = statusFilter.value;
@@ -264,8 +293,56 @@ statusFilter.addEventListener("change", applyFilters);
 typeFilter.addEventListener("change", applyFilters);
 
 // -------------------------------
-// INIT
+// INITIALISATION
 // -------------------------------
-renderTasks(tasks);
+async function initializePage() {
+  try {
+    // Vérifier l'authentification
+    const currentUser = getCurrentUserFromStorage();
+    console.log("[AUTH] Utilisateur actuel:", currentUser);
+    
+    if (!currentUser) {
+      console.warn("⚠️ PAS D'UTILISATEUR AUTHENTIFIÉ - Redirection vers login");
+      alert("Vous devez être connecté");
+      window.location.href = 'login.html';
+      return;
+    }
+    
+    console.log("[INIT] Démarrage du chargement des tâches pour", currentUser.prenom, currentUser.nom);
+    console.log("[API] Appel GET /taches/list...");
+    
+    // Charger les tâches
+    const tasksResponse = await apiListTasks();
+    console.log("[API RESPONSE] Tâches reçues:", tasksResponse);
+    
+    if (!Array.isArray(tasksResponse)) {
+      console.warn("[WARN] apiListTasks() n'a pas retourné un tableau");
+      tasks = [];
+      allTasks = [];
+    } else {
+      // Transformer les données
+      tasks = tasksResponse.map(apiTask => transformTaskFromAPI(apiTask));
+      allTasks = [...tasks];
+      
+      console.log("✅ Tâches transformées et chargées");
+      console.log("📊 Nombre de tâches:", tasks.length);
+    }
+    
+    // Afficher les tâches
+    renderTasks(tasks);
+    
+    console.log("✅ TaskPRO Task List initialisé avec succès 🚀");
+    
+  } catch (error) {
+    console.error("❌ Erreur lors de l'initialisation:", error);
+    console.error("Stack:", error.stack);
+    alert("⚠️ Erreur de chargement des tâches:\n" + error.message);
+  }
+}
 
-console.log("TaskPRO Task List chargé avec succès 🚀");
+// Lancer l'initialisation au chargement
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializePage);
+} else {
+  initializePage();
+}

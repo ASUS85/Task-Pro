@@ -4,54 +4,10 @@
 // ===============================
 
 // -------------------------------
-// MOCK DATABASE
+// DONNÉES RÉELLES (depuis API)
 // -------------------------------
-let users = [
-    {
-        id: 1,
-        name: "John Doe",
-        email: "john@taskpro.com",
-        role: "admin",
-        status: "online",
-        availability: "busy",
-        tasks: 5,
-        lastSeen: "2026-04-26 12:40",
-        bio: "Admin système responsable des projets critiques."
-    },
-    {
-        id: 2,
-        name: "Sarah Smith",
-        email: "sarah@taskpro.com",
-        role: "user",
-        status: "online",
-        availability: "free",
-        tasks: 2,
-        lastSeen: "2026-04-26 13:10",
-        bio: "Développeuse front-end."
-    },
-    {
-        id: 3,
-        name: "Mike Johnson",
-        email: "mike@taskpro.com",
-        role: "super_admin",
-        status: "offline",
-        availability: "free",
-        tasks: 0,
-        lastSeen: "2026-04-25 18:22",
-        bio: "Super admin du système TaskPRO."
-    },
-    {
-        id: 4,
-        name: "Emma Brown",
-        email: "emma@taskpro.com",
-        role: "user",
-        status: "online",
-        availability: "busy",
-        tasks: 3,
-        lastSeen: "2026-04-26 13:20",
-        bio: "Designer UI/UX."
-    }
-];
+let users = [];
+let allUsers = [];
 
 // -------------------------------
 // STATE
@@ -72,6 +28,37 @@ const deleteModal = document.getElementById("confirmDeleteModal");
 // CLOSE BUTTONS
 document.getElementById("closeUserModal").onclick = () => profileModal.style.display = "none";
 document.getElementById("closeEditUserModal").onclick = () => editModal.style.display = "none";
+
+// -------------------------------
+// TRANSFORMER DONNÉES API → FRONTEND
+// -------------------------------
+/**
+ * Transforme un utilisateur de l'API au format du frontend
+ */
+function transformUserFromAPI(apiUser) {
+    // Mapper le rôle API vers le format frontend
+    const roleMap = {
+        "Administrateur": "admin",
+        "Employe": "user",
+        "SuperAdmin": "super_admin"
+    };
+    
+    const role = roleMap[apiUser.role] || "user";
+    
+    return {
+        id: apiUser.id,
+        name: `${apiUser.prenom} ${apiUser.nom}`,
+        email: apiUser.email,
+        role: role,
+        status: "online", // TODO: récupérer du statut en temps réel si disponible
+        availability: "free", // TODO: récupérer la disponibilité réelle si disponible
+        tasks: 0, // TODO: compter les tâches assignées
+        lastSeen: new Date().toLocaleString('fr-FR'),
+        bio: apiUser.poste ? `${apiUser.poste}` : "Aucune bio disponible"
+    };
+}
+
+// CLOSE BUTTONS
 
 // -------------------------------
 // AVATAR
@@ -108,7 +95,21 @@ function formatAvailability(av) {
 // RENDER TABLE
 // -------------------------------
 function renderUsers(data) {
+    console.log("[RENDER] Affichage de", data.length, "utilisateur(s)");
+    
     tableBody.innerHTML = "";
+
+    // Si aucun utilisateur
+    if (data.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 30px; color: #999;">
+                    <p>Aucun utilisateur à afficher</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
 
     data.forEach(user => {
         const row = document.createElement("tr");
@@ -255,6 +256,56 @@ tableBody.addEventListener("click", (e) => {
 });
 
 // -------------------------------
-// INIT
+// INITIALISATION
 // -------------------------------
-renderUsers(users);
+async function initializePage() {
+  try {
+    // Vérifier l'authentification
+    const currentUser = getCurrentUserFromStorage();
+    console.log("[AUTH] Utilisateur actuel:", currentUser);
+    
+    if (!currentUser) {
+      console.warn("⚠️ PAS D'UTILISATEUR AUTHENTIFIÉ");
+      alert("Vous devez être connecté");
+      window.location.href = 'login.html';
+      return;
+    }
+    
+    console.log("[INIT] Démarrage du chargement des utilisateurs");
+    console.log("[API] Appel GET /users...");
+    
+    // Charger les utilisateurs (seulement pour Administrateur)
+    const usersResponse = await apiListUsers();
+    console.log("[API RESPONSE] Utilisateurs reçus:", usersResponse);
+    
+    if (!Array.isArray(usersResponse)) {
+      console.warn("[WARN] apiListUsers() n'a pas retourné un tableau");
+      users = [];
+      allUsers = [];
+    } else {
+      // Transformer les données
+      users = usersResponse.map(apiUser => transformUserFromAPI(apiUser));
+      allUsers = [...users];
+      
+      console.log("✅ Utilisateurs transformés et chargés");
+      console.log("📊 Nombre d'utilisateurs:", users.length);
+    }
+    
+    // Afficher les utilisateurs
+    renderUsers(users);
+    
+    console.log("✅ TaskPRO Users List initialisé avec succès 🚀");
+    
+  } catch (error) {
+    console.error("❌ Erreur lors de l'initialisation:", error);
+    console.error("Stack:", error.stack);
+    alert("⚠️ Erreur de chargement des utilisateurs:\n" + error.message);
+  }
+}
+
+// Lancer l'initialisation au chargement
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializePage);
+} else {
+  initializePage();
+}
