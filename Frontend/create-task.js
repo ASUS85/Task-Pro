@@ -4,20 +4,11 @@
    ============================================================ */
 
 /* =========================
-   MOCK DATA (simulation API)
+   DONNEES REELLES (depuis API)
 ========================= */
 
-const mockTasks = [
-  { id: 1, title: "Mettre en place l'authentification", date: "2026-04-20" },
-  { id: 2, title: "Créer le dashboard admin", date: "2026-04-22" },
-  { id: 3, title: "Design du système de paiement", date: "2026-04-24" },
-];
-
-const mockUsers = [
-  { id: 1, name: "Jean Claude", role: "developpeur" },
-  { id: 2, name: "Marie Louise", role: "designer" },
-  { id: 3, name: "Patrick Ngono", role: "manager" },
-];
+let realTasks = [];
+let realUsers = [];
 
 /* =========================
    ELEMENTS DOM
@@ -121,29 +112,51 @@ window.addEventListener("click", (e) => {
    MODAL TASK PARENT
 ========================= */
 
-parentBtn.addEventListener("click", () => {
-  renderParentTasks(mockTasks);
-  openModal(parentModal);
+parentBtn.addEventListener("click", async () => {
+  try {
+    console.log("[MODAL] Ouverture modal tâches parentes...");
+    
+    if (realTasks.length === 0) {
+      console.warn("[MODAL] Aucune tâche en mémoire, rechargement...");
+      realTasks = await apiListTasks();
+    }
+    
+    if (realTasks.length === 0) {
+      alert("Aucune tâche disponible");
+      return;
+    }
+    
+    renderParentTasks(realTasks);
+    openModal(parentModal);
+  } catch (error) {
+    console.error("Erreur chargement tâches:", error);
+    alert("Erreur lors du chargement des tâches parentes: " + error.message);
+  }
 });
 
 function renderParentTasks(tasks) {
   // TRI PAR DATE (plus récent en premier)
-  tasks.sort((a, b) => new Date(b.date) - new Date(a.date));
+  tasks.sort((a, b) => new Date(b.dateCreation) - new Date(a.dateCreation));
 
   parentList.innerHTML = "";
+
+  if (tasks.length === 0) {
+    parentList.innerHTML = "<p style='padding:10px; text-align:center;'>Aucune tâche disponible</p>";
+    return;
+  }
 
   tasks.forEach((task) => {
     const div = document.createElement("div");
     div.classList.add("modal-item");
-    div.textContent = task.title;
+    div.textContent = task.libelle || task.title;
 
     div.addEventListener("click", () => {
       selectedParentTask = task;
-      parentDisplay.value = task.title;
+      parentDisplay.value = task.libelle || task.title;
       closeModal(parentModal);
 
-      // LOGIQUE METIER
-      document.getElementById("taskStatus").value = "en_attente";
+      // LOGIQUE METIER - statut devient assigné ou non assigné selon si responsable existe
+      document.getElementById("taskStatus").value = "non assigné";
     });
 
     parentList.appendChild(div);
@@ -154,8 +167,8 @@ function renderParentTasks(tasks) {
 searchParent.addEventListener("input", (e) => {
   const value = e.target.value.toLowerCase();
 
-  const filtered = mockTasks.filter((t) =>
-    t.title.toLowerCase().includes(value),
+  const filtered = realTasks.filter((t) =>
+    (t.libelle || t.title).toLowerCase().includes(value),
   );
 
   renderParentTasks(filtered);
@@ -165,34 +178,62 @@ searchParent.addEventListener("input", (e) => {
    MODAL USERS
 ========================= */
 
-userBtn.addEventListener("click", () => {
-  renderUsers(mockUsers);
-  openModal(userModal);
+userBtn.addEventListener("click", async () => {
+  try {
+    console.log("[MODAL] Ouverture modal utilisateurs...");
+    
+    if (realUsers.length === 0) {
+      console.warn("[MODAL] Aucun utilisateur en mémoire, rechargement...");
+      realUsers = await apiListUsers();
+    }
+    
+    if (realUsers.length === 0) {
+      alert("Aucun utilisateur disponible pour assignation.\nAssurez-vous d'être connecté en tant qu'Administrateur.");
+      return;
+    }
+    
+    renderUsers(realUsers);
+    openModal(userModal);
+  } catch (error) {
+    console.error("Erreur chargement utilisateurs:", error);
+    alert("Erreur lors du chargement des utilisateurs: " + error.message);
+  }
 });
 
 function renderUsers(users) {
-  // TRI par rôle (ordre logique)
-  const roleOrder = {
-    manager: 1,
-    developpeur: 2,
-    designer: 3,
+  // TRI par poste
+  const postOrder = {
+    "Administrateur": 1,
+    "Employe": 2,
   };
 
-  users.sort((a, b) => roleOrder[a.role] - roleOrder[b.role]);
+  users.sort((a, b) => {
+    const orderA = postOrder[a.role] || postOrder[a.poste] || 99;
+    const orderB = postOrder[b.role] || postOrder[b.poste] || 99;
+    return orderA - orderB;
+  });
 
   userList.innerHTML = "";
+
+  if (users.length === 0) {
+    userList.innerHTML = "<p style='padding:10px; text-align:center;'>Aucun utilisateur disponible</p>";
+    return;
+  }
 
   users.forEach((user) => {
     const div = document.createElement("div");
     div.classList.add("modal-item");
-    div.textContent = `${user.name} (${user.role})`;
+    const userName = `${user.prenom} ${user.nom}`;
+    const userRole = user.role || user.poste || 'Non spécifié';
+    div.textContent = `${userName} (${userRole})`;
 
     div.addEventListener("click", () => {
       selectedUser = user;
-      userDisplay.value = user.name;
+      userDisplay.value = userName;
       closeModal(userModal);
 
-      document.getElementById("taskStatus").value = "en_cours";
+      // LOGIQUE METIER - assigné si on sélectionne un utilisateur
+      document.getElementById("taskStatus").value = "assigné";
     });
 
     userList.appendChild(div);
@@ -207,9 +248,11 @@ function filterUsers() {
   const text = searchUser.value.toLowerCase();
   const role = filterRole.value;
 
-  const filtered = mockUsers.filter((u) => {
-    const matchName = u.name.toLowerCase().includes(text);
-    const matchRole = role ? u.role === role : true;
+  const filtered = realUsers.filter((u) => {
+    const fullName = `${u.prenom} ${u.nom}`.toLowerCase();
+    const matchName = fullName.includes(text);
+    const userRole = u.role || u.poste || '';
+    const matchRole = role ? userRole === role : true;
     return matchName && matchRole;
   });
 
@@ -232,11 +275,17 @@ form.addEventListener("submit", (e) => {
   e.preventDefault();
 
   const title = document.getElementById("taskTitle").value.trim();
+  const description = document.getElementById("taskDescription").value.trim();
   const duration = document.getElementById("taskDuration").value;
 
   // VALIDATION MINIMALE
   if (!title) {
     alert("Le libellé est obligatoire");
+    return;
+  }
+
+  if (!description) {
+    alert("La description est obligatoire");
     return;
   }
 
@@ -288,6 +337,7 @@ confirmCreateBtn.addEventListener("click", async () => {
 
         alert("Tâche créée avec succès !");
 
+        // Réinitialiser le formulaire
         form.reset();
 
         selectedFiles = [];
@@ -297,12 +347,13 @@ confirmCreateBtn.addEventListener("click", async () => {
         filePreview.innerHTML = "";
         parentDisplay.value = "";
         userDisplay.value = "";
+        document.getElementById("taskStatus").value = "non assigné";
 
     } catch (error) {
 
         console.error(error);
 
-        alert(error.message);
+        alert("Erreur: " + error.message);
     }
 });
 
@@ -318,22 +369,82 @@ document.getElementById("taskStatus").addEventListener("change", (e) => {
    INIT UI
 ========================= */
 
-console.log("TaskPRO Create Task JS chargé");
+// Initialiser au chargement de la page
+async function initializePage() {
+  try {
+    // Vérifier d'abord que l'utilisateur est authentifié
+    const currentUser = getCurrentUserFromStorage();
+    console.log("[AUTH] Utilisateur actuel:", currentUser);
+    
+    if (!currentUser) {
+      console.warn("⚠️ PAS D'UTILISATEUR AUTHENTIFIÉ - Redirection vers login");
+      alert("Vous devez être connecté pour créer une tâche");
+      window.location.href = 'login.html';
+      return;
+    }
+    
+    console.log("[INIT] Démarrage du chargement des données pour", currentUser.prenom, currentUser.nom);
+    
+    // Charger les utilisateurs pour la modal
+    console.log("[API] Appel GET /users...");
+    const usersResponse = await apiListUsers();
+    console.log("[API] Réponse utilisateurs:", usersResponse);
+    
+    if (Array.isArray(usersResponse)) {
+      realUsers = usersResponse;
+    } else {
+      console.warn("[WARN] apiListUsers() n'a pas retourné un tableau, reçu:", usersResponse);
+      realUsers = [];
+    }
+    
+    // Charger les tâches pour les tâches parentes
+    console.log("[API] Appel GET /taches/list...");
+    const tasksResponse = await apiListTasks();
+    console.log("[API] Réponse tâches:", tasksResponse);
+    
+    if (Array.isArray(tasksResponse)) {
+      realTasks = tasksResponse;
+    } else {
+      console.warn("[WARN] apiListTasks() n'a pas retourné un tableau, reçu:", tasksResponse);
+      realTasks = [];
+    }
+    
+    console.log("✅ TaskPRO Create Task JS chargé et données initialisées");
+    console.log("📊 Utilisateurs disponibles:", realUsers.length);
+    console.log("📊 Tâches disponibles:", realTasks.length);
+    
+    if (realUsers.length === 0) {
+      console.warn("⚠️ AUCUN UTILISATEUR CHARGÉ - Vérifiez les droits (doit être Administrateur)");
+    }
+    if (realTasks.length === 0) {
+      console.warn("⚠️ AUCUNE TÂCHE CHARGÉE - C'est normal si c'est la première fois");
+    }
+    
+  } catch (error) {
+    console.error("❌ Erreur lors de l'initialisation:", error);
+    console.error("Stack:", error.stack);
+    alert("⚠️ Erreur de chargement des données:\n" + error.message + "\n\nVérifiez la console pour plus de détails");
+  }
+}
+
+// Appeler l'initialisation quand le DOM est prêt
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializePage);
+} else {
+  initializePage();
+}
+
+// Boutons de réinitialisation
 clearParentTaskBtn.addEventListener("click", () => {
   selectedParentTask = null;
   parentDisplay.value = "";
-  document.getElementById("taskStatus").value = "non_assignee";
+  document.getElementById("taskStatus").value = "non assigné";
   closeModal(parentModal);
 });
-clearUserSelectionBtn.addEventListener("click", () => {
-  selectedUser = null;
-  userDisplay.value = "";
-  document.getElementById("taskStatus").value = "non_assignee";
-  closeModal(userModal);
-});
+
 clearUserSelectionBtn.addEventListener("click", () => {
   selectedUser = null;
   resetField(userDisplay);
-  document.getElementById("taskStatus").value = "non_assignee";
+  document.getElementById("taskStatus").value = "non assigné";
   closeModal(userModal);
 });

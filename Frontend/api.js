@@ -29,11 +29,17 @@ async function apiCall(endpoint, method = 'GET', data = null) {
             options.body = JSON.stringify(data);
         }
 
+        console.log(`[API] ${method} ${endpoint}`, data || '');
         const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
         const result = await response.json();
 
-        if (!response.ok && !result.success) {
-            throw new Error(result.message || `Erreur HTTP ${response.status}`);
+        console.log(`[API RESPONSE] Status: ${response.status}`, result);
+
+        // Vérifier le statut HTTP OU le champ success
+        if (!response.ok || !result.success) {
+            const errorMsg = result.message || `Erreur HTTP ${response.status}`;
+            console.error(`[API ERROR] ${errorMsg}`);
+            throw new Error(errorMsg);
         }
 
         return result;
@@ -221,10 +227,10 @@ async function apiCreateUser(userData) {
 }
 
 /**
- * Liste tous les utilisateurs (SuperAdmin seulement)
+ * Liste tous les utilisateurs (Administrateur et SuperAdmin)
  */
 async function apiListUsers() {
-    const response = await apiCall('/admin/users', 'GET');
+    const response = await apiCall('/users', 'GET');
     return response.users || [];
 }
 

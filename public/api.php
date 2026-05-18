@@ -362,6 +362,43 @@ try {
         exit;
     }
 
+    // ================= USERS (pour les administrateurs) =================
+    if ($parts[0] === 'users' && $method === 'GET') {
+        requireAuth();
+
+        // Vérifier que l'utilisateur est Administrateur ou SuperAdmin
+        $user = $utilisateurDAO->trouverParId($_SESSION['user_id']);
+        if (!$user || ($user->getRole() !== 'Administrateur' && $user->getRole() !== 'SuperAdmin')) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Accès refusé']);
+            exit;
+        }
+
+        $users = $utilisateurDAO->obtenirTous();
+
+        // Formater les utilisateurs et exclure les SuperAdmin
+        $formattedUsers = array_filter(array_map(function ($user) {
+            // Exclure les SuperAdmin des listes d'assignation
+            if ($user->getRole() === 'SuperAdmin') {
+                return null;
+            }
+            return [
+                'id' => $user->getId(),
+                'nom' => $user->getNom(),
+                'prenom' => $user->getPrenom(),
+                'email' => $user->getEmail(),
+                'role' => $user->getRole(),
+                'poste' => $user->getPoste()
+            ];
+        }, $users));
+
+        echo json_encode([
+            'success' => true,
+            'users' => array_values($formattedUsers) // Re-index array
+        ]);
+        exit;
+    }
+
     // ================= ADMIN =================
     if ($parts[0] === 'admin') {
 
