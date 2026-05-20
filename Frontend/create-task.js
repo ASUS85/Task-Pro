@@ -42,6 +42,9 @@ const filterRole = document.getElementById("filterRole");
 const confirmModal = document.getElementById("confirmModal");
 const cancelConfirmBtn = document.getElementById("cancelConfirmBtn");
 const confirmCreateBtn = document.getElementById("confirmCreateBtn");
+const durationType = document.getElementById("durationType");
+const taskDuration = document.getElementById("taskDuration");
+const taskDurationHint = document.getElementById("taskDurationHint");
 
 /* =========================
    ETAT GLOBAL
@@ -108,6 +111,90 @@ window.addEventListener("click", (e) => {
   if (e.target === confirmModal) closeModal(confirmModal);
 });
 
+durationType.addEventListener("change", updateDurationInput);
+taskDuration.addEventListener("input", validateTaskDurationField);
+
+function getDatetimeLocalMin() {
+  const now = new Date();
+  const tzOffset = now.getTimezoneOffset() * 60000;
+  const localISO = new Date(now - tzOffset).toISOString().slice(0, 16);
+  return localISO;
+}
+
+function parseDurationToSeconds(value) {
+  const match = value.match(/^\s*(\d+):(\d{2}):(\d{2})\s*$/);
+  if (!match) return null;
+  const hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const seconds = parseInt(match[3], 10);
+  if (minutes > 59 || seconds > 59) return null;
+  return hours * 3600 + minutes * 60 + seconds;
+}
+
+function isFutureDateTime(value) {
+  const date = new Date(value);
+  return !Number.isNaN(date.getTime()) && date.getTime() > Date.now();
+}
+
+function updateDurationInput() {
+  if (!taskDuration || !durationType) return;
+
+  if (durationType.value === "hours") {
+    taskDuration.type = "text";
+    taskDuration.placeholder = "HH:mm:ss";
+    taskDuration.value = taskDuration.value ? taskDuration.value : "";
+    taskDuration.min = "";
+    taskDurationHint.textContent = "Format requis : HH:mm:ss (durée positive).";
+  } else {
+    taskDuration.type = "datetime-local";
+    taskDuration.placeholder = "";
+    taskDuration.min = getDatetimeLocalMin();
+    taskDurationHint.textContent = "Choisissez une date/heure future.";
+  }
+
+  validateTaskDurationField();
+}
+
+function validateTaskDurationField() {
+  if (!taskDuration || !durationType) return;
+
+  const value = taskDuration.value.trim();
+  let valid = true;
+  let message = "";
+
+  if (!value) {
+    valid = false;
+    message = "La durée ou l'échéance est obligatoire.";
+  } else if (durationType.value === "hours") {
+    const seconds = parseDurationToSeconds(value);
+    if (seconds === null || seconds <= 0) {
+      valid = false;
+      message = "La durée doit être au format HH:mm:ss et supérieure à 00:00:00.";
+    }
+  } else {
+    if (!isFutureDateTime(value)) {
+      valid = false;
+      message = "La date/heure doit être dans le futur.";
+    }
+  }
+
+  if (!valid) {
+    taskDuration.classList.add("invalid-input");
+    taskDurationHint.textContent = message;
+  } else {
+    taskDuration.classList.remove("invalid-input");
+    if (durationType.value === "hours") {
+      taskDurationHint.textContent = "Format requis : HH:mm:ss (durée positive).";
+    } else {
+      taskDurationHint.textContent = "Choisissez une date/heure future.";
+    }
+  }
+
+  return valid;
+}
+
+updateDurationInput();
+
 /* =========================
    MODAL TASK PARENT
 ========================= */
@@ -154,9 +241,6 @@ function renderParentTasks(tasks) {
       selectedParentTask = task;
       parentDisplay.value = task.libelle || task.title;
       closeModal(parentModal);
-
-      // LOGIQUE METIER - statut devient assigné ou non assigné selon si responsable existe
-      document.getElementById("taskStatus").value = "non assigné";
     });
 
     parentList.appendChild(div);
@@ -231,9 +315,6 @@ function renderUsers(users) {
       selectedUser = user;
       userDisplay.value = userName;
       closeModal(userModal);
-
-      // LOGIQUE METIER - assigné si on sélectionne un utilisateur
-      document.getElementById("taskStatus").value = "assigné";
     });
 
     userList.appendChild(div);
@@ -276,7 +357,7 @@ form.addEventListener("submit", (e) => {
 
   const title = document.getElementById("taskTitle").value.trim();
   const description = document.getElementById("taskDescription").value.trim();
-  const duration = document.getElementById("taskDuration").value;
+  const duration = taskDuration.value.trim();
 
   // VALIDATION MINIMALE
   if (!title) {
@@ -291,6 +372,13 @@ form.addEventListener("submit", (e) => {
 
   if (!duration) {
     alert("La durée ou échéance est obligatoire");
+    taskDuration.classList.add("invalid-input");
+    taskDurationHint.textContent = "La durée ou l'échéance est obligatoire.";
+    return;
+  }
+
+  if (!validateTaskDurationField()) {
+    alert(taskDurationHint.textContent);
     return;
   }
 
@@ -311,20 +399,18 @@ confirmCreateBtn.addEventListener("click", async () => {
     try {
 
         const taskData = {
-            libelle: document.getElementById("taskTitle").value.trim(),
-            description: document.getElementById("taskDescription").value.trim(),
+          libelle: document.getElementById("taskTitle").value.trim(),
+          description: document.getElementById("taskDescription").value.trim(),
 
-            id_parent: selectedParentTask ? selectedParentTask.id : null,
+          id_parent: selectedParentTask ? selectedParentTask.id : null,
 
-            id_responsable: selectedUser ? selectedUser.id : null,
+          id_responsable: selectedUser ? selectedUser.id : null,
 
-            periode_realisation: document.getElementById("taskDuration").value,
+          periode_realisation: document.getElementById("taskDuration").value,
 
-            status: document.getElementById("taskStatus").value,
-
-            cheminFichier: selectedFiles.length
-                ? selectedFiles.map(f => f.name).join(', ')
-                : null
+          cheminFichier: selectedFiles.length
+            ? selectedFiles.map(f => f.name).join(', ')
+            : null
         };
 
         const response = await apiCreateTask(taskData);
@@ -347,7 +433,7 @@ confirmCreateBtn.addEventListener("click", async () => {
         filePreview.innerHTML = "";
         parentDisplay.value = "";
         userDisplay.value = "";
-        document.getElementById("taskStatus").value = "non assigné";
+        // statut initial déterminé côté serveur
 
     } catch (error) {
 
@@ -361,9 +447,10 @@ confirmCreateBtn.addEventListener("click", async () => {
    LOGIQUE DYNAMIQUE STATUT
 ========================= */
 
-document.getElementById("taskStatus").addEventListener("change", (e) => {
-  // exemple extension future logique métier
-});
+// Le statut est désormais déterminé côté serveur selon les règles métier
+
+// Garde défensive : récupérer la référence si elle existe
+const taskStatusElement = document.getElementById('taskStatus');
 
 /* =========================
    INIT UI
@@ -438,13 +525,11 @@ if (document.readyState === 'loading') {
 clearParentTaskBtn.addEventListener("click", () => {
   selectedParentTask = null;
   parentDisplay.value = "";
-  document.getElementById("taskStatus").value = "non assigné";
   closeModal(parentModal);
 });
 
 clearUserSelectionBtn.addEventListener("click", () => {
   selectedUser = null;
   resetField(userDisplay);
-  document.getElementById("taskStatus").value = "non assigné";
   closeModal(userModal);
 });

@@ -33,7 +33,7 @@ class TacheDAO {
                 ':id_parent' => $donnees['id_parent'] ?? null,
                 ':periode_realisation' => $donnees['periode_realisation'],
                 ':dateCreation' => $donnees['dateCreation'] ?? date('Y-m-d H:i:s'),
-                ':dateDebutAssignation' => $donnees['dateDebutAssignation'] ?? date('Y-m-d H:i:s'),
+                ':dateDebutAssignation' => array_key_exists('dateDebutAssignation', $donnees) ? $donnees['dateDebutAssignation'] : date('Y-m-d H:i:s'),
                 ':dateFinReelle' => $donnees['dateFinReelle'] ?? null,
                 ':cheminFichier' => $donnees['cheminFichier'] ?? null,
                 ':id_responsable' => $donnees['id_responsable'],
@@ -172,11 +172,14 @@ class TacheDAO {
      */
     public function modifierStatut(int $idTache, string $nouveauStatut): bool {
         try {
-            $sql = "UPDATE taches SET status = :status, updated_at = NOW() WHERE id = :id";
-            
-            // Si on passe à "terminé", enregistrer la date fin réelle
+            // Gérer certains cas particuliers lors du changement de statut
             if ($nouveauStatut === 'terminé') {
                 $sql = "UPDATE taches SET status = :status, dateFinReelle = NOW(), updated_at = NOW() WHERE id = :id";
+            } elseif ($nouveauStatut === 'assigné') {
+                // Lorsqu'on passe à 'assigné', enregistrer la dateDebutAssignation
+                $sql = "UPDATE taches SET status = :status, dateDebutAssignation = NOW(), updated_at = NOW() WHERE id = :id";
+            } else {
+                $sql = "UPDATE taches SET status = :status, updated_at = NOW() WHERE id = :id";
             }
 
             $stmt = $this->pdo->prepare($sql);
@@ -207,7 +210,27 @@ class TacheDAO {
     }
 
     /**
-     * Modifier date début assignation (T+10min transition)
+     * Modifier les détails d'une tâche
+     */
+    public function modifierTache(int $idTache, array $donnees): bool {
+        try {
+            $sql = "UPDATE taches SET libelle = :libelle, description = :description, periode_realisation = :periode_realisation, id_parent = :id_parent, updated_at = NOW() WHERE id = :id";
+
+            $stmt = $this->pdo->prepare($sql);
+            return $stmt->execute([
+                ':libelle' => $donnees['libelle'],
+                ':description' => $donnees['description'],
+                ':periode_realisation' => $donnees['periode_realisation'],
+                ':id_parent' => $donnees['id_parent'] ?? null,
+                ':id' => $idTache
+            ]);
+        } catch (PDOException $e) {
+            throw new Exception("Erreur modification tâche : " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Modifier date début assignation (T+1min transition)
      */
     public function modifierDateDebutAssignation(int $idTache, string $date): bool {
         try {
@@ -264,18 +287,24 @@ class TacheDAO {
      * Hydrater objet Tache à partir données BD
      */
     private function hydratiserTache(array $data): Tache {
+        // Normaliser le statut pour éviter les valeurs vides/inattendues
+        $status = isset($data['status']) ? trim($data['status']) : '';
+        if ($status === '') {
+            $status = 'non assigné';
+        }
+
         return new Tache(
             (int) $data['id'],
             $data['libelle'],
             $data['description'],
-            $data['status'],
+            $status,
             $data['id_parent'] ? (int) $data['id_parent'] : null,
             $data['periode_realisation'],
             $data['dateCreation'],
-            $data['dateDebutAssignation'],
+            $data['dateDebutAssignation'] ?? null,
             $data['dateFinReelle'] ?? null,
             $data['cheminFichier'] ?? null,
-            (int) $data['id_responsable'],
+            $data['id_responsable'] !== null ? (int) $data['id_responsable'] : null,
             (int) $data['id_createur']
         );
     }

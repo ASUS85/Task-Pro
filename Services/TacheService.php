@@ -33,25 +33,15 @@ class TacheService
             throw new Exception("La période de réalisation est obligatoire.");
         }
 
-        // 4. Vérifier que le responsable existe (optionnel à la création)
-        if (!empty($donnees['id_responsable'])) {
-            $responsable = $this->utilisateurDAO->trouverParId($donnees['id_responsable']);
-            if (!$responsable) {
-                throw new Exception("L'utilisateur sélectionné n'existe pas.");
-            }
-
-            // 5. Vérifier que le responsable n'est pas SuperAdmin
-            if ($responsable->getRole() === "SuperAdmin") {
-                throw new Exception("Impossible d'assigner une tâche au SuperAdmin.");
-            }
-
-            // Statut = "assigné" si responsable assigné immédiatement
-            $donnees['status'] = 'assigné';
-            $donnees['dateDebutAssignation'] = date('Y-m-d H:i:s');
-        } else {
-            // Statut = "non assigné" si pas de responsable
+        // 4. La logique de statut initial est gérée par la règle métier suivante :
+        // - Si la tâche a une tâche parente -> status initial = 'non assigné'
+        // - Sinon -> status initial = 'assigné' et la dateDebutAssignation = now()
+        if (!empty($donnees['id_parent'])) {
             $donnees['status'] = 'non assigné';
             $donnees['dateDebutAssignation'] = null;
+        } else {
+            $donnees['status'] = 'assigné';
+            $donnees['dateDebutAssignation'] = date('Y-m-d H:i:s');
         }
 
         // 6. Ajouter les données de création
@@ -60,6 +50,68 @@ class TacheService
 
         // 7. Enregistrement
         return $this->tacheDAO->sauvegarder($donnees);
+    }
+
+    /**
+     * Synchronise les statuts des tâches en fonction du temps et des dépendances
+     */
+    private function syncStatuses(array $taches): void
+    {
+        // Construire un index pour accès rapide
+        $map = [];
+        foreach ($taches as $t) {
+            $map[$t->getId()] = $t;
+        }
+
+        $now = time();
+
+        foreach ($taches as $tache) {
+            $id = $tache->getId();
+            $status = $tache->getStatus();
+
+            // Expiration : si la date limite est dépassée et non terminé
+            $deadline = strtotime($tache->getPeriodeRealisation());
+            if ($deadline !== false && $now > $deadline && $status !== 'terminé' && $status !== 'expiré') {
+                $this->tacheDAO->modifierStatut($id, 'expiré');
+                continue;
+            }
+
+            // Si la tâche a un parent, appliquer la règle liée au parent
+            $parentId = $tache->getIdParent();
+            if ($parentId) {
+                $parent = $this->tacheDAO->trouverParId($parentId);
+                if (!$parent) continue;
+
+                $parentEnd = strtotime($parent->getPeriodeRealisation());
+                if ($parentEnd === false) continue;
+
+                // 1 minute avant la fin du parent -> assigner la tâche
+                if ($now >= ($parentEnd - 60) && $now < $parentEnd) {
+                    if ($status !== 'assigné') {
+                        $this->tacheDAO->modifierStatut($id, 'assigné');
+                        $this->tacheDAO->modifierDateDebutAssignation($id, date('Y-m-d H:i:s', $parentEnd - 60));
+                    }
+                }
+
+                // Quand le parent se termine -> mettre en cours
+                if ($now >= $parentEnd) {
+                    if ($status !== 'en cours') {
+                        $this->tacheDAO->modifierStatut($id, 'en cours');
+                    }
+                }
+
+                continue;
+            }
+
+            // Pas de parent : si assigné depuis +1min -> en cours
+            if ($status === 'assigné') {
+                $dateDebut = $tache->getDateDebutAssignation() ?: $tache->getDateCreation();
+                $startTs = strtotime($dateDebut);
+                if ($startTs !== false && ($now >= ($startTs + 60))) {
+                    $this->tacheDAO->modifierStatut($id, 'en cours');
+                }
+            }
+        }
     }
 
     /**
@@ -76,7 +128,7 @@ class TacheService
         }
 
         // 2. Validation du statut
-        $statutsValides = ["non assigné", "assigné", "en cours", "non terminé", "terminé"];
+        $statutsValides = ["non assigné", "assigné", "en cours", "non terminé", "terminé", "expiré"];
         if (!in_array($nouveauStatut, $statutsValides)) {
             throw new Exception("Statut invalide. Statuts acceptés : " . implode(", ", $statutsValides));
         }
@@ -87,22 +139,69 @@ class TacheService
             throw new Exception("Utilisateur introuvable.");
         }
 
-        // Admin/SuperAdmin peuvent modifier n'importe quelle tâche
-        if ($utilisateur->getRole() !== "Administrateur" && $utilisateur->getRole() !== "SuperAdmin") {
+        // Tâche expirée ne peut plus être modifiée
+        if ($tache->getStatus() === 'expiré') {
+            throw new Exception("Impossible de modifier une tâche expirée.");
+        }
+
+        if ($utilisateur->getRole() === "Employe") {
             // Les employés ne peuvent modifier que leurs tâches
             if ($tache->getIdResponsable() !== $idUtilisateur) {
                 throw new Exception("Action interdite : vous ne pouvez modifier que vos propres tâches.");
             }
 
-            // Les employés ne peuvent passer de "assigné" à "en cours" ou à "terminé"
-            // Transition automatique "assigné" -> "en cours" se fait via scheduler (T+10min)
-            if ($tache->getStatus() === "assigné" && $nouveauStatut === "en cours") {
-                throw new Exception("Transition automatique en cours. Attendez 10 minutes.");
+            // Transition de statut autorisée uniquement après assignation
+            if ($tache->getStatus() === "assigné") {
+                if (!in_array($nouveauStatut, ["en cours", "terminé"])) {
+                    throw new Exception("Action interdite : un employé ne peut passer qu'en cours ou terminé depuis assigné.");
+                }
+            } elseif ($tache->getStatus() === "en cours") {
+                if ($nouveauStatut !== "terminé") {
+                    throw new Exception("Action interdite : un employé ne peut passer qu'à terminé depuis en cours.");
+                }
+            } else {
+                throw new Exception("Action interdite : le statut ne peut être modifié que lorsque la tâche est assignée ou en cours.");
+            }
+        } else {
+            // Administrateur / SuperAdmin ne peuvent plus modifier le statut dès que la tâche est assignée
+            if ($tache->getStatus() !== "non assigné") {
+                throw new Exception("La modification de statut est réservée à l'employé une fois la tâche assignée.");
             }
         }
 
         // 4. Mise à jour du statut
         return $this->tacheDAO->modifierStatut($idTache, $nouveauStatut);
+    }
+
+    /**
+     * Modifier les détails d'une tâche avant assignation
+     */
+    public function modifierTache(int $idTache, array $donnees, int $idUtilisateur): bool
+    {
+        $tache = $this->tacheDAO->trouverParId($idTache);
+        if (!$tache) {
+            throw new Exception("Tâche introuvable.");
+        }
+
+        $utilisateur = $this->utilisateurDAO->trouverParId($idUtilisateur);
+        if (!$utilisateur || ($utilisateur->getRole() !== "Administrateur" && $utilisateur->getRole() !== "SuperAdmin")) {
+            throw new Exception("Action interdite : seuls les administrateurs peuvent modifier les détails de la tâche.");
+        }
+
+        if ($tache->getStatus() !== "non assigné") {
+            throw new Exception("La tâche ne peut être modifiée que tant qu'elle n'est pas assignée.");
+        }
+
+        if (empty($donnees['libelle']) || empty($donnees['description']) || empty($donnees['periode_realisation'])) {
+            throw new Exception("Libellé, description et période de réalisation sont obligatoires pour la modification.");
+        }
+
+        return $this->tacheDAO->modifierTache($idTache, [
+            'libelle' => $donnees['libelle'],
+            'description' => $donnees['description'],
+            'periode_realisation' => $donnees['periode_realisation'],
+            'id_parent' => $donnees['id_parent'] ?? null
+        ]);
     }
 
     /**
@@ -131,6 +230,21 @@ class TacheService
 
             default:
                 throw new Exception("Rôle non reconnu.");
+        }
+
+        // Synchroniser les statuts en fonction du temps / dépendances
+        $this->syncStatuses($tachesObjet);
+
+        // Recharger les tâches après éventuelles modifications
+        switch ($utilisateur->getRole()) {
+            case "SuperAdmin":
+            case "Administrateur":
+                $tachesObjet = $this->tacheDAO->obtenirTous();
+                break;
+
+            case "Employe":
+                $tachesObjet = $this->tacheDAO->obtenirParResponsable($idUtilisateur);
+                break;
         }
 
         // Sérialiser les objets Tache pour l'API
@@ -206,12 +320,15 @@ class TacheService
         $result = $this->tacheDAO->modifierResponsable($idTache, $idResponsable);
 
         if ($result) {
-            // 2. On récupère les infos de la tâche et du responsable
+            // 2. Mise à jour du statut et date d'assignation
+            $this->tacheDAO->modifierStatut($idTache, 'assigné');
+            $this->tacheDAO->modifierDateDebutAssignation($idTache, date('Y-m-d H:i:s'));
+
+            // 3. On récupère les infos de la tâche et du responsable
             $tache = $this->tacheDAO->trouverParId($idTache);
             $resp = $this->utilisateurDAO->trouverParId($idResponsable);
 
-            // 3. On déclenche la notification via le nouveau service
-            // Ce service va gérer l'email ET l'enregistrement en BDD tout seul
+            // 4. On déclenche la notification via le service
             $msg = "La tâche '" . $tache->getLibelle() . "' vous a été assignée par l'administrateur.";
 
             $this->notificationService->notifierUtilisateur(
@@ -223,7 +340,6 @@ class TacheService
             );
         }
 
-        // 5. Mise à jour
-        return $this->tacheDAO->modifierResponsable($idTache, $idResponsable);
+        return $result;
     }
 }

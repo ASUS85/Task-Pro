@@ -43,13 +43,14 @@ body.dashboard-body {
     left: 0;
 
     background: linear-gradient(180deg, #0d0d11, #111217);
-    border-right: 1px solid rgba(255,255,255,0.06);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
 
     padding: 30px 20px;
     display: flex;
     flex-direction: column;
     z-index: 1000;
 }
+
 .sidebar-footer {
     margin-top: auto;
 }
@@ -104,12 +105,10 @@ body.dashboard-body {
     position: absolute;
     inset: 0;
 
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(212,175,55,0.15),
-        transparent
-    );
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(212, 175, 55, 0.15),
+            transparent);
 
     opacity: 0;
     transition: 0.3s;
@@ -127,12 +126,12 @@ body.dashboard-body {
 
 /* PAGE ACTIVE */
 .side-nav a.active {
-    background: rgba(212,175,55,0.12);
+    background: rgba(212, 175, 55, 0.12);
     color: #d4af37;
 
     border-left: 4px solid #d4af37;
 
-    box-shadow: inset 10px 0 20px rgba(212,175,55,0.05);
+    box-shadow: inset 10px 0 20px rgba(212, 175, 55, 0.05);
 }
 
 /* ICON */
@@ -170,8 +169,9 @@ body.dashboard-body {
     color: #fff;
 
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255,95,95,0.3);
+    box-shadow: 0 8px 20px rgba(255, 95, 95, 0.3);
 }
+
 /* =========================
    MAIN
 ========================= */
@@ -206,12 +206,28 @@ body.dashboard-body {
     flex-wrap: wrap;
 }
 
+.modal-content input,
+.modal-content textarea,
+.modal-content select {
+    width: 100%;
+    padding: 14px 16px;
+
+    border-radius: 14px;
+    border: 1px solid var(--glass-border);
+    margin-top: 5px;
+    background: rgba(255, 255, 255, 0.04);
+    color: white;
+    margin-bottom: 5px;
+    outline: none;
+    transition: 0.25s ease;
+}
+
 .task-filters input,
 .task-filters select {
     padding: 16px 18px;
     border-radius: 14px;
-    border: 1px solid rgba(255,255,255,0.07);
-    background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025));
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.025));
     color: white;
     min-width: 220px;
     transition: 0.25s;
@@ -220,20 +236,24 @@ body.dashboard-body {
 .task-filters input:focus,
 .task-filters select:focus {
     border-color: var(--primary-gold);
-    box-shadow: 0 0 0 4px rgba(212,175,55,0.08);
-    outline: none;
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.08);
+}
+
+.task-filters select option {
+    background: #111217;
+    color: white;
 }
 
 /* =========================
    TABLE (MODERN ENTERPRISE STYLE)
 ========================= */
 .task-table-container {
-    background: linear-gradient(145deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
-    border: 1px solid rgba(255,255,255,0.08);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015));
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 28px;
     overflow: hidden;
     backdrop-filter: blur(18px);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
 }
 
 .task-table {
@@ -242,7 +262,7 @@ body.dashboard-body {
 }
 
 .task-table thead {
-    background: rgba(255,255,255,0.03);
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .task-table th {
@@ -255,7 +275,7 @@ body.dashboard-body {
 
 .task-table td {
     padding: 18px;
-    border-top: 1px solid rgba(255,255,255,0.04);
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
     color: #ddd;
 }
 
@@ -265,7 +285,7 @@ body.dashboard-body {
 }
 
 .task-table tbody tr:hover {
-    background: rgba(212,175,55,0.05);
+    background: rgba(212, 175, 55, 0.05);
 }
 
 /* =========================
@@ -278,10 +298,25 @@ body.dashboard-body {
     font-weight: 700;
 }
 
-.status-en_cours { background: rgba(0,184,255,0.12); color: #00b8ff; }
-.status-en_attente { background: rgba(255,152,0,0.12); color: #ff9800; }
-.status-terminee { background: rgba(0,210,106,0.12); color: #00d26a; }
-.status-retard { background: rgba(255,77,77,0.12); color: #ff4d4d; }
+.status-en_cours {
+    background: rgba(0, 184, 255, 0.12);
+    color: #00b8ff;
+}
+
+.status-en_attente {
+    background: rgba(255, 152, 0, 0.12);
+    color: #ff9800;
+}
+
+.status-terminee {
+    background: rgba(0, 210, 106, 0.12);
+    color: #00d26a;
+}
+
+.status-retard {
+    background: rgba(255, 77, 77, 0.12);
+    color: #ff4d4d;
+}
 
 /* =========================
    ACTION BUTTONS (STYLE CREATE TASK)
@@ -295,8 +330,8 @@ body.dashboard-body {
     width: 40px;
     height: 40px;
     border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.08);
-    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
     color: white;
     cursor: pointer;
     transition: 0.25s;
@@ -317,7 +352,7 @@ body.dashboard-body {
     display: none;
     justify-content: center;
     align-items: center;
-    background: rgba(0,0,0,0.75);
+    background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(8px);
     z-index: 1000;
 }
@@ -326,7 +361,7 @@ body.dashboard-body {
     width: 90%;
     max-width: 900px;
     background: #111217;
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 28px;
     padding: 30px;
     max-height: 85vh;
@@ -349,7 +384,7 @@ body.dashboard-body {
     height: 42px;
     border-radius: 12px;
     border: none;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     color: white;
     cursor: pointer;
 }
@@ -362,8 +397,8 @@ body.dashboard-body {
 }
 
 .detail-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 16px;
     padding: 18px;
 }
@@ -387,7 +422,9 @@ body.dashboard-body {
    RESPONSIVE
 ========================= */
 @media (max-width: 900px) {
-    .sidebar { display: none; }
+    .sidebar {
+        display: none;
+    }
 
     .task-details-grid {
         grid-template-columns: 1fr;

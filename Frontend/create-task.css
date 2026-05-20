@@ -262,6 +262,21 @@ body {
   transition: 0.25s ease;
 }
 
+.form-group input.invalid-input,
+.form-group textarea.invalid-input,
+.form-group select.invalid-input {
+  border-color: #e74c3c;
+  background: rgba(231, 76, 60, 0.08);
+  color: #fff;
+}
+
+.input-hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: #bbb;
+}
+
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {

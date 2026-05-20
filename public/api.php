@@ -227,6 +227,13 @@ try {
             echo json_encode(['success' => $result]);
             exit;
         }
+
+        // UPDATE TASK DETAILS
+        if ($method === 'PUT' && isset($parts[1]) && is_numeric($parts[1]) && !isset($parts[2])) {
+            $result = $tacheServices->modifierTache((int)$parts[1], $data, $_SESSION['user_id']);
+            echo json_encode(['success' => $result]);
+            exit;
+        }
     }
 
     //  pour les notifications

@@ -190,6 +190,14 @@ async function apiAssignTask(taskId, userId) {
 }
 
 /**
+ * Met à jour les détails d'une tâche
+ */
+async function apiUpdateTask(taskId, taskData) {
+    const response = await apiCall(`/taches/${taskId}`, 'PUT', taskData);
+    return response;
+}
+
+/**
  * Supprime une tâche
  */
 async function apiDeleteTask(taskId) {

@@ -153,23 +153,11 @@
               <label for="taskDuration">Durée / Échéance</label>
 
               <input type="datetime-local" id="taskDuration" />
+              <small id="taskDurationHint" class="input-hint">Format : HH:mm:ss pour la durée, ou date/heure précise.</small>
             </div>
           </div>
 
-          <!-- =========================
-                     STATUT INITIAL
-                ========================== -->
-          <div class="form-group">
-            <label for="taskStatus">Statut initial</label>
-
-            <select id="taskStatus">
-              <option value="non assigné">Non assignée</option>
-              <option value="assigné">Assignée</option>
-              <option value="en cours">En cours</option>
-              <option value="non terminé">Non terminée</option>
-              <option value="terminé">Terminée</option>
-            </select>
-          </div>
+          <!-- STATUT INITIAL géré côté serveur selon règles métier -->
 
           <!-- =========================
                      ASSIGNATION UTILISATEUR
@@ -295,5 +283,16 @@
     
     <script src="api.js"></script>
     <script src="create-task.js"></script>
+    <script>
+      // Suppression défensive du champ taskStatus si présent (évite erreurs lors d'anciens caches)
+      (function(){
+        try {
+          const el = document.getElementById('taskStatus');
+          if (el && el.parentNode) el.parentNode.removeChild(el);
+        } catch (e) {
+          console.warn('Suppression défensive taskStatus échouée', e);
+        }
+      })();
+    </script>
   </body>
 </html>

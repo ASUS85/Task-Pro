@@ -39,11 +39,11 @@ function transformUserFromAPI(apiUser) {
     // Mapper le rôle API vers le format frontend
     const roleMap = {
         "Administrateur": "admin",
-        "Employe": "user",
+        "Employe": "employe",
         "SuperAdmin": "super_admin"
     };
     
-    const role = roleMap[apiUser.role] || "user";
+    const role = roleMap[apiUser.role] || "employe";
     
     return {
         id: apiUser.id,
@@ -78,7 +78,7 @@ function formatRole(role) {
     switch (role) {
         case "admin": return "Admin";
         case "super_admin": return "Super Admin";
-        case "user": return "Utilisateur";
+        case "employe": return "Employé";
         default: return role;
     }
 }

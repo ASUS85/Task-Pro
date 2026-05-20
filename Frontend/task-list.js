@@ -7,6 +7,7 @@
 // -------------------------------
 let tasks = [];
 let allTasks = []; // pour les filtres
+let usersById = {}; // Map des utilisateurs par id_responsable
 
 // -------------------------------
 // DOM
@@ -27,6 +28,19 @@ const detailPriority = document.getElementById("detailPriority");
 const parentTaskBlock = document.getElementById("parentTaskBlock");
 const parentTaskLink = document.getElementById("detailParentTaskLink");
 
+// Edit modal
+const editModal = document.getElementById("taskEditModal");
+const closeEditModalBtn = document.getElementById("closeEditModal");
+const cancelEditBtn = document.getElementById("cancelEditBtn");
+const taskEditForm = document.getElementById("taskEditForm");
+const editTitle = document.getElementById("editTitle");
+const editDescription = document.getElementById("editDescription");
+const editDeadline = document.getElementById("editDeadline");
+const editStatusGroup = document.getElementById("editStatusGroup");
+const editStatus = document.getElementById("editStatus");
+const editMessage = document.getElementById("editMessage");
+let currentTaskEdit = null;
+
 // filters
 const searchInput = document.getElementById("searchTask");
 const statusFilter = document.getElementById("filterStatus");
@@ -38,40 +52,116 @@ const typeFilter = document.getElementById("filterType");
 /**
  * Transforme une tâche de l'API au format du frontend
  */
-function transformTaskFromAPI(apiTask, responsibleUser = null) {
+function transformTaskFromAPI(apiTask) {
     // Déterminer le type de tâche (principale ou sous-tâche)
     const type = apiTask.id_parent ? "sous_tache" : "principale";
-    
+
     // Mapper le statut API vers le format frontend
-    const statusMap = {
-        "non assigné": "en_attente",
-        "assigné": "en_attente",
-        "en cours": "en_cours",
-        "non terminé": "en_attente",
-        "terminé": "terminee"
+    const mapping = {
+        "non assigné": { status: "en_attente", label: "Non assignée" },
+        "assigné": { status: "en_attente", label: "Assignée" },
+        "en cours": { status: "en_cours", label: "En cours" },
+        "non terminé": { status: "en_attente", label: "Non terminé" },
+        "terminé": { status: "terminee", label: "Terminée" },
+        "expiré": { status: "retard", label: "Expirée" }
     };
-    
-    const status = statusMap[apiTask.status] || "en_attente";
-    
+
+    const normalized = mapping[apiTask.status] || { status: "en_attente", label: apiTask.status || "En attente" };
+    const status = normalized.status;
+    const statusLabel = normalized.label;
+
     // Récupérer le nom du responsable si disponible
     let assignedTo = "-";
-    if (responsibleUser) {
-        assignedTo = `${responsibleUser.prenom} ${responsibleUser.nom}`;
+    const responsableId = apiTask.id_responsable !== undefined && apiTask.id_responsable !== null ? Number(apiTask.id_responsable) : null;
+    if (responsableId) {
+        const responsibleUser = usersById[responsableId];
+        if (responsibleUser) {
+            assignedTo = `${responsibleUser.prenom} ${responsibleUser.nom}`;
+        } else {
+            assignedTo = `Utilisateur #${responsableId}`;
+        }
     }
-    
+
+    const createdAtRaw = apiTask.dateCreation || "";
+    const deadlineRaw = apiTask.periode_realisation || "";
+    const createdAt = formatDateTime(createdAtRaw);
+    const deadline = computeDeadline(createdAtRaw, deadlineRaw, apiTask.dateDebutAssignation);
+
     return {
         id: apiTask.id,
         name: apiTask.libelle,
         type: type,
         status: status,
+        rawStatus: apiTask.status,
+        statusLabel: statusLabel,
         assignedTo: assignedTo,
         createdBy: "Admin", // TODO: récupérer du créateur réel si disponible
-        createdAt: apiTask.dateCreation ? apiTask.dateCreation.split(' ')[0] : "-",
-        deadline: apiTask.periode_realisation ? apiTask.periode_realisation.split(' ')[0] : "-",
+        createdAt: createdAt,
+        createdAtRaw: createdAtRaw,
+        deadline: deadline,
+        deadlineRaw: deadlineRaw,
         priority: "Moyenne", // TODO: ajouter priorité en BD
         description: apiTask.description || "Aucune description",
-        parentTask: apiTask.id_parent || null
+        parentTask: apiTask.id_parent || null,
+        dateDebutAssignation: apiTask.dateDebutAssignation || null
     };
+}
+
+function pad(value) {
+    return String(value).padStart(2, '0');
+}
+
+function formatDateTime(dateString) {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+        return dateString;
+    }
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function parseDurationToMs(durationString) {
+    if (!durationString) return null;
+
+    const trimmed = durationString.trim().toLowerCase();
+    const regex = /^(\d+)([dhm])$/;
+    const match = trimmed.match(regex);
+    if (match) {
+        const value = parseInt(match[1], 10);
+        const unit = match[2];
+        if (unit === 'd') return value * 24 * 60 * 60 * 1000;
+        if (unit === 'h') return value * 60 * 60 * 1000;
+        if (unit === 'm') return value * 60 * 1000;
+    }
+
+    const regexComplex = /^(\d+)h(\d+)?m?$/;
+    const matchComplex = trimmed.match(regexComplex);
+    if (matchComplex) {
+        const hours = parseInt(matchComplex[1], 10);
+        const minutes = matchComplex[2] ? parseInt(matchComplex[2], 10) : 0;
+        return (hours * 60 + minutes) * 60 * 1000;
+    }
+
+    return null;
+}
+
+function computeDeadline(createdAtRaw, deadlineRaw, dateDebutAssignation) {
+    if (!deadlineRaw) return "-";
+
+    const startString = dateDebutAssignation || createdAtRaw;
+    const startDate = startString ? new Date(startString) : null;
+    const durationMs = parseDurationToMs(deadlineRaw);
+
+    if (durationMs !== null && startDate && !isNaN(startDate.getTime())) {
+        return formatDateTime(new Date(startDate.getTime() + durationMs).toISOString());
+    }
+
+    const absolute = new Date(deadlineRaw);
+    if (!isNaN(absolute.getTime())) {
+        return formatDateTime(absolute.toISOString());
+    }
+
+    return deadlineRaw;
 }
 
 // filters
@@ -108,7 +198,7 @@ function renderTasks(data) {
             <td>${task.type}</td>
             <td>
                 <span class="status-badge status-${task.status}">
-                    ${formatStatus(task.status)}
+                    ${task.statusLabel}
                 </span>
             </td>
             <td>${task.assignedTo}</td>
@@ -183,7 +273,7 @@ function openModal(id) {
     detailAssigned.textContent = task.assignedTo;
     detailCreatedAt.textContent = task.createdAt;
     detailDeadline.textContent = `${task.deadline} (${getRemainingTime(task.deadline)})`;
-    detailStatus.textContent = formatStatus(task.status);
+    detailStatus.textContent = task.statusLabel;
     detailPriority.textContent = task.priority;
 
     // parent task
@@ -206,6 +296,84 @@ function openModal(id) {
     modal.style.display = "flex";
 }
 
+function openEditTask(taskId) {
+    currentTaskEdit = tasks.find(t => t.id === taskId) || allTasks.find(t => t.id === taskId);
+    if (!currentTaskEdit) {
+        console.warn("[EDIT] Tâche non trouvée pour édition:", taskId);
+        return;
+    }
+
+    const currentUser = getCurrentUserFromStorage();
+    if (!currentUser) {
+        alert("Vous devez être connecté pour modifier une tâche.");
+        return;
+    }
+
+    editMessage.style.display = 'none';
+    editStatusGroup.style.display = 'none';
+    editTitle.disabled = false;
+    editDescription.disabled = false;
+    editDeadline.disabled = false;
+    editStatus.innerHTML = '';
+
+    editTitle.value = currentTaskEdit.name;
+    editDescription.value = currentTaskEdit.description;
+    editDeadline.value = currentTaskEdit.deadlineRaw || currentTaskEdit.deadline;
+
+    if (currentTaskEdit.rawStatus === 'expiré') {
+        editMessage.textContent = "Cette tâche a expiré et ne peut plus être modifiée.";
+        editMessage.style.display = 'block';
+        editTitle.disabled = true;
+        editDescription.disabled = true;
+        editDeadline.disabled = true;
+    } else if (currentUser.role === 'Employe') {
+        // Employé ne peut modifier que le statut après assignation
+        if (currentTaskEdit.rawStatus === 'assigné' || currentTaskEdit.rawStatus === 'en cours') {
+            editTitle.disabled = true;
+            editDescription.disabled = true;
+            editDeadline.disabled = true;
+            editStatusGroup.style.display = 'block';
+
+            const options = [];
+            if (currentTaskEdit.rawStatus === 'assigné') {
+                options.push({value: 'en cours', label: 'En cours'});
+                options.push({value: 'terminé', label: 'Terminée'});
+            } else if (currentTaskEdit.rawStatus === 'en cours') {
+                options.push({value: 'terminé', label: 'Terminée'});
+            }
+
+            if (options.length === 0) {
+                editMessage.textContent = "Aucune action de statut possible pour cette tâche.";
+                editMessage.style.display = 'block';
+            }
+
+            options.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt.value;
+                option.textContent = opt.label;
+                editStatus.appendChild(option);
+            });
+        } else {
+            editMessage.textContent = "Vous ne pouvez modifier que le statut d'une tâche assignée ou en cours.";
+            editMessage.style.display = 'block';
+            editTitle.disabled = true;
+            editDescription.disabled = true;
+            editDeadline.disabled = true;
+        }
+    } else {
+        // Admin / SuperAdmin : édition possible uniquement tant que la tâche n'est pas assignée
+        if (currentTaskEdit.rawStatus !== 'non assigné') {
+            editMessage.textContent = "La tâche ne peut plus être modifiée par l'administrateur après assignation.";
+            editMessage.style.display = 'block';
+            editTitle.disabled = true;
+            editDescription.disabled = true;
+            editDeadline.disabled = true;
+        }
+    }
+
+    editModal.style.display = 'flex';
+}
+
 // CLOSE MODAL
 closeModalBtn.addEventListener("click", () => {
     modal.style.display = "none";
@@ -215,7 +383,60 @@ window.addEventListener("click", (e) => {
     if (e.target === modal) {
         modal.style.display = "none";
     }
+    if (e.target === editModal) {
+        editModal.style.display = "none";
+    }
 });
+
+closeEditModalBtn.addEventListener("click", () => {
+    editModal.style.display = "none";
+});
+
+cancelEditBtn.addEventListener("click", () => {
+    editModal.style.display = "none";
+});
+
+if (taskEditForm) {
+    taskEditForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!currentTaskEdit) return;
+
+        const currentUser = getCurrentUserFromStorage();
+        if (!currentUser) {
+            alert("Vous devez être connecté pour modifier une tâche.");
+            return;
+        }
+
+        try {
+            if (currentUser.role === 'Employe' && editStatusGroup.style.display === 'block') {
+                const newStatus = editStatus.value;
+                if (!newStatus) {
+                    alert('Veuillez sélectionner un statut.');
+                    return;
+                }
+                await apiUpdateTaskStatus(currentTaskEdit.id, newStatus);
+                alert('Statut mis à jour avec succès.');
+            } else {
+                await apiUpdateTask(currentTaskEdit.id, {
+                    libelle: editTitle.value.trim(),
+                    description: editDescription.value.trim(),
+                    periode_realisation: editDeadline.value.trim(),
+                    id_parent: currentTaskEdit.parentTask || null
+                });
+                alert('Tâche mise à jour avec succès.');
+            }
+
+            editModal.style.display = 'none';
+            const tasksResponse = await apiListTasks();
+            tasks = tasksResponse.map(apiTask => transformTaskFromAPI(apiTask));
+            allTasks = [...tasks];
+            applyFilters();
+        } catch (error) {
+            console.error('[EDIT] Erreur mise à jour tâche:', error);
+            alert('Erreur: ' + error.message);
+        }
+    });
+}
 
 // -------------------------------
 // ACTIONS (DELETE / EDIT / VIEW)
@@ -250,7 +471,7 @@ tableBody.addEventListener("click", async (e) => {
 
     if (e.target.classList.contains("edit-btn")) {
         e.stopPropagation();
-        alert("Mode édition à connecter au backend");
+        openEditTask(id);
     }
 
     if (e.target.classList.contains("view-btn")) {
@@ -293,6 +514,27 @@ statusFilter.addEventListener("change", applyFilters);
 typeFilter.addEventListener("change", applyFilters);
 
 // -------------------------------
+// UTILITAIRES
+// -------------------------------
+async function loadUsersById() {
+    usersById = {};
+    try {
+        const usersResponse = await apiListUsers();
+        if (Array.isArray(usersResponse)) {
+            usersResponse.forEach(user => {
+                usersById[user.id] = user;
+            });
+        }
+    } catch (error) {
+        console.warn('[WARN] Impossible de charger la liste des utilisateurs pour le mapping des responsables :', error.message);
+        const currentUser = getCurrentUserFromStorage();
+        if (currentUser) {
+            usersById[currentUser.id] = currentUser;
+        }
+    }
+}
+
+// -------------------------------
 // INITIALISATION
 // -------------------------------
 async function initializePage() {
@@ -309,6 +551,8 @@ async function initializePage() {
     }
     
     console.log("[INIT] Démarrage du chargement des tâches pour", currentUser.prenom, currentUser.nom);
+    await loadUsersById();
+    
     console.log("[API] Appel GET /taches/list...");
     
     // Charger les tâches

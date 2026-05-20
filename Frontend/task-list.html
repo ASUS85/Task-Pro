@@ -164,6 +164,48 @@
         </div>
     </div>
 
+    <!-- MODAL D'ÉDITION TÂCHE -->
+    <div id="taskEditModal" class="modal">
+        <div class="modal-content medium-modal">
+            <div class="modal-header">
+                <h2>Éditer la tâche</h2>
+                <button id="closeEditModal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <form id="taskEditForm">
+                <div class="form-group">
+                    <label for="editTitle">Libellé</label>
+                    <input type="text" id="editTitle" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="editDescription">Description</label>
+                    <textarea id="editDescription" rows="4" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="editDeadline">Échéance / Durée</label>
+                    <input type="text" id="editDeadline" placeholder="Ex: 2026-06-18T14:30 ou 5h" required />
+                    <small>Conservez le format actuel ou un format de durée (5h, 2j, 30m).</small>
+                </div>
+
+                <div class="form-group" id="editStatusGroup" style="display:none;">
+                    <label for="editStatus">Statut</label>
+                    <select id="editStatus"></select>
+                </div>
+
+                <div id="editMessage" class="form-note" style="margin-bottom:1rem;color:#555;display:none;"></div>
+
+                <div class="form-actions">
+                    <button type="button" class="secondary-btn" id="cancelEditBtn">Annuler</button>
+                    <button type="submit" class="primary-btn">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         lucide.createIcons();
     </script>

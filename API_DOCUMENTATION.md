@@ -15,7 +15,7 @@
 | 9 | PUT | `/taches/{id}/status` | TacheService.modifierStatut | TacheDAO.modifierStatut | AUTH | ✅ OK | Modifie statut tâche |
 | 10 | PUT | `/taches/{id}/assign` | TacheService.assignerTache | TacheDAO.modifierResponsable | ADMIN/SUPERADMIN | ✅ OK | Assigne tâche à employé |
 | 11 | DELETE | `/taches/{id}` | TacheService.supprimerTache | TacheDAO.supprimer | ADMIN/SUPERADMIN | ✅ OK | Supprime tâche |
-| 12 | GET | `/notifications` | n/a | NotificationDAO.obtenirNonLues | AUTH | ⚠️ BUG | Méthode DAO manquante! |
+| 12 | GET | `/notifications` | n/a | NotificationDAO.obtenirNonLues | AUTH | ✅ OK | Notifications non lues récupérées avec méthode DAO implémentée |
 | 13 | GET | `/dashboard` | n/a | TacheDAO / UtilisateurDAO | ADMIN/SUPERADMIN | ✅ OK | Affiche stats/dashboard |
 | 14 | GET | `/users` | n/a | UtilisateurDAO.obtenirTous | ADMIN/SUPERADMIN | ✅ OK | Liste utilisateurs (sans SuperAdmin) |
 | 15 | POST | `/admin/users/create` | AuthServices.creerUtilisateurParAdmin | UtilisateurDAO.sauvegarder | SUPERADMIN | ✅ OK | Crée utilisateur (Admin/Employe) |

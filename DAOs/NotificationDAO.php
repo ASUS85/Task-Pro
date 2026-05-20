@@ -19,4 +19,16 @@ class NotificationDAO {
             'tache' => $idTache
         ]);
     }
+
+    public function obtenirNonLues(int $idUtilisateur): array {
+        try {
+            $sql = "SELECT * FROM notifications WHERE id_utilisateur = :user AND is_read = 0 ORDER BY created_at DESC";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute(['user' => $idUtilisateur]);
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            throw new Exception("Erreur récupération notifications : " . $e->getMessage());
+        }
+    }
 }
