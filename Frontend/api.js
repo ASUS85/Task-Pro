@@ -131,11 +131,16 @@ async function apiCreateTask(taskData) {
     return response;
 }
 
+
 /**
- * Liste les tâches de l'utilisateur
+ * Liste les tâches de l'utilisateur connecté
  */
 async function apiListTasks() {
-    const response = await apiCall('/taches/list', 'GET');
+    const user = getCurrentUserFromStorage();
+    if (!user || !user.id) return [];
+
+    // On passe explicitement le user_id dans l'URL pour bypasser les caprices de session PHP
+    const response = await apiCall(`/taches/list?user_id=${user.id}`, 'GET');
     return response.taches || [];
 }
 

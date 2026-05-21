@@ -141,6 +141,23 @@ try {
             exit;
         }
 
+        if ($action === 'change-password' && $method ==='POST') {
+            requireAuth();
+            try {
+                if (method_exists($authServices, 'modifierMotdepass')) {
+                    $result = $authServices->modifierMotdepass($_SESSION['user_id'], $data['old_password'] , $data['new_password'] );
+                    # code...
+                }else {
+                    $result =$utilisateurDAO->changerMotDePasse($_SESSION['user_id'], password_hash($data['new_password'], PASSWORD_BCRYPT));
+                }
+                echo json_encode(['success' => true, 'message' => 'Mot de passe modifié avec succès ']);
+            } catch (Exception $th) {
+                //throw $th;
+                http_response_code(400);
+                echo json_decode(['success'=> false, 'message'=>$e->getMessage()]);
+            }
+            exit;
+        }
         // 5. LOGOUT
         if ($action === 'logout' && $method === 'POST') {
             session_destroy();
@@ -155,9 +172,19 @@ try {
         requireAuth();
 
         // CREATE
-        if (($parts[1] ?? '') === 'create' && $method === 'POST') {
-            $result = $tacheServices->creerTache($data, $_SESSION['user_id']);
-            echo json_encode(['success' => $result]);
+        // LIST
+        if (($parts[1] ?? '') === 'list' && $method === 'GET') {
+            // On regarde d'abord si JavaScript a envoyé un paramètre 'user_id' dans l'URL, sinon on prend la session
+            $userId = $_GET['user_id'] ?? ($_SESSION['user_id'] ?? null);
+
+            if (!$userId) {
+                http_response_code(401);
+                echo json_encode(['success' => false, 'message' => 'Utilisateur non identifié.']);
+                exit;
+            }
+
+            $taches = $tacheServices->getTaches($userId);
+            echo json_encode(['success' => true, 'taches' => $taches]);
             exit;
         }
 
@@ -241,8 +268,19 @@ try {
                 // Ajouter nombre d'utilisateurs
                 $allUsers = $utilisateurDAO->obtenirTous();
                 $stats['totalUtilisateurs'] = count($allUsers);
-                $stats['adminCount'] = count(array_filter($allUsers, fn($u) => isset($u['role']) && $u['role'] === 'Administrateur'));
-                $stats['employeCount'] = count(array_filter($allUsers, fn($u) => isset($u['role']) && $u['role'] === 'Employe'));
+
+                $stats['adminCount'] = count(array_filter($allUsers, function($u) {
+                    if (is_object($u)) return method_exists($u, 'getRole') && $u->getRole() === 'Administrateur';
+                    return isset($u['role']) && $u['role'] === 'Administrateur';
+                }));
+                
+                $stats['employeCount'] = count(array_filter($allUsers, function($u) {
+                    if (is_object($u)) return method_exists($u, 'getRole') && $u->getRole() === 'Employe';
+                    return isset($u['role']) && $u['role'] === 'Employe';
+                }));
+
+                // $stats['adminCount'] = count(array_filter($allUsers, fn($u) => isset($u['role']) && $u['role'] === 'Administrateur'));
+                // $stats['employeCount'] = count(array_filter($allUsers, fn($u) => isset($u['role']) && $u['role'] === 'Employe'));
                 
             } else if ($userRole === 'Employe') {
                 // Employe : ses tâches seulement

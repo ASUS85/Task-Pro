@@ -676,7 +676,7 @@ td { padding: 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,25
     font-size: 0.9rem;
 }
 
-.description-text {
+.description-text , .libelle-text {
     background: #f1f2f6;
     padding: 12px;
     border-radius: 8px;

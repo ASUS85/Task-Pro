@@ -38,6 +38,7 @@ function initializePage() {
     } else {
         checkUser();
         chargerTaches();
+        chargerInfosProfil();
     }
 }
 
@@ -50,7 +51,7 @@ function checkUser() {
         return;
     }
 
-    const userNameEl = document.getElementById("userName");
+    const userNameEl = document.getElementById("displayUserName");
     if (userNameEl && user) {
         userNameEl.innerHTML = `👋 <span style="color: var(--primary)">${user.nom} ${user.prenom || ''}</span>`;
     }
@@ -209,6 +210,11 @@ async function chargerTaches() {
         if (Array.isArray(taches)) {
             currentTasks = taches; // On stocke tout
             updateStats(taches);   // Stats sur le total
+
+            const taskSection = document.getElementById("tasks-section");
+            if (taskSection && taskSection.style.display ==="none") {
+                taskSection.style.display = "block";
+            }
             displayPage(1);       // On affiche la première page
         }
     } catch (err) {
@@ -242,7 +248,7 @@ function renderPaginationControls() {
     const totalPages = Math.ceil(currentTasks.length / tasksPerPage);
     
     paginationContainer.innerHTML = `
-        <button onclick="displayPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="btn-outline">Précédent</button>
+        <button onclick="displayPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="btn-outline" style="padding:5px";>Précédent</button>
         <span>Page ${currentPage} / ${totalPages}</span>
         <button onclick="displayPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} class="btn-outline">Suivant</button>
     `;
@@ -271,9 +277,10 @@ function renderTaches(data) {
         // IMPORTANT : On utilise les noms exacts de ton objet (vu en console)
         const id = t.id;
         const libelle = t.libelle || "Sans titre";
+        const description = t.description || "Aucune description";
         const debut = t.dateCreation || "-"; // Ton objet a 'dateCreation'
         const fin = t.periode_realisation || "-"; // Ton objet a 'periode_realisation'
-        const status = t.status || "en attente";
+        const status = t.status || "en cours";
 
         tr.onclick = () => {
             // if (typeof openTaskModal === 'function') {
@@ -284,11 +291,11 @@ function renderTaches(data) {
 
         const statusClass = status.toLowerCase().replace(/\s+/g, '-');
         tr.innerHTML = `
-            <td>${id}</td>
             <td>${libelle}</td>
+            <td>${description}</td>
             <td>${debut}</td>
             <td>${fin}</td>
-            <td><span class="status-badge ${statusClass}">${status}</span></td>
+            <td><span class="status-badge ${statusClass}" style="margin: 5px 10px; border-radius: 15px;">${status}</span></td>
         `;
         
         tableBody.appendChild(tr);
@@ -306,8 +313,8 @@ function updateStats(data) {
     //calcul les nombres
     const total = data.length;
     const pending = data.filter(t => 
-        t.status?.toLowerCase() === "en cours" || 
-        t.statut?.toLowerCase() === "assignée"
+        t.status?.toLowerCase() === "non terminé" || 
+        t.status?.toLowerCase() === "en cours"
     ).length;
 
 
@@ -467,7 +474,7 @@ function showSection(sectionId) {
         if (profile) profile.style.display = 'none';
         
         chargerTaches();
-        chargerInfosProfil();
+        // chargerInfosProfil();
     } 
     else if (sectionId === 'profile-section') {
         // Mode "Profil" : On cache tout le reste
@@ -520,8 +527,8 @@ function openTaskModal(task) {
     selectedTaskId = task.id;
     
     // Remplir les champs de la modale
-    document.getElementById("modalId").textContent = task.id;
-    document.getElementById("modalDesc").textContent = task.libelle;
+    document.getElementById("modalLibelle").textContent = task.libelle;
+    document.getElementById("modalDesc").textContent = task.description;
     document.getElementById("modalDates").textContent = `Du ${task.dateCreation || '-'} au ${task.periode_realisation || '-'}`;
     
     // Pré-sélectionner le statut actuel dans le <select>
@@ -544,13 +551,22 @@ function closeModal(modalId) {
     }
 }
 
+function closeProfileModal() {
+    closeModal('profileModal');
+}
 // Ouvrir la modale de mot de passe
 function openPasswordModal() {
-    document.getElementById('passwordModal').style.display = 'flex';
-    lucide.createIcons();
+    const pwdModal = document.getElementById('passwordModal');
+    if (pwdModal) {
+        pwdModal.style.display = 'flex';
+    } else {
+        // Fallback si l'élément n'a pas un conteneur flex dédié
+        const fallback = document.getElementById('passwordModal');
+        if (fallback) fallback.style.display = 'block';
+    }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+
 }
-
-
 // Ouvrir la modale de profil en pré-remplissant les champs
 // Ouvrir la modale de profil en pré-remplissant les champs
 function openEditProfile() {
