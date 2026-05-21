@@ -1,5 +1,7 @@
 <?php
 
+date_default_timezone_set('Africa/Algiers');
+
 /**
  * Classe Database - Gestion connexion PDO
  * Utilise le pattern Singleton pour une connexion unique

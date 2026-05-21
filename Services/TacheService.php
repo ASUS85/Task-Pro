@@ -13,6 +13,60 @@ class TacheService
         $this->notificationService = $notificationService;
     }
 
+    private function parseDurationToSeconds(string $duration): ?int
+    {
+        $duration = trim(strtolower($duration));
+        if ($duration === '') {
+            return null;
+        }
+
+        if (preg_match('/^(\d+)\s*j$/', $duration, $matches)) {
+            return ((int) $matches[1]) * 86400;
+        }
+
+        if (preg_match('/^(\d+)\s*h(?:\s*(\d+)\s*m?)?$/', $duration, $matches)) {
+            $hours = (int) $matches[1];
+            $minutes = isset($matches[2]) ? (int) $matches[2] : 0;
+            return $hours * 3600 + $minutes * 60;
+        }
+
+        if (preg_match('/^(\d+)\s*m$/', $duration, $matches)) {
+            return ((int) $matches[1]) * 60;
+        }
+
+        if (preg_match('/^(\d+):(\d+)(?::(\d+))?$/', $duration, $matches)) {
+            $hours = (int) $matches[1];
+            $minutes = (int) $matches[2];
+            $seconds = isset($matches[3]) ? (int) $matches[3] : 0;
+            return $hours * 3600 + $minutes * 60 + $seconds;
+        }
+
+        return null;
+    }
+
+    private function getDeadlineTimestamp($tache): ?int
+    {
+        $deadlineRaw = trim($tache->getPeriodeRealisation() ?? '');
+        if ($deadlineRaw === '') {
+            return null;
+        }
+
+        $durationSeconds = $this->parseDurationToSeconds($deadlineRaw);
+        $startRaw = $tache->getDateDebutAssignation() ?: $tache->getDateCreation();
+        $startTs = $startRaw ? strtotime($startRaw) : false;
+
+        if ($durationSeconds !== null && $startTs !== false) {
+            return $startTs + $durationSeconds;
+        }
+
+        $absoluteTs = strtotime($deadlineRaw);
+        if ($absoluteTs !== false) {
+            return $absoluteTs;
+        }
+
+        return null;
+    }
+
     /**
      * Créer une tâche - Admin ou SuperAdmin uniquement
      */
@@ -46,7 +100,6 @@ class TacheService
 
         // 6. Ajouter les données de création
         $donnees['id_createur'] = $idCreateur;
-        $donnees['dateCreation'] = date('Y-m-d H:i:s');
 
         // 7. Enregistrement
         return $this->tacheDAO->sauvegarder($donnees);
@@ -69,23 +122,24 @@ class TacheService
             $id = $tache->getId();
             $status = $tache->getStatus();
 
-            // Expiration : si la date limite est dépassée et non terminé
-            $deadline = strtotime($tache->getPeriodeRealisation());
-            if ($deadline !== false && $now > $deadline && $status !== 'terminé' && $status !== 'expiré') {
+            $deadline = $this->getDeadlineTimestamp($tache);
+            if ($deadline !== null && $now >= $deadline && $status !== 'terminé' && $status !== 'expiré') {
                 $this->tacheDAO->modifierStatut($id, 'expiré');
                 continue;
             }
 
-            // Si la tâche a un parent, appliquer la règle liée au parent
             $parentId = $tache->getIdParent();
             if ($parentId) {
                 $parent = $this->tacheDAO->trouverParId($parentId);
-                if (!$parent) continue;
+                if (!$parent) {
+                    continue;
+                }
 
-                $parentEnd = strtotime($parent->getPeriodeRealisation());
-                if ($parentEnd === false) continue;
+                $parentEnd = $this->getDeadlineTimestamp($parent);
+                if ($parentEnd === null) {
+                    continue;
+                }
 
-                // 1 minute avant la fin du parent -> assigner la tâche
                 if ($now >= ($parentEnd - 60) && $now < $parentEnd) {
                     if ($status !== 'assigné') {
                         $this->tacheDAO->modifierStatut($id, 'assigné');
@@ -93,7 +147,6 @@ class TacheService
                     }
                 }
 
-                // Quand le parent se termine -> mettre en cours
                 if ($now >= $parentEnd) {
                     if ($status !== 'en cours') {
                         $this->tacheDAO->modifierStatut($id, 'en cours');
@@ -103,7 +156,6 @@ class TacheService
                 continue;
             }
 
-            // Pas de parent : si assigné depuis +1min -> en cours
             if ($status === 'assigné') {
                 $dateDebut = $tache->getDateDebutAssignation() ?: $tache->getDateCreation();
                 $startTs = strtotime($dateDebut);

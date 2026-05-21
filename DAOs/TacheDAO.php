@@ -22,7 +22,7 @@ class TacheDAO {
                     (libelle, description, status, id_parent, periode_realisation, dateCreation, 
                      dateDebutAssignation, dateFinReelle, cheminFichier, id_responsable, id_createur) 
                     VALUES 
-                    (:libelle, :description, :status, :id_parent, :periode_realisation, :dateCreation, 
+                    (:libelle, :description, :status, :id_parent, :periode_realisation, COALESCE(:dateCreation, NOW()), 
                      :dateDebutAssignation, :dateFinReelle, :cheminFichier, :id_responsable, :id_createur)";
             
             $stmt = $this->pdo->prepare($sql);
@@ -32,8 +32,8 @@ class TacheDAO {
                 ':status' => $donnees['status'] ?? 'non assigné',
                 ':id_parent' => $donnees['id_parent'] ?? null,
                 ':periode_realisation' => $donnees['periode_realisation'],
-                ':dateCreation' => $donnees['dateCreation'] ?? date('Y-m-d H:i:s'),
-                ':dateDebutAssignation' => array_key_exists('dateDebutAssignation', $donnees) ? $donnees['dateDebutAssignation'] : date('Y-m-d H:i:s'),
+                ':dateCreation' => $donnees['dateCreation'] ?? null,
+                ':dateDebutAssignation' => array_key_exists('dateDebutAssignation', $donnees) ? $donnees['dateDebutAssignation'] : null,
                 ':dateFinReelle' => $donnees['dateFinReelle'] ?? null,
                 ':cheminFichier' => $donnees['cheminFichier'] ?? null,
                 ':id_responsable' => $donnees['id_responsable'],

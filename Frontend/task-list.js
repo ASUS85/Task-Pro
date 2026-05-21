@@ -142,6 +142,15 @@ function parseDurationToMs(durationString) {
         return (hours * 60 + minutes) * 60 * 1000;
     }
 
+    const regexHMS = /^(\d+):(\d+)(?::(\d+))?$/;
+    const matchHMS = trimmed.match(regexHMS);
+    if (matchHMS) {
+        const hours = parseInt(matchHMS[1], 10);
+        const minutes = parseInt(matchHMS[2], 10);
+        const seconds = matchHMS[3] ? parseInt(matchHMS[3], 10) : 0;
+        return (hours * 60 + minutes) * 60 * 1000 + seconds * 1000;
+    }
+
     return null;
 }
 
@@ -171,7 +180,7 @@ function computeDeadline(createdAtRaw, deadlineRaw, dateDebutAssignation) {
 // -------------------------------
 function renderTasks(data) {
     console.log("[RENDER] Affichage de", data.length, "tâche(s)");
-    
+
     tableBody.innerHTML = "";
 
     // Si aucune tâche
@@ -203,7 +212,12 @@ function renderTasks(data) {
             </td>
             <td>${task.assignedTo}</td>
             <td>${task.createdAt}</td>
-            <td>${task.deadline} (${getRemainingTime(task.deadline)})</td>
+            <td>${task.deadline}</td>
+            <td>
+                <span class="remaining-time">
+                    ${getRemainingTime(task.deadline)}
+                </span>
+            </td>
             <td>${task.priority}</td>
             <td>
                 <div class="action-buttons">
@@ -242,19 +256,33 @@ function formatStatus(status) {
 // TEMPS RESTANT AMÉLIORÉ
 // -------------------------------
 function getRemainingTime(deadline) {
+    if (!deadline || deadline === "-") return "-";
+
     const now = new Date();
     const end = new Date(deadline);
 
+    if (isNaN(end.getTime())) return "-";
+
     const diff = end - now;
 
-    if (diff <= 0) return "Expiré";
+    if (diff <= 0) {
+        return "0s";
+    }
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
 
-    return `${days}j ${hours}h`;
+    if (days > 0) {
+        return `${days}j ${hours}h`;
+    }
+
+    if (hours > 0) {
+        return `${hours}h ${minutes}min`;
+    }
+
+    return `${minutes} min`;
 }
-
 // -------------------------------
 // MODAL DETAILS
 // -------------------------------
@@ -336,10 +364,10 @@ function openEditTask(taskId) {
 
             const options = [];
             if (currentTaskEdit.rawStatus === 'assigné') {
-                options.push({value: 'en cours', label: 'En cours'});
-                options.push({value: 'terminé', label: 'Terminée'});
+                options.push({ value: 'en cours', label: 'En cours' });
+                options.push({ value: 'terminé', label: 'Terminée' });
             } else if (currentTaskEdit.rawStatus === 'en cours') {
-                options.push({value: 'terminé', label: 'Terminée'});
+                options.push({ value: 'terminé', label: 'Terminée' });
             }
 
             if (options.length === 0) {
@@ -451,7 +479,7 @@ tableBody.addEventListener("click", async (e) => {
             try {
                 console.log("[DELETE] Suppression de la tâche", id);
                 const result = await apiDeleteTask(id);
-                
+
                 if (result.success) {
                     console.log("✅ Tâche supprimée avec succès");
                     // Supprimer du tableau local
@@ -538,55 +566,55 @@ async function loadUsersById() {
 // INITIALISATION
 // -------------------------------
 async function initializePage() {
-  try {
-    // Vérifier l'authentification
-    const currentUser = getCurrentUserFromStorage();
-    console.log("[AUTH] Utilisateur actuel:", currentUser);
-    
-    if (!currentUser) {
-      console.warn("⚠️ PAS D'UTILISATEUR AUTHENTIFIÉ - Redirection vers login");
-      alert("Vous devez être connecté");
-      window.location.href = 'login.html';
-      return;
+    try {
+        // Vérifier l'authentification
+        const currentUser = getCurrentUserFromStorage();
+        console.log("[AUTH] Utilisateur actuel:", currentUser);
+
+        if (!currentUser) {
+            console.warn("⚠️ PAS D'UTILISATEUR AUTHENTIFIÉ - Redirection vers login");
+            alert("Vous devez être connecté");
+            window.location.href = 'login.html';
+            return;
+        }
+
+        console.log("[INIT] Démarrage du chargement des tâches pour", currentUser.prenom, currentUser.nom);
+        await loadUsersById();
+
+        console.log("[API] Appel GET /taches/list...");
+
+        // Charger les tâches
+        const tasksResponse = await apiListTasks();
+        console.log("[API RESPONSE] Tâches reçues:", tasksResponse);
+
+        if (!Array.isArray(tasksResponse)) {
+            console.warn("[WARN] apiListTasks() n'a pas retourné un tableau");
+            tasks = [];
+            allTasks = [];
+        } else {
+            // Transformer les données
+            tasks = tasksResponse.map(apiTask => transformTaskFromAPI(apiTask));
+            allTasks = [...tasks];
+
+            console.log("✅ Tâches transformées et chargées");
+            console.log("📊 Nombre de tâches:", tasks.length);
+        }
+
+        // Afficher les tâches
+        renderTasks(tasks);
+
+        console.log("✅ TaskPRO Task List initialisé avec succès 🚀");
+
+    } catch (error) {
+        console.error("❌ Erreur lors de l'initialisation:", error);
+        console.error("Stack:", error.stack);
+        alert("⚠️ Erreur de chargement des tâches:\n" + error.message);
     }
-    
-    console.log("[INIT] Démarrage du chargement des tâches pour", currentUser.prenom, currentUser.nom);
-    await loadUsersById();
-    
-    console.log("[API] Appel GET /taches/list...");
-    
-    // Charger les tâches
-    const tasksResponse = await apiListTasks();
-    console.log("[API RESPONSE] Tâches reçues:", tasksResponse);
-    
-    if (!Array.isArray(tasksResponse)) {
-      console.warn("[WARN] apiListTasks() n'a pas retourné un tableau");
-      tasks = [];
-      allTasks = [];
-    } else {
-      // Transformer les données
-      tasks = tasksResponse.map(apiTask => transformTaskFromAPI(apiTask));
-      allTasks = [...tasks];
-      
-      console.log("✅ Tâches transformées et chargées");
-      console.log("📊 Nombre de tâches:", tasks.length);
-    }
-    
-    // Afficher les tâches
-    renderTasks(tasks);
-    
-    console.log("✅ TaskPRO Task List initialisé avec succès 🚀");
-    
-  } catch (error) {
-    console.error("❌ Erreur lors de l'initialisation:", error);
-    console.error("Stack:", error.stack);
-    alert("⚠️ Erreur de chargement des tâches:\n" + error.message);
-  }
 }
 
 // Lancer l'initialisation au chargement
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializePage);
+    document.addEventListener('DOMContentLoaded', initializePage);
 } else {
-  initializePage();
+    initializePage();
 }
