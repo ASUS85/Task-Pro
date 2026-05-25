@@ -1,9 +1,16 @@
 <?php
 
 header("Content-Type: application/json");
-header("Access-Control-Allow-Origin: *");
+
+// Gestion dynamique de l'origine pour accepter les Credentials
+if (isset($_SERVER['HTTP_ORIGIN'])) {
+    header("Access-Control-Allow-Origin: " . $_SERVER['HTTP_ORIGIN']);
+} else {
+    header("Access-Control-Allow-Origin: http://localhost");
+}
+header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -151,7 +158,7 @@ try {
                     $result =$utilisateurDAO->changerMotDePasse($_SESSION['user_id'], password_hash($data['new_password'], PASSWORD_BCRYPT));
                 }
                 echo json_encode(['success' => true, 'message' => 'Mot de passe modifié avec succès ']);
-            } catch (Exception $th) {
+            } catch (Exception $e) {
                 //throw $th;
                 http_response_code(400);
                 echo json_decode(['success'=> false, 'message'=>$e->getMessage()]);
@@ -189,11 +196,11 @@ try {
         }
 
         // LIST
-        if (($parts[1] ?? '') === 'list' && $method === 'GET') {
-            $taches = $tacheServices->getTaches($_SESSION['user_id']);
-            echo json_encode(['success' => true, 'taches' => $taches]);
-            exit;
-        }
+        // if (($parts[1] ?? '') === 'list' && $method === 'GET') {
+        //     $taches = $tacheServices->getTaches($_SESSION['user_id']);
+        //     echo json_encode(['success' => true, 'taches' => $taches]);
+        //     exit;
+        // }
 
         // GET BY ID
         if ($method === 'GET' && isset($parts[1]) && is_numeric($parts[1])) {
