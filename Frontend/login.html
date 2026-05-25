@@ -3,57 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskPro | Connexion</title>
-    <link rel="stylesheet" href="loginstyle.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/dist/css/all.min.css">
+    <title>TaskPRO - Connexion</title>
+    <link rel="stylesheet" href="style_login.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
-    <div class="login-container">
-        <div class="login-box">
-            <div class="logo-area">
-                <div class="gold-circle-logo">
-                    <i class="fas fa-project-diagram"></i>
-                </div>
-                <h2>Task<span>Pro</span></h2>
+<body class="auth-page">
+
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="auth-container glass-panel">
+        
+        <div class="auth-header">
+            <div class="brand-logo">🟡</div>
+            <h1>Bon retour !</h1>
+            <p>Accédez à votre tableau de bord sécurisé</p>
+        </div>
+
+        <!-- ✅ AUTOCOMPLETE OFF -->
+        <form id="loginForm" class="modern-form" autocomplete="off">
+            
+            <!-- ⚠️ INPUT FANTÔME (anti autofill) -->
+            <input type="text" name="fake-user" style="display:none">
+            <input type="password" name="fake-password" style="display:none">
+
+            <div class="input-wrapper">
+                <i data-lucide="mail"></i>
+                <!-- ✅ AUTOCOMPLETE OFF -->
+                <input type="email" id="email" placeholder="Adresse email" required autocomplete="off">
             </div>
 
-            <h3>Bienvenue</h3>
-            <p>Connectez-vous pour accéder au dashboard</p>
-            
-            <form id="loginForm">
-                <div class="input-group">
-                    <label for="email">Adresse Email</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" id="email" placeholder="admin@taskpro.com" autocomplete="off" required>
-                    </div>
-                </div>
-                
-                <div class="input-group">
-                    <div class="label-wrapper">
-                        <label for="password">Mot de passe</label>
-                        <a href="#" class="forgot-link">Oublié ?</a>
-                    </div>
-                    <div class="input-wrapper">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="password" autocomplete="new-password" required>
-                    </div>
-                </div>
-                
-                <button type="submit" class="btn-login">Se connecter</button>
-                
-                <div id="message" style="min-height: 20px; margin-top: 10px; text-align: center; font-weight: normal;">
+            <div class="input-wrapper">
+                <i data-lucide="lock"></i>
+                <!-- ✅ NEW PASSWORD = bloque autofill -->
+                <input type="password" id="password" placeholder="Mot de passe" required autocomplete="new-password">
+            </div>
 
-                </div>    
-                
-                <div class="footer-link">
-                    Pas encore de compte ? <a href="inscription.html">S'inscrire</a>
-                </div>
-            </form>
+            <div class="form-options">
+                <label class="checkbox-container">
+                    <input type="checkbox">
+                    <span class="checkmark"></span>
+                    Se souvenir de moi
+                </label>
+                <a href="#" class="magic-link small">Oublié ?</a>
+            </div>
+
+            <button type="submit" class="btn-primary-auth">
+                <span>Se connecter</span>
+                <i data-lucide="log-in"></i>
+            </button>
+
+        </form>
+
+        <div id="loader" class="loader hidden">Initialisation...</div>
+
+        <p id="message" style="min-height: 20px;"></p>
+
+        <div class="auth-footer">
+            <p>Pas encore de compte ? <a href="inscription.html" class="magic-link">Créer un compte</a></p>
         </div>
+
     </div>
 
     <script src="api.js"></script>
     <script src="script.js"></script>
+    <script>
+      lucide.createIcons();
+
+      // ✅ RESET FORCÉ (anti remplissage après refresh)
+      window.addEventListener("load", () => {
+          document.getElementById("loginForm").reset();
+      });
+    </script>
+
 </body>
 </html>
