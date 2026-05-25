@@ -61,9 +61,7 @@ class AuthServices
     public function connecter(string $email, string $password)
     {
 
-        /* var_dump($email, $password);
-        exit;
- */
+        // SuperAdmin système
         if ($email === 'root@taskpro.com' && $password === 'root123') {
             return new Administrateur(
                 0,
@@ -72,21 +70,22 @@ class AuthServices
                 'N/A',
                 'root@taskpro.com',
                 '',
-                'SuperAdmin' //  on utilise SuperAdmin
+                'SuperAdmin'
             );
         }
+
         // Chercher l'utilisateur par email
         $utilisateur = $this->utilisateurDAO->trouverParEmail($email);
 
-        // Vérifier que l'utilisateur existe et que le mot de passe est correct
+        // Vérifier mot de passe
         if (!$utilisateur || !password_verify($password, $utilisateur->getPassword())) {
             throw new Exception("Identifiants incorrects.");
         }
 
-        // Retourner l'objet utilisateur connecté
+        // Retourner l'utilisateur connecté
         return $utilisateur;
     }
-
+    
     /**
      * Déconnexion
      */
@@ -119,13 +118,15 @@ class AuthServices
 
         // Gestion du mot de passe
         if (!empty($donnees['password'])) {
+
+            $user = $this->utilisateurDAO->trouverParId($id);
+            if (!password_verify($donnees['old_password'], $user->getPassword())) {
+                throw new Exception("L'ancien mot de passe est incorrect.");
+            }
             if ($donnees['password'] !== $donnees['confirm_password']) {
-                throw new Exception("Les mots de passe ne correspondent pas.");
+                throw new Exception("Les nouveaux mots de passe ne correspondent pas !");
             }
             $donnees['password'] = password_hash($donnees['password'], PASSWORD_BCRYPT);
-        } else {
-            // Si le mot de passe est vide, on le supprime pour que le DAO ne l'écrase pas
-            unset($donnees['password']);
         }
 
         // Mise à jour

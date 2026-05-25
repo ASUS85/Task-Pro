@@ -6,9 +6,9 @@
 // ========================================
 // CONFIGURATION API
 // ========================================
-const API_BASE_URL = window.location.protocol + '//' + window.location.hostname + 
-                     (window.location.port ? ':' + window.location.port : '') + 
-                     '/Task-Pro/public/api.php';
+const API_BASE_URL = window.location.protocol + '//' + window.location.hostname +
+    (window.location.port ? ':' + window.location.port : '') +
+    '/Task-Pro/public/api.php';
 
 console.log('API_BASE_URL:', API_BASE_URL);
 
@@ -28,8 +28,8 @@ async function apiCall(endpoint, method = 'GET', data = null) {
         if (data) {
             options.body = JSON.stringify(data);
         }
-
         console.log(`[API] ${method} ${endpoint}`, data || '');
+
         const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
         const result = await response.json();
 
@@ -108,17 +108,8 @@ async function apiLogin(email, password) {
 /**
  * Changement de mot de passe
  */
-async function apiChangePassword(password, confirm_password) {
-    if (!password || !confirm_password) {
-        throw new Error('Les deux champs de mot de passe sont obligatoires.');
-    }
-
-    const response = await apiCall('/auth/me', 'PUT', {
-        password,
-        confirm_password
-    });
-
-    return response;
+async function apiChangePassword(passwords) {
+    return await apiCall('/auth/change-password', 'POST', passwords);
 }
 
 /**
@@ -157,7 +148,15 @@ async function apiCreateTask(taskData) {
  * Liste les tâches de l'utilisateur
  */
 async function apiListTasks() {
-    const response = await apiCall('/taches/list', 'GET');
+    const user = getCurrentUserFromStorage();
+
+    if (!user || !user.id) {
+        return [];
+    }
+
+    // Sécurise la récupération des tâches même si la session PHP bug
+    const response = await apiCall(`/taches/list?user_id=${user.id}`, 'GET');
+
     return response.taches || [];
 }
 
@@ -179,6 +178,10 @@ async function apiUpdateTaskStatus(taskId, status) {
     return response;
 }
 
+async function apiUpdateProfile(userData) {
+    return await apiCall('/auth/update-profile', 'POST', userData);
+}
+
 /**
  * Assigne une tâche à un utilisateur
  */
@@ -192,9 +195,9 @@ async function apiAssignTask(taskId, userId) {
 /**
  * Met à jour les détails d'une tâche
  */
-async function apiUpdateTask(taskId, taskData) {
-    const response = await apiCall(`/taches/${taskId}`, 'PUT', taskData);
-    return response;
+async function apiListUsers() {
+    const response = await apiCall('/users', 'GET');
+    return response.users || [];
 }
 
 /**
@@ -241,7 +244,6 @@ async function apiListUsers() {
     const response = await apiCall('/users', 'GET');
     return response.users || [];
 }
-
 /**
  * Récupère les statistiques du dashboard pour Admin / SuperAdmin
  */

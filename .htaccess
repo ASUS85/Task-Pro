@@ -2,19 +2,20 @@
     RewriteEngine On
     RewriteBase /Task-Pro/
 
-    # Ne rien réécrire si c'est déjà un fichier ou dossier existant
+    # 1. Ne rien faire si le fichier ou dossier existe réellement
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # Exemple API
+    # 2. Gestion de l'API
     RewriteRule ^api/(.*)$ public/api.php [L,QSA]
 
-    # Rediriger les autres URLs vers Frontend/
+    # 3. Rediriger vers Frontend SEULEMENT si on n'y est pas déjà
+    RewriteCond %{REQUEST_URI} !^/Task-Pro/Frontend/ [NC]
     RewriteRule ^(.*)$ Frontend/$1 [L]
 </IfModule>
 
-# Interdire l'accès direct aux fichiers sensibles seulement
+# Protection des fichiers sensibles
 <FilesMatch "^(?:config|db|install|setup|test|debug)\.php$">
     <IfModule mod_authz_core.c>
         Require all denied

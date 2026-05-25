@@ -40,6 +40,12 @@ body {
 /* =========================
    SIDEBAR
 ========================= */
+/* =========================
+   SIDEBAR GLOBAL UNIQUE
+========================= */
+/* =========================
+   SIDEBAR
+========================= */
 .sidebar {
   width: 270px;
   height: 100vh;
@@ -60,6 +66,7 @@ body {
 }
 
 /* LOGO */
+/* LOGO */
 .logo-area {
   display: flex;
   align-items: center;
@@ -78,12 +85,14 @@ body {
 }
 
 /* NAV */
+/* NAV */
 .side-nav {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
+/* LIENS */
 /* LIENS */
 .side-nav a {
   position: relative;
@@ -288,7 +297,6 @@ body {
   background: #111217;
   color: white;
 }
-
 /* ROW */
 .form-row {
   display: grid;

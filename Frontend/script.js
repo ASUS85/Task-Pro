@@ -2,10 +2,14 @@
  * TASKMANAGER PRO - LOGIQUE CLIENT
  * Complémentaire au style Glassmorphism & Animations
  */
-
 // =======================
 // INITIALISATION & SESSION
 // =======================
+
+let currentTasks = [];
+let currentPage = 1;
+const tasksPerPage = 3;
+
 document.addEventListener("DOMContentLoaded", () => {
     // Animation d'entrée pour les éléments de la page
     document.body.style.opacity = "0";
@@ -27,18 +31,27 @@ function initializePage() {
     const isLoginPage = window.location.pathname.includes("login");
     const isInscriptionPage = window.location.pathname.includes("inscription");
     const isDashboardPage = window.location.pathname.includes("dashboard.html");
-    
+
     if (isLoginPage) {
         initializeLoginForm();
-    } else if (isInscriptionPage) {
+        return;
+    }
+
+    if (isInscriptionPage) {
         initializeInscriptionForm();
-    } else {
-        checkUser();
-        if (isDashboardPage) {
-            loadDashboard();
-        } else {
-            chargerTaches();
-        }
+        return;
+    }
+
+    checkUser();
+
+    if (isDashboardPage && typeof loadDashboard === "function") {
+        loadDashboard();
+    }
+
+    chargerTaches();
+
+    if (typeof chargerInfosProfil === "function") {
+        chargerInfosProfil();
     }
 }
 
@@ -51,12 +64,17 @@ function checkUser() {
         return;
     }
 
-    const userNameEl = document.getElementById("userName");
+    const userNameEl = document.getElementById("displayUserName");
     if (userNameEl && user) {
-        userNameEl.innerHTML = `<span style="color: var(--primary)">${user.nom} ${user.prenom || ''}</span>`;
+        userNameEl.innerHTML = `👋 <span style="color: var(--primary)">${user.nom} ${user.prenom || ''}</span>`;
     }
 
-    if (window.location.pathname.includes("dashboard.html") && user && user.role !== 'Administrateur' && user.role !== 'SuperAdmin') {
+    if (
+        window.location.pathname.includes("dashboard.html") &&
+        user &&
+        user.role !== 'Administrateur' &&
+        user.role !== 'SuperAdmin'
+    ) {
         window.location.href = "login.html";
     }
 }
@@ -67,36 +85,48 @@ function checkUser() {
 function initializeLoginForm() {
     const loginForm = document.getElementById("loginForm");
     const messageEl = document.getElementById("message");
-    
+
     if (!loginForm) return;
 
     loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        
+
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
-        
+
         await handleLogin(email, password, messageEl);
     });
 }
 
 async function handleLogin(email, password, messageEl) {
     const messageEl_actual = messageEl || document.getElementById("message");
+    // 1. On vide le message précédent et on lance le loader
+    messageEl_actual.textContent = "";
+
     toggleLoader(true);
 
     try {
         const result = await apiLogin(email, password);
-        
-        if (result.success) {
-            showMessage("Connexion réussie! Redirection...", "lightgreen", messageEl_actual);
+
+
+        // 2. Vérification stricte du résultat
+        if (result && result.success === true) {
+            showMessage("Connexion réussie ! Redirection...", "lightgreen", messageEl_actual);
+
+            // Redirection selon le rôle
+            const userRole = result.user?.role;
             setTimeout(() => {
-                window.location.href = "dashboard.html";
-            }, 1500);
+                window.location.href = (userRole === 'SuperAdmin') ? "dashboard.html" : "dashbordUser.html";
+            }, 1000);
         } else {
-            showMessage(result.message || "Erreur de connexion", "red", messageEl_actual);
+            // 3. Affichage du message d'erreur venant de Laravel (ex: "Email incorrect")
+            const errorMsg = result?.message || "Identifiants invalides.";
+            showMessage(errorMsg, "#ff4d4d", messageEl_actual);
         }
     } catch (error) {
-        showMessage(error.message || "Erreur de connexion", "red", messageEl_actual);
+        // 4. Capture des erreurs réseau ou crash serveur
+        console.error("Erreur API:", error);
+        showMessage("Serveur injoignable ou erreur de saisie.", "#ff4d4d", messageEl_actual);
     } finally {
         toggleLoader(false);
     }
@@ -108,12 +138,12 @@ async function handleLogin(email, password, messageEl) {
 function initializeInscriptionForm() {
     const registerForm = document.getElementById("registerForm");
     const messageEl = document.getElementById("message");
-    
+
     if (!registerForm) return;
 
     registerForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        
+
         const userData = {
             nom: document.getElementById("nom").value,
             prenom: document.getElementById("prenom").value,
@@ -123,7 +153,7 @@ function initializeInscriptionForm() {
             password: document.getElementById("password").value,
             confirm_password: document.getElementById("confirm_password").value
         };
-        
+
         await handleInscription(userData, messageEl);
     });
 }
@@ -134,7 +164,7 @@ async function handleInscription(userData, messageEl) {
 
     try {
         const result = await apiRegister(userData);
-        
+
         if (result.success) {
             showMessage("Compte créé avec succès! Redirection vers connexion...", "lightgreen", messageEl_actual);
             setTimeout(() => {
@@ -157,7 +187,7 @@ async function handleInscription(userData, messageEl) {
 function toggleLoader(show) {
     const loader = document.getElementById("loader");
     if (!loader) return;
-    
+
     if (show) {
         loader.classList.remove("hidden");
         loader.style.animation = "fadeIn 0.3s ease forwards";
@@ -173,13 +203,13 @@ function toggleLoader(show) {
 function showMessage(message, color, element) {
     const msgEl = element || document.getElementById("message");
     if (!msgEl) return;
-    
+
     msgEl.textContent = message;
     msgEl.style.color = color;
     msgEl.style.animation = "none";
     void msgEl.offsetWidth; // Hack pour relancer l'animation
     msgEl.style.animation = "fadeIn 0.5s ease";
-    
+
     if (!window.location.pathname.includes("login") && !window.location.pathname.includes("inscription")) {
         setTimeout(() => { msgEl.textContent = ""; }, 4000);
     }
@@ -197,7 +227,6 @@ async function chargerTaches() {
     const liste = document.getElementById("listeTaches");
     if (!liste) return;
 
-    // Vérifier que l'utilisateur est authentifié
     if (!isAuthenticated()) {
         window.location.href = "login.html";
         return;
@@ -207,10 +236,15 @@ async function chargerTaches() {
 
     try {
         const taches = await apiListTasks();
+
         if (Array.isArray(taches)) {
-            renderTaches(taches);
+            currentTasks = taches; // ✅ FIX CRUCIAL
+
+            displayPage(1); // démarre pagination propre
+
             updateStats(taches);
         }
+
     } catch (err) {
         notify("Erreur de chargement des tâches", "red");
         console.error(err);
@@ -219,60 +253,119 @@ async function chargerTaches() {
     }
 }
 
+function displayPage(page) {
+    const totalPages = Math.ceil(currentTasks.length / tasksPerPage);
+
+    if (page < 1 || page > totalPages) return;
+
+    currentPage = page;
+
+    const startIndex = (page - 1) * tasksPerPage;
+    const endIndex = startIndex + tasksPerPage;
+
+    const tasksToDisplay = currentTasks.slice(startIndex, endIndex);
+
+    renderTaches(tasksToDisplay);
+    renderPaginationControls();
+}
+
+function renderPaginationControls() {
+    let container = document.getElementById("pagination-controls");
+
+    if (!container) {
+        const section = document.getElementById("tasks-section");
+        if (!section) return;
+
+        container = document.createElement("div");
+        container.id = "pagination-controls";
+        container.style = "display:flex; justify-content:center; gap:10px; margin-top:15px;";
+        section.appendChild(container);
+    }
+
+    const totalPages = Math.ceil(currentTasks.length / tasksPerPage);
+
+    container.innerHTML = `
+        <button onclick="displayPage(${currentPage - 1})" ${currentPage === 1 ? "disabled" : ""}>Précédent</button>
+        <span>Page ${currentPage} / ${totalPages}</span>
+        <button onclick="displayPage(${currentPage + 1})" ${currentPage === totalPages ? "disabled" : ""}>Suivant</button>
+    `;
+}
+
 function renderTaches(data) {
-    const liste = document.getElementById("listeTaches");
-    if (!liste) return;
-    
-    const filter = document.getElementById("filterStatus")?.value || "";
-    const search = document.getElementById("search")?.value.toLowerCase() || "";
 
-    liste.innerHTML = "";
+    const tableBody = document.getElementById("task-table-body");
 
-    const tachesFiltrees = data.filter(t => 
-        (!filter || (t.status || t.statut) === filter) && 
-        ((t.libelle || t.titre || "").toLowerCase().includes(search) || 
-         (t.description || "").toLowerCase().includes(search))
-    );
+    if (!tableBody) return;
 
-    if (tachesFiltrees.length === 0) {
-        liste.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-dim)">Aucune tâche trouvée 🛸</td></tr>`;
+    // 1. On vide le tableau
+    tableBody.innerHTML = "";
+
+    // 2. Vérification si le tableau est vide ou n'est pas un tableau
+    if (!data || !Array.isArray(data) || data.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px;">Aucune tâche ne vous a ete assignée</td></tr>`;
         return;
     }
 
-    tachesFiltrees.forEach((t, index) => {
+    // 3. Boucle sur les données reçues
+    data.forEach((t, index) => {
         const tr = document.createElement("tr");
-        tr.style.animation = `slideUp 0.4s ease forwards ${index * 0.05}s`;
-        tr.style.opacity = "0";
+        tr.className = "task-row";
 
+        // IMPORTANT : On utilise les noms exacts de ton objet (vu en console)
         const id = t.id;
-        const titre = t.libelle || t.titre || "Sans titre";
-        const description = t.description || "";
-        const status = t.status || t.statut || "non assigné";
+        const libelle = t.libelle || "Sans titre";
+        const description = t.description || "Aucune description";
+        const debut = t.dateCreation || "-"; // Ton objet a 'dateCreation'
+        const fin = t.periode_realisation || "-"; // Ton objet a 'periode_realisation'
+        const status = t.status || "en cours";
 
+        tr.onclick = () => {
+            // if (typeof openTaskModal === 'function') {
+            //     openTaskModal(id, libelle, debut, fin, status);
+            // }
+            openTaskModal(t);
+        };
+
+        const statusClass = status.toLowerCase().replace(/\s+/g, '-');
         tr.innerHTML = `
-            <td>#${id}</td>
-            <td style="font-weight:bold">${titre}</td>
-            <td style="color:var(--text-dim); font-size:0.9rem">${description.substring(0, 50)}...</td>
-            <td><span class="status-${status}">${status.replace(/_/g, ' ')}</span></td>
-            <td>${t.assignee || t.responsable || "-"}</td>
-            <td>${t.date_echeance || t.dateFinReelle || "-"}</td>
-            <td>
-                <button class="btn-icon" onclick="editTask(${id}, '${titre}', '${description}', '${status}')">✏️</button>
-                <button class="btn-icon" onclick="deleteTask(${id})" style="background:rgba(255,0,0,0.1)">🗑️</button>
-            </td>
+            <td>${libelle}</td>
+            <td>${description}</td>
+            <td>${debut}</td>
+            <td>${fin}</td>
+            <td><span class="status-badge ${statusClass}" style="margin: 5px 10px; border-radius: 15px;">${status}</span></td>
         `;
-        liste.appendChild(tr);
+
+        tableBody.appendChild(tr);
     });
+
+    // Recréer les icônes si nécessaire
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function updateStats(data) {
+    if (!Array.isArray(data)) return;
+
     const total = data.length;
-    const pending = data.filter(t => (t.status || t.statut) === "en cours").length;
-    const done = data.filter(t => (t.status || t.statut) === "terminé").length;
+
+    const pending = data.filter(t => {
+        const s = normalize(t.status || t.statut);
+        return ["non assigné", "assigné", "en cours"].includes(s);
+    }).length;
+
+    const done = data.filter(t => {
+        const s = normalize(t.status || t.statut);
+        return s === "terminé";
+    }).length;
+
+    const expired = data.filter(t => {
+        const s = normalize(t.status || t.statut);
+        return s === "expiré";
+    }).length;
 
     animateValue("totalTasks", total);
     animateValue("pendingTasks", pending);
     animateValue("doneTasks", done);
+    animateValue("expiredTasks", expired);
 }
 
 // Animation fluide des chiffres
@@ -281,7 +374,7 @@ function animateValue(id, value) {
     if (!el) return;
     let start = parseInt(el.textContent) || 0;
     if (start === value) return;
-    
+
     const duration = 1000;
     const startTime = performance.now();
 
@@ -323,7 +416,7 @@ if (taskForm) {
                 result = await apiCreateTask(payload);
                 notify("Tâche créée avec succès 🚀", "lightgreen");
             }
-            
+
             taskForm.reset();
             if (document.getElementById("taskId")) {
                 document.getElementById("taskId").value = "";
@@ -350,7 +443,7 @@ function editTask(id, titre, description, statut) {
     if (document.getElementById("statut")) {
         document.getElementById("statut").value = statut;
     }
-    
+
     const formSection = document.querySelector(".form-section");
     if (formSection) {
         formSection.scrollIntoView({ behavior: 'smooth' });
@@ -395,3 +488,245 @@ document.getElementById("search")?.addEventListener("input", () => {
 });
 
 document.getElementById("filterStatus")?.addEventListener("change", chargerTaches);
+
+
+function showSection(sectionId) {
+    // 1. Récupération des éléments
+    const stats = document.getElementById('stats-section');
+    const tasks = document.getElementById('tasks-section');
+    const profile = document.getElementById('profile-section');
+
+    // 2. Logique d'affichage
+    if (sectionId === 'stats-section') {
+        // Mode "Vue d'ensemble" : On montre les Stats ET le Tableau
+        if (stats) stats.style.display = 'block';
+        if (tasks) tasks.style.display = 'block';
+        if (profile) profile.style.display = 'none';
+
+        // On rafraîchit les données
+        chargerTaches();
+        chargerInfosProfil();
+    }
+    else if (sectionId === 'tasks-section') {
+        // Mode "Mes tâches" uniquement : On cache les stats
+        if (stats) stats.style.display = 'none';
+        if (tasks) tasks.style.display = 'block';
+        if (profile) profile.style.display = 'none';
+
+        chargerTaches();
+        // chargerInfosProfil();
+    }
+    else if (sectionId === 'profile-section') {
+        // Mode "Profil" : On cache tout le reste
+        if (stats) stats.style.display = 'none';
+        if (tasks) tasks.style.display = 'none';
+        if (profile) profile.style.display = 'block';
+    }
+
+    // 3. Gestion visuelle du menu (classe 'active')
+    document.querySelectorAll('.side-nav a').forEach(a => a.classList.remove('active'));
+    const navMap = {
+        'stats-section': 'nav-stats',
+        'tasks-section': 'nav-tasks',
+        'profile-section': 'nav-profile'
+    };
+    const activeNav = document.getElementById(navMap[sectionId]);
+    if (activeNav) activeNav.classList.add('active');
+}
+
+
+async function chargerInfosProfil() {
+    try {
+        const res = await apiCall('/auth/me', 'GET');
+        if (res.success && res.user) {
+            const u = res.user;
+
+            // Mapping des IDs HTML -> Données BD
+            const mapping = {
+                'displayFirstName': u.prenom,
+                'displayLastName': u.nom,
+                'displayProfileEmail': u.email,
+                'displaySexe': u.sexe,
+                'displayRole': u.role, // <-- AJOUTE CET ID DANS TON HTML
+                'displayFullName': `${u.prenom} ${u.nom}`
+            };
+
+            for (let id in mapping) {
+                const el = document.getElementById(id);
+                if (el) el.innerText = mapping[id] || 'Non renseigné';
+            }
+        }
+    } catch (error) {
+        console.error("Erreur profil :", error);
+    }
+}
+
+let selectedTaskId = null; // Pour savoir quelle tâche on modifie
+
+function openTaskModal(task) {
+    if (!task) return;
+
+    selectedTaskId = task.id;
+
+    const libelle = document.getElementById("modalLibelle");
+    const desc = document.getElementById("modalDesc");
+    const dates = document.getElementById("modalDates");
+    const modal = document.getElementById("taskModal");
+
+    if (libelle) libelle.textContent = task.libelle || "";
+    if (desc) desc.textContent = task.description || "";
+    if (dates) {
+        dates.textContent = `Du ${task.dateCreation || '-'} au ${task.periode_realisation || '-'}`;
+    }
+
+    const statusSelect = document.getElementById("statusSelect");
+    if (statusSelect) statusSelect.value = task.status || "";
+
+    if (modal) {
+        modal.style.display = "block";
+    }
+}
+
+function closeModal(modalId = "taskModal") {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = "none";
+    }
+}
+
+function closeProfileModal() {
+    closeModal('profileModal');
+}
+// Ouvrir la modale de mot de passe
+function openPasswordModal() {
+    const pwdModal = document.getElementById('passwordModal');
+    if (pwdModal) {
+        pwdModal.style.display = 'flex';
+    } else {
+        // Fallback si l'élément n'a pas un conteneur flex dédié
+        const fallback = document.getElementById('passwordModal');
+        if (fallback) fallback.style.display = 'block';
+    }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+
+}
+// Ouvrir la modale de profil en pré-remplissant les champs
+// Ouvrir la modale de profil en pré-remplissant les champs
+function openEditProfile() {
+    // On vérifie que les éléments source existent avant de lire leur texte
+    const fName = document.getElementById('displayFirstName');
+    const lName = document.getElementById('displayLastName');
+    const email = document.getElementById('displayProfileEmail');
+    const sexe = document.getElementById('displaySexe');
+
+    if (fName) document.getElementById('editFirstName').value = fName.innerText;
+    if (lName) document.getElementById('editLastName').value = lName.innerText;
+    if (email) document.getElementById('editEmail').value = email.innerText;
+    if (sexe) document.getElementById('editSexe').value = sexe.innerText;
+
+    document.getElementById('editProfileModal').style.display = 'flex';
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+
+// Fermer si on clique sur le fond sombre de N'IMPORTE QUELLE modale
+window.onclick = function (event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = "none";
+    }
+};
+
+
+
+async function saveStatus() {
+    const newStatus = document.getElementById("statusSelect")?.value;
+
+    if (!selectedTaskId || !newStatus) {
+        notify("Données invalides", "red");
+        return;
+    }
+
+    toggleLoader(true);
+
+    try {
+        await apiUpdateTaskStatus(selectedTaskId, newStatus);
+
+        notify("Statut mis à jour !", "lightgreen");
+
+        closeModal("taskModal"); // 👈 important
+
+        chargerTaches();
+    } catch (err) {
+        notify("Erreur lors de la mise à jour", "red");
+    } finally {
+        toggleLoader(false);
+    }
+}
+// sauvegarder les infos du profil
+// Sauvegarder les infos du profil
+async function updateProfile() {
+    const userDate = {
+        nom: document.getElementById('editLastName')?.value,
+        prenom: document.getElementById('editFirstName')?.value,
+        email: document.getElementById('editEmail')?.value,
+        sexe: document.getElementById('editSexe')?.value
+    };
+
+    toggleLoader(true);
+
+    try {
+        const res = await apiUpdateProfile(userDate);
+
+        if (res?.success) {
+            notify("Profil mis à jour !", "lightgreen");
+
+            let user = JSON.parse(localStorage.getItem('user')) || {};
+            localStorage.setItem('user', JSON.stringify({ ...user, ...userDate }));
+
+            closeModal("editProfileModal");
+
+            setTimeout(() => location.reload(), 800);
+        }
+    } catch (error) {
+        notify("Erreur : " + error.message, "red");
+    } finally {
+        toggleLoader(false);
+    }
+}
+
+
+async function updatePassword() {
+    // Vérifie bien que ces IDs existent dans ton HTML (modale sécurité)
+    const oldField = document.getElementById('currentPassword');
+    const newField = document.getElementById('newPassword');
+    const confirmField = document.getElementById('confirmPassword');
+
+    // Sécurité : on vérifie s'ils existent avant de lire .value
+    if (!oldField || !newField || !confirmField) {
+        console.error("Un des IDs de mot de passe est introuvable dans le HTML !");
+        return;
+    }
+
+    const data = {
+        old_password: oldField.value,
+        new_password: newField.value,
+        confirm_password: confirmField.value
+    };
+
+    if (data.new_password !== data.confirm_password) {
+        notify("Les mots de passe ne correspondent pas", "red");
+        return;
+    }
+
+    try {
+        const res = await apiUpdatePassword(data);
+        if (res.success) {
+            notify("Sécurité mise à jour !", "lightgreen");
+            closeModal('passwordModal');
+        }
+    } catch (error) {
+        notify("Erreur : " + error.message, "red");
+    }
+}
+

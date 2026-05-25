@@ -1,9 +1,16 @@
 <?php
 
 header("Content-Type: application/json");
-header("Access-Control-Allow-Origin: *");
+
+// Gestion dynamique de l'origine pour accepter les Credentials
+if (isset($_SERVER['HTTP_ORIGIN'])) {
+    header("Access-Control-Allow-Origin: " . $_SERVER['HTTP_ORIGIN']);
+} else {
+    header("Access-Control-Allow-Origin: http://localhost");
+}
+header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -45,10 +52,10 @@ $input = file_get_contents("php://input");
 $data = json_decode($input, true) ?? [];
 
 // Services
-$utilisateurDAO = new UtilisateurDAO();
+$utilisateurDAO = new UtilisateurDAO(); 
 $tacheDAO = new TacheDAO();
 $notificationDAO = new NotificationDAO();
-$notificationServices = new NotificationServices($notificationDAO);
+$notificationServices = new NotificationService($notificationDAO);
 
 $authServices = new AuthServices($utilisateurDAO);
 $tacheServices = new TacheService($tacheDAO, $utilisateurDAO, $notificationServices);
@@ -87,102 +94,238 @@ try {
         exit;
     }
 
-    // ================= AUTH =================
-    if ($parts[0] === 'auth') {
+ // ================= AUTH =================
+if ($parts[0] === 'auth') {
 
-        // REGISTER
-        if (($parts[1] ?? '') === 'register' && $method === 'POST') {
-            try {
-                $result = $authServices->inscrire($data);
-                echo json_encode(['success' => true, 'message' => 'Inscription réussie']);
-            } catch (Exception $e) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-            }
-            exit;
-        }
+    $action = $parts[1] ?? '';
 
-        // LOGIN
-        if (($parts[1] ?? '') === 'login' && $method === 'POST') {
-            try {
-                $user = $authServices->connecter($data['email'] ?? '', $data['password'] ?? '');
+    // REGISTER
+    if ($action === 'register' && $method === 'POST') {
 
-                $_SESSION['user_id'] = $user->getId();
-                $_SESSION['user_role'] = $user->getRole();
+        try {
 
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Connexion réussie',
-                    'user' => [
-                        'id' => $user->getId(),
-                        'nom' => $user->getNom(),
-                        'prenom' => $user->getPrenom(),
-                        'email' => $user->getEmail(),
-                        'role' => $user->getRole()
-                    ]
-                ]);
-            } catch (Exception $e) {
-                http_response_code(401);
-                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-            }
-            exit;
-        }
-
-        // LOGOUT
-        if (($parts[1] ?? '') === 'logout' && $method === 'POST') {
-            session_destroy();
-            echo json_encode(['success' => true]);
-            exit;
-        }
-
-        // ME
-        if (($parts[1] ?? '') === 'me' && $method === 'GET') {
-            requireAuth();
-
-            $user = $utilisateurDAO->trouverParId($_SESSION['user_id']);
-            if (!$user) {
-                http_response_code(401);
-                echo json_encode(['success' => false, 'message' => 'Utilisateur introuvable']);
-                exit;
-            }
+            $authServices->inscrire($data);
 
             echo json_encode([
                 'success' => true,
+                'message' => 'Inscription réussie'
+            ]);
+
+        } catch (Exception $e) {
+
+            http_response_code(400);
+
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+
+        exit;
+    }
+
+    // LOGIN
+    if ($action === 'login' && $method === 'POST') {
+
+        try {
+
+            $user = $authServices->connecter(
+                $data['email'] ?? '',
+                $data['password'] ?? ''
+            );
+
+            $_SESSION['user_id'] = $user->getId();
+            $_SESSION['user_role'] = $user->getRole();
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Connexion réussie',
                 'user' => [
                     'id' => $user->getId(),
                     'nom' => $user->getNom(),
                     'prenom' => $user->getPrenom(),
                     'email' => $user->getEmail(),
-                    'role' => $user->getRole(),
-                    'poste' => $user->getPoste()
+                    'role' => $user->getRole()
                 ]
             ]);
-            exit;
+
+        } catch (Exception $e) {
+
+            http_response_code(401);
+
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
         }
 
-        if (($parts[1] ?? '') === 'me' && $method === 'PUT') {
-            requireAuth();
-
-            $user = $utilisateurDAO->trouverParId($_SESSION['user_id']);
-            if (!$user) {
-                http_response_code(401);
-                echo json_encode(['success' => false, 'message' => 'Utilisateur introuvable']);
-                exit;
-            }
-
-            // On passe l'email actuel pour satisfaire la validation du service
-            $data['email'] = $user->getEmail();
-
-            try {
-                $result = $authServices->modifierProfil($_SESSION['user_id'], $data);
-                echo json_encode(['success' => $result]);
-            } catch (Exception $e) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-            }
-            exit;
-        }
+        exit;
     }
+
+    // ME
+    if ($action === 'me' && $method === 'GET') {
+
+        requireAuth();
+
+        $user = $utilisateurDAO->trouverParId($_SESSION['user_id']);
+
+        if (!$user) {
+
+            http_response_code(401);
+
+            echo json_encode([
+                'success' => false,
+                'message' => 'Utilisateur introuvable'
+            ]);
+
+            exit;
+        }
+
+        echo json_encode([
+            'success' => true,
+            'user' => [
+                'id' => $user->getId(),
+                'nom' => $user->getNom(),
+                'prenom' => $user->getPrenom(),
+                'email' => $user->getEmail(),
+                'role' => $user->getRole(),
+                'poste' => $user->getPoste()
+            ]
+        ]);
+
+        exit;
+    }
+
+    // UPDATE PROFILE
+    if ($action === 'update-profile' && $method === 'POST') {
+
+        requireAuth();
+
+        try {
+
+            $result = $utilisateurDAO->mettreAJour(
+                $_SESSION['user_id'],
+                $data
+            );
+
+            echo json_encode([
+                'success' => $result
+            ]);
+
+        } catch (Exception $e) {
+
+            http_response_code(400);
+
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+
+        exit;
+    }
+
+    // UPDATE ME
+    if ($action === 'me' && $method === 'PUT') {
+
+        requireAuth();
+
+        $user = $utilisateurDAO->trouverParId($_SESSION['user_id']);
+
+        if (!$user) {
+
+            http_response_code(401);
+
+            echo json_encode([
+                'success' => false,
+                'message' => 'Utilisateur introuvable'
+            ]);
+
+            exit;
+        }
+
+        $data['email'] = $user->getEmail();
+
+        try {
+
+            $result = $authServices->modifierProfil(
+                $_SESSION['user_id'],
+                $data
+            );
+
+            echo json_encode([
+                'success' => $result
+            ]);
+
+        } catch (Exception $e) {
+
+            http_response_code(400);
+
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+
+        exit;
+    }
+
+    // CHANGE PASSWORD
+    if ($action === 'change-password' && $method === 'POST') {
+
+        requireAuth();
+
+        try {
+
+            if (method_exists($authServices, 'modifierMotdepass')) {
+
+                $authServices->modifierMotdepass(
+                    $_SESSION['user_id'],
+                    $data['old_password'],
+                    $data['new_password']
+                );
+
+            } else {
+
+                $utilisateurDAO->changerMotDePasse(
+                    $_SESSION['user_id'],
+                    password_hash(
+                        $data['new_password'],
+                        PASSWORD_BCRYPT
+                    )
+                );
+            }
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Mot de passe modifié avec succès'
+            ]);
+
+        } catch (Exception $e) {
+
+            http_response_code(400);
+
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+
+        exit;
+    }
+
+    // LOGOUT
+    if ($action === 'logout' && $method === 'POST') {
+
+        session_destroy();
+
+        echo json_encode([
+            'success' => true
+        ]);
+
+        exit;
+    }
+}
 
     // ================= TACHES =================
     if ($parts[0] === 'taches') {
@@ -190,18 +333,28 @@ try {
         requireAuth();
 
         // CREATE
-        if (($parts[1] ?? '') === 'create' && $method === 'POST') {
-            $result = $tacheServices->creerTache($data, $_SESSION['user_id']);
-            echo json_encode(['success' => $result]);
+        // LIST
+        if (($parts[1] ?? '') === 'list' && $method === 'GET') {
+            // On regarde d'abord si JavaScript a envoyé un paramètre 'user_id' dans l'URL, sinon on prend la session
+            $userId = $_GET['user_id'] ?? ($_SESSION['user_id'] ?? null);
+
+            if (!$userId) {
+                http_response_code(401);
+                echo json_encode(['success' => false, 'message' => 'Utilisateur non identifié.']);
+                exit;
+            }
+
+            $taches = $tacheServices->getTaches($userId);
+            echo json_encode(['success' => true, 'taches' => $taches]);
             exit;
         }
 
         // LIST
-        if (($parts[1] ?? '') === 'list' && $method === 'GET') {
-            $taches = $tacheServices->getTaches($_SESSION['user_id']);
-            echo json_encode(['success' => true, 'taches' => $taches]);
-            exit;
-        }
+        // if (($parts[1] ?? '') === 'list' && $method === 'GET') {
+        //     $taches = $tacheServices->getTaches($_SESSION['user_id']);
+        //     echo json_encode(['success' => true, 'taches' => $taches]);
+        //     exit;
+        // }
 
         // GET BY ID
         if ($method === 'GET' && isset($parts[1]) && is_numeric($parts[1])) {
@@ -429,6 +582,89 @@ try {
             'users' => array_values($users)
         ]);
         exit;
+    }
+
+    // ================= DASHBOARD =================
+    if ($parts[0] === 'dashboard') {
+        
+        requireAuth();
+        
+        // STATS PAR RÔLE
+        if (($parts[1] ?? '') === 'stats' && $method === 'GET') {
+            $userId = $_SESSION['user_id'];
+            $userRole = $_SESSION['user_role'];
+            $user = $utilisateurDAO->trouverParId($userId);
+            
+            $stats = [];
+            
+            // Récupérer toutes les tâches
+            $allTaches = $tacheDAO->obtenirTous();
+            
+            if ($userRole === 'SuperAdmin' || $userRole === 'Administrateur') {
+                // Admin/SuperAdmin : toutes les stats
+                $stats = [
+                    'totalTaches' => count($allTaches),
+                    'tachesEnCours' => count(array_filter($allTaches, fn($t) => isset($t['status']) && $t['status'] === 'en cours')),
+                    'tachesTerminees' => count(array_filter($allTaches, fn($t) => isset($t['status']) && $t['status'] === 'terminé')),
+                    'tachesNonAssignees' => count(array_filter($allTaches, fn($t) => isset($t['status']) && $t['status'] === 'non assigné')),
+                    'tachesAssignees' => count(array_filter($allTaches, fn($t) => isset($t['status']) && $t['status'] === 'assigné')),
+                    'utilisateurActif' => $user->getNom() . ' ' . $user->getPrenom(),
+                    'role' => $userRole
+                ];
+                
+                // Ajouter nombre d'utilisateurs
+                $allUsers = $utilisateurDAO->obtenirTous();
+                $stats['totalUtilisateurs'] = count($allUsers);
+
+                $stats['adminCount'] = count(array_filter($allUsers, function($u) {
+                    if (is_object($u)) return method_exists($u, 'getRole') && $u->getRole() === 'Administrateur';
+                    return isset($u['role']) && $u['role'] === 'Administrateur';
+                }));
+                
+                $stats['employeCount'] = count(array_filter($allUsers, function($u) {
+                    if (is_object($u)) return method_exists($u, 'getRole') && $u->getRole() === 'Employe';
+                    return isset($u['role']) && $u['role'] === 'Employe';
+                }));
+
+                // $stats['adminCount'] = count(array_filter($allUsers, fn($u) => isset($u['role']) && $u['role'] === 'Administrateur'));
+                // $stats['employeCount'] = count(array_filter($allUsers, fn($u) => isset($u['role']) && $u['role'] === 'Employe'));
+                
+            } else if ($userRole === 'Employe') {
+                // Employe : ses tâches seulement
+                $mesTaches = array_filter($allTaches, fn($t) => isset($t['id_responsable']) && $t['id_responsable'] == $userId);
+                
+                $stats = [
+                    'totalTaches' => count($mesTaches),
+                    'tachesEnCours' => count(array_filter($mesTaches, fn($t) => isset($t['status']) && $t['status'] === 'en cours')),
+                    'tachesTerminees' => count(array_filter($mesTaches, fn($t) => isset($t['status']) && $t['status'] === 'terminé')),
+                    'tachesAssignees' => count(array_filter($mesTaches, fn($t) => isset($t['status']) && $t['status'] === 'assigné')),
+                    'utilisateurActif' => $user->getNom() . ' ' . $user->getPrenom(),
+                    'role' => $userRole
+                ];
+            }
+            
+            echo json_encode(['success' => true, 'stats' => $stats]);
+            exit;
+        }
+        
+        // TÂCHES RÉCENTES
+        if (($parts[1] ?? '') === 'recent-tasks' && $method === 'GET') {
+            $userId = $_SESSION['user_id'];
+            $userRole = $_SESSION['user_role'];
+            
+            $allTaches = $tacheDAO->obtenirTous();
+            
+            $taches = [];
+            if ($userRole === 'SuperAdmin' || $userRole === 'Administrateur') {
+                $taches = array_slice($allTaches, 0, 5);
+            } else if ($userRole === 'Employe') {
+                $mesTaches = array_filter($allTaches, fn($t) => isset($t['id_responsable']) && $t['id_responsable'] == $userId);
+                $taches = array_slice(array_values($mesTaches), 0, 5);
+            }
+            
+            echo json_encode(['success' => true, 'taches' => $taches]);
+            exit;
+        }
     }
 
     // ================= ADMIN =================

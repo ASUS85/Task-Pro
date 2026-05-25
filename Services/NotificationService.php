@@ -4,18 +4,15 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../config/ConfigManager.php';
 
 class NotificationServices {
     private $notificationDAO;
-
-    // Configuration SMTP (Tu pourras les mettre dans un fichier config plus tard)
-    private const SMTP_HOST = 'smtp.gmail.com';
-    private const SMTP_USER = 'uchiwai215@gmail.com';
-    private const SMTP_PASS = 'hxgnmdniqfduotou'; // Ton pass d'application
-    private const SMTP_PORT = 587;
+    private $config;
 
     public function __construct($notificationDAO) {
         $this->notificationDAO = $notificationDAO;
+        $this->config = ConfigManager::getInstance();
     }
 
     /**
@@ -33,24 +30,27 @@ class NotificationServices {
     private function envoyerEmail(string $to, string $prenom, string $contenu) {
         $mail = new PHPMailer(true);
         try {
-            $mail->isSMTP();
-            $mail->Host       = self::SMTP_HOST;
-            $mail->SMTPAuth   = true;
-            $mail->Username   = self::SMTP_USER;
-            $mail->Password   = self::SMTP_PASS;
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = self::SMTP_PORT;
+            $mailConfig = $this->config->getMailConfig();
 
-            $mail->setFrom(self::SMTP_USER, 'Task-Pro Notification');
+            $mail->isSMTP();
+            $mail->Host       = $mailConfig['host'];
+            $mail->SMTPAuth   = true;
+            $mail->Username   = $mailConfig['username'];
+            $mail->Password   = $mailConfig['password'];
+            $mail->SMTPSecure = $mailConfig['encryption'] === 'tls' ? PHPMailer::ENCRYPTION_STARTTLS : PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port       = $mailConfig['port'];
+
+            $mail->setFrom($mailConfig['from'], 'Task-Pro Notification');
             $mail->addAddress($to, $prenom);
             $mail->isHTML(true);
-            $mail->Subject = "Nouvelle mise a jour sur Task-Pro";
-            $mail->Body    = "<h3>Bonjour $prenom,</h3><p>$contenu</p>";
+            $mail->Subject = "Nouvelle mise à jour sur Task-Pro";
+            $mail->Body    = "<h3>Bonjour $prenom,</h3><p>$contenu</p><hr><p><em>Message automatisé - Ne pas répondre</em></p>";
 
             $mail->send();
         } catch (Exception $e) {
-            // Optionnel: logger l'erreur
-            throw new Exception("Erreur lors de l'envoi de l'email : " . $mail->ErrorInfo);
+            // Log l'erreur au lieu de la laisser en clair
+            error_log("Erreur email: " . $mail->ErrorInfo);
+            throw new Exception("Erreur lors de l'envoi de l'email");
         }
     }
 }

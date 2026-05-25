@@ -28,13 +28,13 @@ class UtilisateurDAO
 
             $stmt = $this->pdo->prepare($sql);
             return $stmt->execute([
-                ':nom' => $nom,
-                ':prenom' => $prenom,
-                ':sexe' => $sexe,
-                ':poste' => $poste, // Maintenant $poste existe bien grâce à l'argument ajouté plus haut
-                ':email' => $email,
-                ':password' => $password,
-                ':role' => $role,
+                ':nom'          => $nom,
+                ':prenom'       => $prenom,
+                ':sexe'         => $sexe,
+                ':poste'        => $poste,
+                ':email'        => $email,
+                ':password'     => $password,
+                ':role'         => $role,
                 ':disponibilite' => 'oui',
             ]);
         } catch (PDOException $e) {
@@ -74,7 +74,6 @@ class UtilisateurDAO
     public function trouverParId(int $id): ?object
     {
         try {
-            // Support spécial pour le SuperAdmin hardcodé root@taskpro.com.
             if ($id === 0) {
                 return new Administrateur(
                     0,
@@ -187,10 +186,10 @@ class UtilisateurDAO
             throw new Exception("Erreur récupération : " . $e->getMessage());
         }
     }
+
     public function obtenirTousAvecTaches(string $role = null): array
     {
         try {
-
             $sql = "
             SELECT 
                 u.*,
@@ -220,18 +219,16 @@ class UtilisateurDAO
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute($params);
 
-            return $stmt->fetchAll(PDO::FETCH_ASSOC); // 🔥 IMPORTANT
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         } catch (PDOException $e) {
             throw new Exception($e->getMessage());
         }
     }
 
-    //disponibilité de l'employé
     public function mettreAJourDisponibilite(int $userId): bool
     {
         try {
-
             $sql = "
             SELECT COUNT(*) as active_count
             FROM taches
@@ -253,25 +250,19 @@ class UtilisateurDAO
             WHERE id = :id
         ");
 
-            if ($update->execute([
+            return $update->execute([
                 ':disp' => $disponible,
-                ':id' => $userId
-            ])) {
-                return true;
-            }
-
-            return false;
+                ':id'   => $userId
+            ]);
 
         } catch (PDOException $e) {
             throw new Exception("Erreur disponibilité : " . $e->getMessage());
         }
     }
 
-
     public function obtenirDisponibles(): array
     {
         try {
-
             $sql = "
             SELECT id, nom, prenom, email, role, poste, disponibilite
             FROM utilisateurs
@@ -288,11 +279,9 @@ class UtilisateurDAO
         }
     }
 
-
     public function obtenirTachesParUtilisateur(int $id): array
     {
         try {
-
             $sql = "
             SELECT *
             FROM taches
@@ -309,11 +298,11 @@ class UtilisateurDAO
             throw new Exception("Erreur tâches utilisateur : " . $e->getMessage());
         }
     }
+
     public function obtenirParRole(string $role): array
     {
         return $this->obtenirTous($role);
     }
-
 
     public function obtenirUtilisateursAvecTachesParAdmin(int $idAdmin): array
     {
