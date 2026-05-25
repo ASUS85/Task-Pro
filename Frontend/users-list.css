@@ -48,13 +48,14 @@ body.dashboard-body {
     left: 0;
 
     background: linear-gradient(180deg, #0d0d11, #111217);
-    border-right: 1px solid rgba(255,255,255,0.06);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
 
     padding: 30px 20px;
     display: flex;
     flex-direction: column;
     z-index: 1000;
 }
+
 .sidebar-footer {
     margin-top: auto;
 }
@@ -109,12 +110,10 @@ body.dashboard-body {
     position: absolute;
     inset: 0;
 
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(212,175,55,0.15),
-        transparent
-    );
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(212, 175, 55, 0.15),
+            transparent);
 
     opacity: 0;
     transition: 0.3s;
@@ -132,12 +131,12 @@ body.dashboard-body {
 
 /* PAGE ACTIVE */
 .side-nav a.active {
-    background: rgba(212,175,55,0.12);
+    background: rgba(212, 175, 55, 0.12);
     color: #d4af37;
 
     border-left: 4px solid #d4af37;
 
-    box-shadow: inset 10px 0 20px rgba(212,175,55,0.05);
+    box-shadow: inset 10px 0 20px rgba(212, 175, 55, 0.05);
 }
 
 /* ICON */
@@ -175,7 +174,7 @@ body.dashboard-body {
     color: #fff;
 
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255,95,95,0.3);
+    box-shadow: 0 8px 20px rgba(255, 95, 95, 0.3);
 }
 
 /* =========================
@@ -216,8 +215,8 @@ body.dashboard-body {
 .user-filters select {
     padding: 16px 18px;
     border-radius: 14px;
-    border: 1px solid rgba(255,255,255,0.07);
-    background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025));
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.025));
     color: white;
     min-width: 220px;
     transition: 0.25s;
@@ -226,20 +225,25 @@ body.dashboard-body {
 .user-filters input:focus,
 .user-filters select:focus {
     border-color: var(--primary-gold);
-    box-shadow: 0 0 0 4px rgba(212,175,55,0.08);
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.08);
     outline: none;
+}
+
+.user-filters select option {
+    background: #111217;
+    color: white;
 }
 
 /* =========================
    TABLE USERS
 ========================= */
 .user-table-container {
-    background: linear-gradient(145deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
-    border: 1px solid rgba(255,255,255,0.08);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015));
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 28px;
     overflow: hidden;
     backdrop-filter: blur(18px);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
 }
 
 .user-table {
@@ -248,7 +252,7 @@ body.dashboard-body {
 }
 
 .user-table thead {
-    background: rgba(255,255,255,0.03);
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .user-table th {
@@ -261,7 +265,7 @@ body.dashboard-body {
 
 .user-table td {
     padding: 18px;
-    border-top: 1px solid rgba(255,255,255,0.04);
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
     color: #ddd;
 }
 
@@ -271,7 +275,7 @@ body.dashboard-body {
 }
 
 .user-table tbody tr:hover {
-    background: rgba(212,175,55,0.05);
+    background: rgba(212, 175, 55, 0.05);
 }
 
 .pagination-controls {
@@ -284,9 +288,9 @@ body.dashboard-body {
 
 .pagination-button {
     padding: 10px 14px;
-    border: 1px solid rgba(255,255,255,0.12);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 12px;
-    background: rgba(255,255,255,0.04);
+    background: rgba(255, 255, 255, 0.04);
     color: white;
     cursor: pointer;
     transition: 0.2s ease;
@@ -295,7 +299,7 @@ body.dashboard-body {
 }
 
 .pagination-button:hover {
-    background: rgba(212,175,55,0.12);
+    background: rgba(212, 175, 55, 0.12);
 }
 
 .pagination-info {
@@ -329,23 +333,23 @@ body.dashboard-body {
 
 /* ONLINE STATUS */
 .online {
-    background: rgba(0,210,106,0.12);
+    background: rgba(0, 210, 106, 0.12);
     color: var(--green);
 }
 
 .offline {
-    background: rgba(255,77,77,0.12);
+    background: rgba(255, 77, 77, 0.12);
     color: var(--red);
 }
 
 /* AVAILABILITY */
 .free {
-    background: rgba(0,184,255,0.12);
+    background: rgba(0, 184, 255, 0.12);
     color: var(--blue);
 }
 
 .busy {
-    background: rgba(255,152,0,0.12);
+    background: rgba(255, 152, 0, 0.12);
     color: var(--orange);
 }
 
@@ -361,8 +365,8 @@ body.dashboard-body {
     width: 40px;
     height: 40px;
     border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.08);
-    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
     color: white;
     cursor: pointer;
     transition: 0.25s;
@@ -383,7 +387,7 @@ body.dashboard-body {
     display: none;
     justify-content: center;
     align-items: center;
-    background: rgba(0,0,0,0.75);
+    background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(8px);
     z-index: 1000;
 }
@@ -392,7 +396,7 @@ body.dashboard-body {
     width: 90%;
     max-width: 900px;
     background: #111217;
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 28px;
     padding: 30px;
     max-height: 85vh;
@@ -415,7 +419,7 @@ body.dashboard-body {
     height: 42px;
     border-radius: 12px;
     border: none;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     color: white;
     cursor: pointer;
 }
@@ -430,8 +434,8 @@ body.dashboard-body {
 }
 
 .profile-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 16px;
     padding: 18px;
 }
@@ -464,7 +468,7 @@ body.dashboard-body {
     padding: 12px 16px;
     border-radius: 12px;
     border: none;
-    background: rgba(255,77,77,0.15);
+    background: rgba(255, 77, 77, 0.15);
     color: #ff4d4d;
     cursor: pointer;
 }
@@ -472,8 +476,8 @@ body.dashboard-body {
 .secondary-btn {
     padding: 12px 16px;
     border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.08);
-    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
     color: white;
     cursor: pointer;
 }
@@ -502,11 +506,12 @@ body.dashboard-body {
         flex-direction: column;
     }
 }
+
 .btn-action {
     padding: 8px 12px;
     border-radius: 10px;
-    border: 1px solid rgba(255,255,255,0.08);
-    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
     color: white;
     cursor: pointer;
     font-size: 0.8rem;
@@ -517,6 +522,7 @@ body.dashboard-body {
     background: #D4AF37;
     color: black;
 }
+
 .user-avatar {
     width: 38px;
     height: 38px;
@@ -529,6 +535,7 @@ body.dashboard-body {
     margin-right: 10px;
     color: black;
 }
+
 .online {
     background: rgba(0, 210, 106, 0.15);
     color: #00d26a;
@@ -553,24 +560,24 @@ body.dashboard-body {
         transform: translateY(-50%) scale(1);
         opacity: 1;
     }
+
     100% {
         transform: translateY(-50%) scale(2);
         opacity: 0;
     }
 }
+
 /* =========================
    MODAL - EDIT USER
 ========================= */
 
 #editUserModal .modal-content {
     max-width: 600px;
-    background: linear-gradient(
-        145deg,
-        rgba(255,255,255,0.035),
-        rgba(255,255,255,0.015)
-    );
+    background: linear-gradient(145deg,
+            rgba(255, 255, 255, 0.035),
+            rgba(255, 255, 255, 0.015));
 
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 28px;
 
     padding: 30px;
@@ -578,8 +585,8 @@ body.dashboard-body {
     backdrop-filter: blur(18px);
 
     box-shadow:
-        0 10px 40px rgba(0,0,0,0.35),
-        inset 0 1px 0 rgba(255,255,255,0.03);
+        0 10px 40px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
 
     animation: modalPop 0.25s ease;
 }
@@ -590,6 +597,7 @@ body.dashboard-body {
         transform: scale(0.95);
         opacity: 0;
     }
+
     to {
         transform: scale(1);
         opacity: 1;
@@ -630,9 +638,9 @@ body.dashboard-body {
 
     border-radius: 14px;
 
-    border: 1px solid rgba(255,255,255,0.07);
+    border: 1px solid rgba(255, 255, 255, 0.07);
 
-    background: rgba(255,255,255,0.03);
+    background: rgba(255, 255, 255, 0.03);
 
     color: white;
 
@@ -647,7 +655,7 @@ body.dashboard-body {
     border-color: var(--primary-gold);
 
     box-shadow:
-        0 0 0 4px rgba(212,175,55,0.08);
+        0 0 0 4px rgba(212, 175, 55, 0.08);
 
     transform: translateY(-1px);
 }
@@ -682,7 +690,7 @@ body.dashboard-body {
 
 #editUserModal .primary-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 25px rgba(212,175,55,0.25);
+    box-shadow: 0 12px 25px rgba(212, 175, 55, 0.25);
 }
 
 /* =========================

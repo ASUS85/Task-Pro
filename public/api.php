@@ -384,24 +384,24 @@ try {
             exit;
         }
 
-        // SUPERADMIN → tout le monde
+        // SUPERADMIN → tout le monde, avec décompte des tâches et disponibilité calculée depuis la base
         if ($user->getRole() === 'SuperAdmin') {
-            $users = $utilisateurDAO->obtenirTous();
+            $users = $utilisateurDAO->obtenirTousAvecTaches();
             $users = array_map(function ($u) {
                 return [
-                    'id' => $u->getId(),
-                    'nom' => $u->getNom(),
-                    'prenom' => $u->getPrenom(),
-                    'email' => $u->getEmail(),
-                    'role' => $u->getRole(),
-                    'poste' => $u->getPoste(),
-                    'disponibilite' => method_exists($u, 'getDisponibilite') ? $u->getDisponibilite() : 'oui',
-                    'total_taches' => 0
+                    'id' => $u['id'],
+                    'nom' => $u['nom'],
+                    'prenom' => $u['prenom'],
+                    'email' => $u['email'],
+                    'role' => $u['role'],
+                    'poste' => $u['poste'],
+                    'disponibilite' => $u['disponibilite'] ?? 'oui',
+                    'total_taches' => (int) $u['total_taches']
                 ];
             }, $users);
         }
 
-        // ADMIN → filtré + tâches liées à ses assignations
+        // ADMIN → mêmes utilisateurs et même décompte dynamique des tâches
         else {
             $users = $utilisateurDAO->obtenirUtilisateursAvecTachesParAdmin($user->getId());
 

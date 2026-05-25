@@ -25,7 +25,7 @@ const tableBody = document.getElementById("userTableBody");
 const userPaginationControls = document.getElementById("userPaginationControls");
 const searchUserInput = document.getElementById("searchUser");
 const roleFilter = document.getElementById("filterRole");
-const statusFilter = document.getElementById("filterStatus");
+const posteFilter = document.getElementById("filterPoste");
 const availabilityFilter = document.getElementById("filterAvailability");
 
 // MODALS
@@ -58,9 +58,10 @@ function transformUserFromAPI(apiUser) {
         name: `${apiUser.prenom} ${apiUser.nom}`,
         email: apiUser.email,
         role: role,
-        status: "online", // TODO: récupérer du statut en temps réel si disponible
-        availability: "free", // TODO: récupérer la disponibilité réelle si disponible
-        tasks: apiUser.total_taches || 0, // TODO: compter les tâches assignées
+        poste: apiUser.poste || 'Non spécifié',
+        status: "online",
+        availability: apiUser.disponibilite === 'non' ? 'busy' : 'free',
+        tasks: Number(apiUser.total_taches) || 0,
         lastSeen: new Date().toLocaleString('fr-FR'),
         bio: apiUser.poste ? `${apiUser.poste}` : "Aucune bio disponible"
     };
@@ -131,19 +132,12 @@ function renderUsers(data) {
             <td>${user.email}</td>
 
             <td>${formatRole(user.role)}</td>
-
-            <td>
-                <span class="badge ${user.status}">
-                    ${formatStatus(user.status)}
-                </span>
-            </td>
-
+            <td>${user.poste}</td>
             <td>
                 <span class="badge ${user.availability}">
                     ${formatAvailability(user.availability)}
                 </span>
             </td>
-
             <td>${user.tasks}</td>
             <td>${user.lastSeen}</td>
 
@@ -263,6 +257,21 @@ function renderUsersFromCurrentFilter() {
     renderUsers(pageItems);
 }
 
+function populatePosteFilter() {
+    if (!posteFilter) return;
+
+    const postes = [...new Set(allUsers.map(user => user.poste).filter(Boolean))];
+    postes.sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
+
+    posteFilter.innerHTML = '<option value="">Tous les postes</option>';
+    postes.forEach(poste => {
+        const option = document.createElement('option');
+        option.value = poste;
+        option.textContent = poste;
+        posteFilter.appendChild(option);
+    });
+}
+
 function renderUserPagination(totalItems) {
     if (!userPaginationControls) {
         return;
@@ -320,7 +329,7 @@ function applyUserFilters() {
     let filtered = [...allUsers];
     const search = searchUserInput.value.trim().toLowerCase();
     const role = roleFilter.value;
-    const status = statusFilter.value;
+    const poste = posteFilter?.value;
     const availability = availabilityFilter.value;
 
     if (search) {
@@ -334,8 +343,8 @@ function applyUserFilters() {
         filtered = filtered.filter(user => user.role === role);
     }
 
-    if (status) {
-        filtered = filtered.filter(user => user.status === status);
+    if (poste) {
+        filtered = filtered.filter(user => user.poste === poste);
     }
 
     if (availability) {
@@ -349,7 +358,7 @@ function applyUserFilters() {
 
 searchUserInput.addEventListener('input', applyUserFilters);
 roleFilter.addEventListener('change', applyUserFilters);
-statusFilter.addEventListener('change', applyUserFilters);
+posteFilter?.addEventListener('change', applyUserFilters);
 availabilityFilter.addEventListener('change', applyUserFilters);
 
 // -------------------------------
@@ -405,6 +414,7 @@ async function initializePage() {
             currentFilteredUsers = [...allUsers];
             currentUserPage = 1;
 
+            populatePosteFilter();
             console.log("✅ Utilisateurs transformés et chargés");
             console.log("📊 Nombre d'utilisateurs:", users.length);
         }

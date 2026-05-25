@@ -194,6 +194,11 @@ class UtilisateurDAO
             $sql = "
             SELECT 
                 u.*,
+                CASE
+                    WHEN SUM(CASE WHEN t.status IN ('assigné', 'en cours') THEN 1 ELSE 0 END) > 0
+                    THEN 'non'
+                    ELSE 'oui'
+                END AS disponibilite,
                 COUNT(t.id) AS total_taches
             FROM utilisateurs u
             LEFT JOIN taches t 
@@ -320,17 +325,21 @@ class UtilisateurDAO
             u.email,
             u.role,
             u.poste,
-            u.disponibilite,
+            CASE
+                WHEN SUM(CASE WHEN t.status IN ('assigné', 'en cours') THEN 1 ELSE 0 END) > 0
+                THEN 'non'
+                ELSE 'oui'
+            END AS disponibilite,
             COUNT(t.id) AS total_taches
         FROM utilisateurs u
         LEFT JOIN taches t 
             ON t.id_responsable = u.id
-            AND t.id_createur = :idAdmin
         GROUP BY u.id
+        ORDER BY u.created_at DESC
     ";
 
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([':idAdmin' => $idAdmin]);
+        $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
