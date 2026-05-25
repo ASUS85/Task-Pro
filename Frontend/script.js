@@ -108,7 +108,6 @@ async function handleLogin(email, password, messageEl) {
     try {
         const result = await apiLogin(email, password);
 
-
         // 2. Vérification stricte du résultat
         if (result && result.success === true) {
             showMessage("Connexion réussie ! Redirection...", "lightgreen", messageEl_actual);
@@ -116,17 +115,15 @@ async function handleLogin(email, password, messageEl) {
             // Redirection selon le rôle
             const userRole = result.user?.role;
             setTimeout(() => {
-                window.location.href = (userRole === 'SuperAdmin') ? "dashboard.html" : "dashbordUser.html";
+                window.location.href = (userRole === 'SuperAdmin' || userRole === 'Administrateur') ? "dashboard.html" : "dashbordUser.html";
             }, 1000);
         } else {
-            // 3. Affichage du message d'erreur venant de Laravel (ex: "Email incorrect")
             const errorMsg = result?.message || "Identifiants invalides.";
             showMessage(errorMsg, "#ff4d4d", messageEl_actual);
         }
     } catch (error) {
-        // 4. Capture des erreurs réseau ou crash serveur
         console.error("Erreur API:", error);
-        showMessage("Serveur injoignable ou erreur de saisie.", "#ff4d4d", messageEl_actual);
+        showMessage(error.message || "Serveur injoignable ou erreur de saisie.", "#ff4d4d", messageEl_actual);
     } finally {
         toggleLoader(false);
     }
