@@ -333,6 +333,17 @@ if ($parts[0] === 'auth') {
         requireAuth();
 
         // CREATE
+        if (($parts[1] ?? '') === 'create' && $method === 'POST') {
+            try {
+                $result = $tacheServices->creerTache($data, $_SESSION['user_id']);
+                echo json_encode(['success' => true, 'message' => 'Tâche créée avec succès', 'created' => $result]);
+            } catch (Exception $e) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+            exit;
+        }
+
         // LIST
         if (($parts[1] ?? '') === 'list' && $method === 'GET') {
             // On regarde d'abord si JavaScript a envoyé un paramètre 'user_id' dans l'URL, sinon on prend la session

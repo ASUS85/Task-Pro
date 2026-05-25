@@ -108,8 +108,24 @@ async function apiLogin(email, password) {
 /**
  * Changement de mot de passe
  */
-async function apiChangePassword(passwords) {
-    return await apiCall('/auth/change-password', 'POST', passwords);
+async function apiChangePassword(oldPasswordOrPayload, newPassword = null, confirmPassword = null) {
+    let payload;
+
+    if (typeof oldPasswordOrPayload === 'string') {
+        payload = {
+            old_password: oldPasswordOrPayload,
+            new_password: newPassword,
+            confirm_password: confirmPassword ?? newPassword
+        };
+    } else {
+        payload = oldPasswordOrPayload;
+    }
+
+    return await apiCall('/auth/change-password', 'POST', payload);
+}
+
+async function apiUpdatePassword(userData) {
+    return await apiChangePassword(userData);
 }
 
 /**
@@ -148,7 +164,18 @@ async function apiCreateTask(taskData) {
  * Liste les tâches de l'utilisateur
  */
 async function apiListTasks() {
-    const user = getCurrentUserFromStorage();
+    let user = getCurrentUserFromStorage();
+
+    if (!user || !user.id) {
+        try {
+            user = await apiGetCurrentUser();
+            if (user && user.id) {
+                localStorage.setItem('user', JSON.stringify(user));
+            }
+        } catch (error) {
+            return [];
+        }
+    }
 
     if (!user || !user.id) {
         return [];

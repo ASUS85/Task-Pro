@@ -69,13 +69,11 @@ function checkUser() {
         userNameEl.innerHTML = `👋 <span style="color: var(--primary)">${user.nom} ${user.prenom || ''}</span>`;
     }
 
-    if (
-        window.location.pathname.includes("dashboard.html") &&
-        user &&
-        user.role !== 'Administrateur' &&
-        user.role !== 'SuperAdmin'
-    ) {
-        window.location.href = "login.html";
+    if (window.location.pathname.includes("dashboard.html")) {
+        if (user && user.role !== 'Administrateur' && user.role !== 'SuperAdmin') {
+            window.location.href = "dashbordUser.html";
+            return;
+        }
     }
 }
 
@@ -221,8 +219,8 @@ function notify(txt, color) {
 // CHARGER & AFFICHER LES TÂCHES
 // =======================
 async function chargerTaches() {
-    const liste = document.getElementById("listeTaches");
-    if (!liste) return;
+    const hasTaskTable = document.getElementById("task-table-body") || document.getElementById("taskTableBody");
+    if (!hasTaskTable) return;
 
     if (!isAuthenticated()) {
         window.location.href = "login.html";
@@ -366,6 +364,11 @@ function updateStats(data) {
 }
 
 // Animation fluide des chiffres
+function normalize(value) {
+    if (!value && value !== 0) return "";
+    return String(value).trim().toLowerCase();
+}
+
 function animateValue(id, value) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -559,16 +562,21 @@ async function chargerInfosProfil() {
 }
 
 let selectedTaskId = null; // Pour savoir quelle tâche on modifie
+let selectedTaskData = null;
 
 function openTaskModal(task) {
     if (!task) return;
 
     selectedTaskId = task.id;
+    selectedTaskData = task;
 
     const libelle = document.getElementById("modalLibelle");
     const desc = document.getElementById("modalDesc");
     const dates = document.getElementById("modalDates");
     const modal = document.getElementById("taskModal");
+    const statusSelect = document.getElementById("statusSelect");
+    const statusMessage = document.getElementById("modalStatusMessage");
+    const saveButton = document.getElementById("saveStatusBtn");
 
     if (libelle) libelle.textContent = task.libelle || "";
     if (desc) desc.textContent = task.description || "";
@@ -576,8 +584,25 @@ function openTaskModal(task) {
         dates.textContent = `Du ${task.dateCreation || '-'} au ${task.periode_realisation || '-'}`;
     }
 
-    const statusSelect = document.getElementById("statusSelect");
-    if (statusSelect) statusSelect.value = task.status || "";
+    if (statusSelect) {
+        statusSelect.value = task.status || "";
+    }
+
+    if (task.status === 'expiré') {
+        if (statusMessage) {
+            statusMessage.textContent = "Tâche expirée : modification impossible.";
+            statusMessage.style.display = 'block';
+        }
+        if (statusSelect) statusSelect.disabled = true;
+        if (saveButton) saveButton.disabled = true;
+    } else {
+        if (statusMessage) {
+            statusMessage.textContent = "";
+            statusMessage.style.display = 'none';
+        }
+        if (statusSelect) statusSelect.disabled = false;
+        if (saveButton) saveButton.disabled = false;
+    }
 
     if (modal) {
         modal.style.display = "block";
@@ -644,6 +669,11 @@ async function saveStatus() {
         return;
     }
 
+    if (selectedTaskData?.status === 'expiré') {
+        notify("Impossible de modifier une tâche expirée.", "red");
+        return;
+    }
+
     toggleLoader(true);
 
     try {
@@ -655,7 +685,7 @@ async function saveStatus() {
 
         chargerTaches();
     } catch (err) {
-        notify("Erreur lors de la mise à jour", "red");
+        notify("Erreur lors de la mise à jour : " + (err.message || err), "red");
     } finally {
         toggleLoader(false);
     }

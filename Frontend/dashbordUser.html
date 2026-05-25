@@ -209,12 +209,14 @@
                             <option value="terminé">Achevée</option>
                             <option value="en cours">En cours</option>
                             <option value="non terminé">Non achevée</option>
+                            <option value="expiré">Expirée</option>
                         </select>
                     </div>
+                    <p id="modalStatusMessage" style="margin-top: 10px; color: #c0392b; font-size: 0.95rem; display: none;"></p>
                 </div>
             </div>
             <div class="modal-footer">
-                <button onclick="saveStatus()" class="btn-save-action">
+                <button id="saveStatusBtn" onclick="saveStatus()" class="btn-save-action">
                     <i data-lucide="save"></i> Sauvegarder les modifications
                 </button>
             </div>
