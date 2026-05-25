@@ -8,6 +8,9 @@
 // -------------------------------
 let users = [];
 let allUsers = [];
+let currentUserPage = 1;
+const usersPerPage = 10;
+let currentFilteredUsers = [];
 
 // -------------------------------
 // STATE
@@ -19,6 +22,11 @@ let userToDelete = null;
 // DOM
 // -------------------------------
 const tableBody = document.getElementById("userTableBody");
+const userPaginationControls = document.getElementById("userPaginationControls");
+const searchUserInput = document.getElementById("searchUser");
+const roleFilter = document.getElementById("filterRole");
+const statusFilter = document.getElementById("filterStatus");
+const availabilityFilter = document.getElementById("filterAvailability");
 
 // MODALS
 const profileModal = document.getElementById("userModal");
@@ -52,7 +60,7 @@ function transformUserFromAPI(apiUser) {
         role: role,
         status: "online", // TODO: récupérer du statut en temps réel si disponible
         availability: "free", // TODO: récupérer la disponibilité réelle si disponible
-        tasks: 0, // TODO: compter les tâches assignées
+        tasks: apiUser.total_taches || 0, // TODO: compter les tâches assignées
         lastSeen: new Date().toLocaleString('fr-FR'),
         bio: apiUser.poste ? `${apiUser.poste}` : "Aucune bio disponible"
     };
@@ -209,32 +217,134 @@ function openEditModal(id) {
 document.getElementById("editUserForm").addEventListener("submit", (e) => {
     e.preventDefault();
 
+    if (!userToEdit) {
+        return;
+    }
+
     userToEdit.name = document.getElementById("editName").value;
     userToEdit.email = document.getElementById("editEmail").value;
     userToEdit.role = document.getElementById("editRole").value;
     userToEdit.availability = document.getElementById("editAvailability").value;
 
-    renderUsers(users);
+    renderUsersFromCurrentFilter();
     editModal.style.display = "none";
 });
 
-// -------------------------------
-// DELETE MODAL
-// -------------------------------
-function openDeleteModal(id) {
-    userToDelete = id;
-    deleteModal.style.display = "flex";
-}
-
 document.getElementById("confirmDelete").onclick = () => {
+    if (userToDelete == null) {
+        return;
+    }
+
     users = users.filter(u => u.id !== userToDelete);
-    renderUsers(users);
+    allUsers = allUsers.filter(u => u.id !== userToDelete);
+    currentFilteredUsers = currentFilteredUsers.filter(u => u.id !== userToDelete);
+    renderUsersFromCurrentFilter();
     deleteModal.style.display = "none";
 };
 
 document.getElementById("cancelDelete").onclick = () => {
     deleteModal.style.display = "none";
 };
+
+// -------------------------------
+// PAGINATION
+function getUserPage(data) {
+    const start = (currentUserPage - 1) * usersPerPage;
+    return data.slice(start, start + usersPerPage);
+}
+
+function renderUsersFromCurrentFilter() {
+    currentFilteredUsers.sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
+    const totalItems = currentFilteredUsers.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / usersPerPage));
+    currentUserPage = Math.min(currentUserPage, totalPages);
+    renderUserPagination(totalItems);
+    const pageItems = getUserPage(currentFilteredUsers);
+    renderUsers(pageItems);
+}
+
+function renderUserPagination(totalItems) {
+    if (!userPaginationControls) {
+        return;
+    }
+
+    const totalPages = Math.max(1, Math.ceil(totalItems / usersPerPage));
+    userPaginationControls.innerHTML = '';
+
+    if (totalPages <= 1) {
+        return;
+    }
+
+    const createButton = (text, page, active = false, disabled = false) => {
+        const button = document.createElement('button');
+        button.className = 'pagination-button';
+        if (active) button.classList.add('active');
+        if (disabled) {
+            button.classList.add('disabled');
+            button.disabled = true;
+        }
+        button.textContent = text;
+        button.addEventListener('click', () => {
+            if (disabled || currentUserPage === page) return;
+            currentUserPage = page;
+            renderUsersFromCurrentFilter();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        return button;
+    };
+
+    userPaginationControls.appendChild(createButton('« Préc.', Math.max(1, currentUserPage - 1), false, currentUserPage === 1));
+
+    const pageWindow = 5;
+    const halfWindow = Math.floor(pageWindow / 2);
+    let startPage = Math.max(1, currentUserPage - halfWindow);
+    let endPage = Math.min(totalPages, startPage + pageWindow - 1);
+    if (endPage - startPage < pageWindow - 1) {
+        startPage = Math.max(1, endPage - pageWindow + 1);
+    }
+
+    for (let page = startPage; page <= endPage; page++) {
+        userPaginationControls.appendChild(createButton(page.toString(), page, currentUserPage === page));
+    }
+
+    userPaginationControls.appendChild(createButton('Suiv. »', Math.min(totalPages, currentUserPage + 1), false, currentUserPage === totalPages));
+}
+
+function applyUserFilters() {
+    let filtered = [...allUsers];
+    const search = searchUserInput.value.trim().toLowerCase();
+    const role = roleFilter.value;
+    const status = statusFilter.value;
+    const availability = availabilityFilter.value;
+
+    if (search) {
+        filtered = filtered.filter(user =>
+            user.name.toLowerCase().includes(search) ||
+            user.email.toLowerCase().includes(search)
+        );
+    }
+
+    if (role) {
+        filtered = filtered.filter(user => user.role === role);
+    }
+
+    if (status) {
+        filtered = filtered.filter(user => user.status === status);
+    }
+
+    if (availability) {
+        filtered = filtered.filter(user => user.availability === availability);
+    }
+
+    currentFilteredUsers = filtered;
+    currentUserPage = 1;
+    renderUsersFromCurrentFilter();
+}
+
+searchUserInput.addEventListener('input', applyUserFilters);
+roleFilter.addEventListener('change', applyUserFilters);
+statusFilter.addEventListener('change', applyUserFilters);
+availabilityFilter.addEventListener('change', applyUserFilters);
 
 // -------------------------------
 // ACTIONS HANDLER
@@ -259,48 +369,48 @@ tableBody.addEventListener("click", (e) => {
 // INITIALISATION
 // -------------------------------
 async function initializePage() {
-  try {
-    // Vérifier l'authentification
-    const currentUser = getCurrentUserFromStorage();
-    console.log("[AUTH] Utilisateur actuel:", currentUser);
-    
-    if (!currentUser) {
-      console.warn("⚠️ PAS D'UTILISATEUR AUTHENTIFIÉ");
-      alert("Vous devez être connecté");
-      window.location.href = 'login.html';
-      return;
+    try {
+        // Vérifier l'authentification
+        const currentUser = getCurrentUserFromStorage();
+        console.log("[AUTH] Utilisateur actuel:", currentUser);
+
+        if (!currentUser) {
+            console.warn("⚠️ PAS D'UTILISATEUR AUTHENTIFIÉ");
+            alert("Vous devez être connecté");
+            window.location.href = 'login.html';
+            return;
+        }
+
+        console.log("[INIT] Démarrage du chargement des utilisateurs");
+        console.log("[API] Appel GET /users...");
+
+        // Charger les utilisateurs (seulement pour Administrateur)
+        const usersResponse = await apiListUsers();
+        console.log("[API RESPONSE] Utilisateurs reçus:", usersResponse);
+
+        if (!Array.isArray(usersResponse)) {
+            console.warn("[WARN] apiListUsers() n'a pas retourné un tableau");
+            users = [];
+            allUsers = [];
+        } else {
+            // Transformer les données
+            users = usersResponse.map(apiUser => transformUserFromAPI(apiUser));
+            allUsers = [...users];
+            currentFilteredUsers = [...allUsers];
+            currentUserPage = 1;
+
+            console.log("✅ Utilisateurs transformés et chargés");
+            console.log("📊 Nombre d'utilisateurs:", users.length);
+        }
+
+        // Afficher les utilisateurs
+        renderUsersFromCurrentFilter();
+        console.log("✅ TaskPRO Users List initialisé avec succès 🚀");
+    } catch (error) {
+        console.error("❌ Erreur lors de l'initialisation:", error);
+        console.error("Stack:", error.stack);
+        alert("⚠️ Erreur de chargement des utilisateurs:\n" + error.message);
     }
-    
-    console.log("[INIT] Démarrage du chargement des utilisateurs");
-    console.log("[API] Appel GET /users...");
-    
-    // Charger les utilisateurs (seulement pour Administrateur)
-    const usersResponse = await apiListUsers();
-    console.log("[API RESPONSE] Utilisateurs reçus:", usersResponse);
-    
-    if (!Array.isArray(usersResponse)) {
-      console.warn("[WARN] apiListUsers() n'a pas retourné un tableau");
-      users = [];
-      allUsers = [];
-    } else {
-      // Transformer les données
-      users = usersResponse.map(apiUser => transformUserFromAPI(apiUser));
-      allUsers = [...users];
-      
-      console.log("✅ Utilisateurs transformés et chargés");
-      console.log("📊 Nombre d'utilisateurs:", users.length);
-    }
-    
-    // Afficher les utilisateurs
-    renderUsers(users);
-    
-    console.log("✅ TaskPRO Users List initialisé avec succès 🚀");
-    
-  } catch (error) {
-    console.error("❌ Erreur lors de l'initialisation:", error);
-    console.error("Stack:", error.stack);
-    alert("⚠️ Erreur de chargement des utilisateurs:\n" + error.message);
-  }
 }
 
 // Lancer l'initialisation au chargement

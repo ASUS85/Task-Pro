@@ -67,6 +67,19 @@ class TacheService
         return null;
     }
 
+    private function mettreAJourDisponibiliteUtilisateur(?int $idUtilisateur): void
+    {
+        if (!$idUtilisateur) {
+            return;
+        }
+
+        try {
+            $this->utilisateurDAO->mettreAJourDisponibilite($idUtilisateur);
+        } catch (Exception $e) {
+            // Ne pas casser le flux principal si l'update de disponibilité échoue
+        }
+    }
+
     /**
      * Créer une tâche - Admin ou SuperAdmin uniquement
      */
@@ -87,22 +100,53 @@ class TacheService
             throw new Exception("La période de réalisation est obligatoire.");
         }
 
-        // 4. La logique de statut initial est gérée par la règle métier suivante :
+        // 4. Valider le responsable si fourni
+        if (!empty($donnees['id_responsable'])) {
+            $responsable = $this->utilisateurDAO->trouverParId((int) $donnees['id_responsable']);
+            if (!$responsable) {
+                throw new Exception("Responsable introuvable.");
+            }
+            if ($responsable->getRole() === 'SuperAdmin') {
+                throw new Exception("Impossible d'assigner une tâche au SuperAdmin.");
+            }
+            if ($responsable->getDisponibilite() !== 'oui') {
+                throw new Exception("L'utilisateur sélectionné n'est pas disponible pour l'affectation.");
+            }
+        }
+
+        // 5. La logique de statut initial est gérée par la règle métier suivante :
         // - Si la tâche a une tâche parente -> status initial = 'non assigné'
-        // - Sinon -> status initial = 'assigné' et la dateDebutAssignation = now()
+        // - Sinon si un responsable est défini -> status initial = 'assigné' et dateDebutAssignation = now()
+        // - Sinon -> status initial = 'non assigné'
         if (!empty($donnees['id_parent'])) {
+            $parentTask = $this->tacheDAO->trouverParId((int) $donnees['id_parent']);
+            if (!$parentTask) {
+                throw new Exception("Tâche parente introuvable.");
+            }
+            if (!in_array($parentTask->getStatus(), ['assigné', 'en cours'])) {
+                throw new Exception("Seules les tâches en statut 'assigné' ou 'en cours' peuvent être parentes.");
+            }
             $donnees['status'] = 'non assigné';
             $donnees['dateDebutAssignation'] = null;
-        } else {
+        } elseif (!empty($donnees['id_responsable'])) {
             $donnees['status'] = 'assigné';
             $donnees['dateDebutAssignation'] = date('Y-m-d H:i:s');
+        } else {
+            $donnees['status'] = 'non assigné';
+            $donnees['dateDebutAssignation'] = null;
         }
 
         // 6. Ajouter les données de création
-        $donnees['id_createur'] = $idCreateur;
+        $donnees['id_createur'] = $idCreateur === 0 ? null : $idCreateur;
 
         // 7. Enregistrement
-        return $this->tacheDAO->sauvegarder($donnees);
+        $result = $this->tacheDAO->sauvegarder($donnees);
+
+        if ($result && !empty($donnees['id_responsable'])) {
+            $this->mettreAJourDisponibiliteUtilisateur((int) $donnees['id_responsable']);
+        }
+
+        return $result;
     }
 
     /**
@@ -125,6 +169,12 @@ class TacheService
             $deadline = $this->getDeadlineTimestamp($tache);
             if ($deadline !== null && $now >= $deadline && $status !== 'terminé' && $status !== 'expiré') {
                 $this->tacheDAO->modifierStatut($id, 'expiré');
+                $this->mettreAJourDisponibiliteUtilisateur($tache->getIdResponsable());
+                continue;
+            }
+
+            // Ne jamais rétrograder une tâche déjà expirée ou terminée.
+            if ($status === 'expiré' || $status === 'terminé') {
                 continue;
             }
 
@@ -150,6 +200,7 @@ class TacheService
                 if ($now >= $parentEnd) {
                     if ($status !== 'en cours') {
                         $this->tacheDAO->modifierStatut($id, 'en cours');
+                        $this->mettreAJourDisponibiliteUtilisateur($tache->getIdResponsable());
                     }
                 }
 
@@ -161,6 +212,7 @@ class TacheService
                 $startTs = strtotime($dateDebut);
                 if ($startTs !== false && ($now >= ($startTs + 60))) {
                     $this->tacheDAO->modifierStatut($id, 'en cours');
+                    $this->mettreAJourDisponibiliteUtilisateur($tache->getIdResponsable());
                 }
             }
         }
@@ -222,7 +274,12 @@ class TacheService
         }
 
         // 4. Mise à jour du statut
-        return $this->tacheDAO->modifierStatut($idTache, $nouveauStatut);
+        $result = $this->tacheDAO->modifierStatut($idTache, $nouveauStatut);
+        if ($result) {
+            $this->mettreAJourDisponibiliteUtilisateur($tache->getIdResponsable());
+        }
+
+        return $result;
     }
 
     /**
@@ -266,17 +323,15 @@ class TacheService
             throw new Exception("Utilisateur introuvable.");
         }
 
-        $tachesObjet = [];
-
         switch ($utilisateur->getRole()) {
             case "SuperAdmin":
             case "Administrateur":
-                // Les admins voient toutes les tâches
+                // Les admins voient toutes les tâches pour les vues de gestion.
                 $tachesObjet = $this->tacheDAO->obtenirTous();
                 break;
 
             case "Employe":
-                // Les employés ne voient que leurs tâches assignées
+                // Les employés ne voient que leurs tâches assignées.
                 $tachesObjet = $this->tacheDAO->obtenirParResponsable($idUtilisateur);
                 break;
 
@@ -288,15 +343,10 @@ class TacheService
         $this->syncStatuses($tachesObjet);
 
         // Recharger les tâches après éventuelles modifications
-        switch ($utilisateur->getRole()) {
-            case "SuperAdmin":
-            case "Administrateur":
-                $tachesObjet = $this->tacheDAO->obtenirTous();
-                break;
-
-            case "Employe":
-                $tachesObjet = $this->tacheDAO->obtenirParResponsable($idUtilisateur);
-                break;
+        if ($utilisateur->getRole() === "SuperAdmin" || $utilisateur->getRole() === "Administrateur") {
+            $tachesObjet = $this->tacheDAO->obtenirTous();
+        } else {
+            $tachesObjet = $this->tacheDAO->obtenirParResponsable($idUtilisateur);
         }
 
         // Sérialiser les objets Tache pour l'API
@@ -336,7 +386,12 @@ class TacheService
         }
 
         // 3. Suppression
-        return $this->tacheDAO->supprimer($idTache);
+        $result = $this->tacheDAO->supprimer($idTache);
+        if ($result) {
+            $this->mettreAJourDisponibiliteUtilisateur($tache->getIdResponsable());
+        }
+
+        return $result;
     }
 
     /**
@@ -367,7 +422,12 @@ class TacheService
         if ($responsable->getRole() === "SuperAdmin") {
             throw new Exception("Impossible d'assigner une tâche au SuperAdmin.");
         }
+        // 4. Vérifier que le responsable est disponible
+        if (method_exists($responsable, 'getDisponibilite') && $responsable->getDisponibilite() !== 'oui') {
+            throw new Exception("Impossible d'assigner une tâche à un utilisateur actuellement indisponible.");
+        }
 
+        $ancienResponsable = $tache->getIdResponsable();
         // 1. On modifie le responsable en BDD via le DAO
         $result = $this->tacheDAO->modifierResponsable($idTache, $idResponsable);
 
@@ -390,6 +450,12 @@ class TacheService
                 $msg,
                 $idTache
             );
+
+            // 5. Mettre à jour la disponibilité de l'ancien et du nouveau responsable
+            $this->mettreAJourDisponibiliteUtilisateur($idResponsable);
+            if ($ancienResponsable && $ancienResponsable !== $idResponsable) {
+                $this->mettreAJourDisponibiliteUtilisateur($ancienResponsable);
+            }
         }
 
         return $result;

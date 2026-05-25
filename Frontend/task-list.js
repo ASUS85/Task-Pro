@@ -8,6 +8,9 @@
 let tasks = [];
 let allTasks = []; // pour les filtres
 let usersById = {}; // Map des utilisateurs par id_responsable
+let currentTaskPage = 1;
+const tasksPerPage = 10;
+let currentFilteredTasks = [];
 
 // -------------------------------
 // DOM
@@ -237,6 +240,70 @@ function renderTasks(data) {
 
         tableBody.appendChild(row);
     });
+}
+
+function getTaskPage(data) {
+    const start = (currentTaskPage - 1) * tasksPerPage;
+    return data.slice(start, start + tasksPerPage);
+}
+
+function renderTasksFromCurrentFilter() {
+    currentFilteredTasks.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const totalItems = currentFilteredTasks.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / tasksPerPage));
+    currentTaskPage = Math.min(currentTaskPage, totalPages);
+    renderTaskPagination(totalItems);
+    const pageItems = getTaskPage(currentFilteredTasks);
+    renderTasks(pageItems);
+}
+
+function renderTaskPagination(totalItems) {
+    if (!taskPaginationControls) {
+        return;
+    }
+
+    const totalPages = Math.max(1, Math.ceil(totalItems / tasksPerPage));
+    taskPaginationControls.innerHTML = '';
+
+    if (totalPages <= 1) {
+        return;
+    }
+
+    const createButton = (text, page, active = false, disabled = false) => {
+        const button = document.createElement('button');
+        button.className = 'pagination-button';
+        if (active) {
+            button.classList.add('active');
+        }
+        if (disabled) {
+            button.classList.add('disabled');
+            button.disabled = true;
+        }
+        button.textContent = text;
+        button.addEventListener('click', () => {
+            if (disabled || currentTaskPage === page) return;
+            currentTaskPage = page;
+            renderTasksFromCurrentFilter();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        return button;
+    };
+
+    taskPaginationControls.appendChild(createButton('« Préc.', Math.max(1, currentTaskPage - 1), false, currentTaskPage === 1));
+
+    const pageWindow = 5;
+    const halfWindow = Math.floor(pageWindow / 2);
+    let startPage = Math.max(1, currentTaskPage - halfWindow);
+    let endPage = Math.min(totalPages, startPage + pageWindow - 1);
+    if (endPage - startPage < pageWindow - 1) {
+        startPage = Math.max(1, endPage - pageWindow + 1);
+    }
+
+    for (let page = startPage; page <= endPage; page++) {
+        taskPaginationControls.appendChild(createButton(page.toString(), page, currentTaskPage === page));
+    }
+
+    taskPaginationControls.appendChild(createButton('Suiv. »', Math.min(totalPages, currentTaskPage + 1), false, currentTaskPage === totalPages));
 }
 
 // -------------------------------
@@ -533,7 +600,10 @@ function applyFilters() {
         filtered = filtered.filter(t => t.type === type);
     }
 
-    renderTasks(filtered);
+    filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    currentFilteredTasks = filtered;
+    currentTaskPage = 1;
+    renderTasksFromCurrentFilter();
 }
 
 // EVENTS
@@ -595,13 +665,15 @@ async function initializePage() {
             // Transformer les données
             tasks = tasksResponse.map(apiTask => transformTaskFromAPI(apiTask));
             allTasks = [...tasks];
+            currentFilteredTasks = [...allTasks];
+            currentTaskPage = 1;
 
             console.log("✅ Tâches transformées et chargées");
             console.log("📊 Nombre de tâches:", tasks.length);
         }
 
         // Afficher les tâches
-        renderTasks(tasks);
+        renderTasksFromCurrentFilter();
 
         console.log("✅ TaskPRO Task List initialisé avec succès 🚀");
 

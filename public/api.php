@@ -146,14 +146,17 @@ try {
                 exit;
             }
 
-            echo json_encode(['success' => true, 'user' => [
-                'id' => $user->getId(),
-                'nom' => $user->getNom(),
-                'prenom' => $user->getPrenom(),
-                'email' => $user->getEmail(),
-                'role' => $user->getRole(),
-                'poste' => $user->getPoste()
-            ]]);
+            echo json_encode([
+                'success' => true,
+                'user' => [
+                    'id' => $user->getId(),
+                    'nom' => $user->getNom(),
+                    'prenom' => $user->getPrenom(),
+                    'email' => $user->getEmail(),
+                    'role' => $user->getRole(),
+                    'poste' => $user->getPoste()
+                ]
+            ]);
             exit;
         }
 
@@ -202,35 +205,35 @@ try {
 
         // GET BY ID
         if ($method === 'GET' && isset($parts[1]) && is_numeric($parts[1])) {
-            $tache = $tacheDAO->trouverParId((int)$parts[1]);
+            $tache = $tacheDAO->trouverParId((int) $parts[1]);
             echo json_encode(['success' => true, 'tache' => $tache]);
             exit;
         }
 
         // STATUS
         if ($method === 'PUT' && isset($parts[1], $parts[2]) && $parts[2] === 'status') {
-            $result = $tacheServices->modifierStatut((int)$parts[1], $data['status'], $_SESSION['user_id']);
+            $result = $tacheServices->modifierStatut((int) $parts[1], $data['status'], $_SESSION['user_id']);
             echo json_encode(['success' => $result]);
             exit;
         }
 
         // ASSIGN
         if ($method === 'PUT' && isset($parts[1], $parts[2]) && $parts[2] === 'assign') {
-            $result = $tacheServices->assignerTache((int)$parts[1], $data['id_responsable'], $_SESSION['user_id']);
+            $result = $tacheServices->assignerTache((int) $parts[1], $data['id_responsable'], $_SESSION['user_id']);
             echo json_encode(['success' => $result]);
             exit;
         }
 
         // DELETE
         if ($method === 'DELETE' && isset($parts[1])) {
-            $result = $tacheServices->supprimerTache((int)$parts[1], $_SESSION['user_id']);
+            $result = $tacheServices->supprimerTache((int) $parts[1], $_SESSION['user_id']);
             echo json_encode(['success' => $result]);
             exit;
         }
 
         // UPDATE TASK DETAILS
         if ($method === 'PUT' && isset($parts[1]) && is_numeric($parts[1]) && !isset($parts[2])) {
-            $result = $tacheServices->modifierTache((int)$parts[1], $data, $_SESSION['user_id']);
+            $result = $tacheServices->modifierTache((int) $parts[1], $data, $_SESSION['user_id']);
             echo json_encode(['success' => $result]);
             exit;
         }
@@ -312,22 +315,22 @@ try {
         }
 
         if (!empty($statsByResponsable)) {
-            $employes = $utilisateurDAO->obtenirParRole('Employe');
-            $employeMap = [];
-            foreach ($employes as $emp) {
-                $employeMap[$emp->getId()] = $emp->getNom() . ' ' . $emp->getPrenom();
-            }
-
-            arsort($statsByResponsable);
-            foreach ($statsByResponsable as $responsableId => $count) {
-                if (count($teamPerformance) >= 3) {
-                    break;
+                $utilisateurs = $utilisateurDAO->obtenirTous();
+                $utilisateurMap = [];
+                foreach ($utilisateurs as $utilisateurItem) {
+                    $utilisateurMap[$utilisateurItem->getId()] = $utilisateurItem->getNom() . ' ' . $utilisateurItem->getPrenom();
                 }
-                $teamPerformance[] = [
-                    'name' => $employeMap[$responsableId] ?? 'Utilisateur #' . $responsableId,
-                    'progress' => $totalTasks > 0 ? round(($count / $totalTasks) * 100) : 0
-                ];
-            }
+
+                arsort($statsByResponsable);
+                foreach ($statsByResponsable as $responsableId => $count) {
+                    if (count($teamPerformance) >= 3) {
+                        break;
+                    }
+                    $teamPerformance[] = [
+                        'name' => $utilisateurMap[$responsableId] ?? 'Utilisateur #' . $responsableId,
+                        'progress' => $count
+                    ];
+                }
         }
 
         if (empty($teamPerformance)) {
@@ -371,9 +374,9 @@ try {
 
     // ================= USERS (pour les administrateurs) =================
     if ($parts[0] === 'users' && $method === 'GET') {
+
         requireAuth();
 
-        // Vérifier que l'utilisateur est Administrateur ou SuperAdmin
         $user = $utilisateurDAO->trouverParId($_SESSION['user_id']);
         if (!$user || ($user->getRole() !== 'Administrateur' && $user->getRole() !== 'SuperAdmin')) {
             http_response_code(403);
@@ -381,27 +384,49 @@ try {
             exit;
         }
 
-        $users = $utilisateurDAO->obtenirTous();
+        // SUPERADMIN → tout le monde
+        if ($user->getRole() === 'SuperAdmin') {
+            $users = $utilisateurDAO->obtenirTous();
+            $users = array_map(function ($u) {
+                return [
+                    'id' => $u->getId(),
+                    'nom' => $u->getNom(),
+                    'prenom' => $u->getPrenom(),
+                    'email' => $u->getEmail(),
+                    'role' => $u->getRole(),
+                    'poste' => $u->getPoste(),
+                    'disponibilite' => method_exists($u, 'getDisponibilite') ? $u->getDisponibilite() : 'oui',
+                    'total_taches' => 0
+                ];
+            }, $users);
+        }
 
-        // Formater les utilisateurs et exclure les SuperAdmin
-        $formattedUsers = array_filter(array_map(function ($user) {
-            // Exclure les SuperAdmin des listes d'assignation
-            if ($user->getRole() === 'SuperAdmin') {
-                return null;
-            }
-            return [
-                'id' => $user->getId(),
-                'nom' => $user->getNom(),
-                'prenom' => $user->getPrenom(),
-                'email' => $user->getEmail(),
-                'role' => $user->getRole(),
-                'poste' => $user->getPoste()
-            ];
-        }, $users));
+        // ADMIN → filtré + tâches liées à ses assignations
+        else {
+            $users = $utilisateurDAO->obtenirUtilisateursAvecTachesParAdmin($user->getId());
+
+            $users = array_map(function ($u) {
+                return [
+                    'id' => $u['id'],
+                    'nom' => $u['nom'],
+                    'prenom' => $u['prenom'],
+                    'email' => $u['email'],
+                    'role' => $u['role'],
+                    'poste' => $u['poste'],
+                    'disponibilite' => $u['disponibilite'] ?? 'oui',
+                    'total_taches' => (int) $u['total_taches']
+                ];
+            }, $users);
+        }
+
+        // EXCLUSION SUPERADMIN
+        $users = array_filter($users, function ($u) {
+            return $u['role'] !== 'SuperAdmin';
+        });
 
         echo json_encode([
             'success' => true,
-            'users' => array_values($formattedUsers) // Re-index array
+            'users' => array_values($users)
         ]);
         exit;
     }

@@ -14,12 +14,13 @@ class Administrateur extends Personne
         string $email,
         string $password,
         string $role = "Administrateur",
-        string $poste = "Administration"
+        string $poste = "Administration",
+        string $disponibilite = 'oui'
     ) {
         if (!in_array($role, self::ROLES_VALIDES)) {
             throw new InvalidArgumentException("Rôle invalide : " . $role);
         }
 
-        parent::__construct($id, $nom, $prenom, $sexe, $email, $poste, $password, $role);
+        parent::__construct($id, $nom, $prenom, $sexe, $email, $poste, $password, $role, $disponibilite);
     }
 }

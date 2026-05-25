@@ -16,7 +16,7 @@ class Tache
     private ?string $dateFinReelle; // Quand vraiment terminée
     private ?string $cheminFichier; // Chemin du fichier joint
     private ?int $id_responsable; // ID de l'Employé assigné
-    private int $id_createur; // ID de l'Admin qui a créé
+    private ?int $id_createur; // ID de l'Admin qui a créé
 
     public function __construct(
         int $id,
@@ -30,7 +30,7 @@ class Tache
         ?string $dateFinReelle,
         ?string $cheminFichier,
         ?int $id_responsable,
-        int $id_createur
+        ?int $id_createur
     ) {
         if (!in_array($status, self::STATUTS_VALIDES)) {
             throw new InvalidArgumentException("Statut invalide : " . $status);
@@ -62,7 +62,7 @@ class Tache
     public function getDateFinReelle(): ?string { return $this->dateFinReelle; }
     public function getCheminFichier(): ?string { return $this->cheminFichier; }
     public function getIdResponsable(): ?int { return $this->id_responsable; }
-    public function getIdCreateur(): int { return $this->id_createur; }
+    public function getIdCreateur(): ?int { return $this->id_createur; }
 
     // Setters
     public function setStatus(string $status): void {

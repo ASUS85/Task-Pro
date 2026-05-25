@@ -222,17 +222,20 @@ parentBtn.addEventListener("click", async () => {
 });
 
 function renderParentTasks(tasks) {
+  const allowedStatuses = new Set(['assigné', 'en cours']);
+  const eligibleTasks = tasks.filter((task) => allowedStatuses.has(task.status));
+
   // TRI PAR DATE (plus récent en premier)
-  tasks.sort((a, b) => new Date(b.dateCreation) - new Date(a.dateCreation));
+  eligibleTasks.sort((a, b) => new Date(b.dateCreation) - new Date(a.dateCreation));
 
   parentList.innerHTML = "";
 
-  if (tasks.length === 0) {
-    parentList.innerHTML = "<p style='padding:10px; text-align:center;'>Aucune tâche disponible</p>";
+  if (eligibleTasks.length === 0) {
+    parentList.innerHTML = "<p style='padding:10px; text-align:center;'>Aucune tâche eligible. Seules les tâches en statut 'assigné' ou 'en cours' peuvent être parentes.</p>";
     return;
   }
 
-  tasks.forEach((task) => {
+  eligibleTasks.forEach((task) => {
     const div = document.createElement("div");
     div.classList.add("modal-item");
     div.textContent = task.libelle || task.title;
@@ -478,7 +481,7 @@ async function initializePage() {
     console.log("[API] Réponse utilisateurs:", usersResponse);
     
     if (Array.isArray(usersResponse)) {
-      realUsers = usersResponse;
+      realUsers = usersResponse.filter((user) => (user.disponibilite || 'oui') === 'oui');
     } else {
       console.warn("[WARN] apiListUsers() n'a pas retourné un tableau, reçu:", usersResponse);
       realUsers = [];
@@ -501,7 +504,7 @@ async function initializePage() {
     console.log("📊 Tâches disponibles:", realTasks.length);
     
     if (realUsers.length === 0) {
-      console.warn("⚠️ AUCUN UTILISATEUR CHARGÉ - Vérifiez les droits (doit être Administrateur)");
+      console.warn("⚠️ AUCUN UTILISATEUR DISPONIBLE CHARGÉ - Vérifiez les droits (doit être Administrateur) ou qu'aucun utilisateur n'est actuellement disponible.");
     }
     if (realTasks.length === 0) {
       console.warn("⚠️ AUCUNE TÂCHE CHARGÉE - C'est normal si c'est la première fois");

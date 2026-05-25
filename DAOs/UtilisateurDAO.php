@@ -23,18 +23,19 @@ class UtilisateurDAO
     public function sauvegarder(string $nom, string $prenom, string $sexe, string $poste, string $email, string $password, string $role): bool
     {
         try {
-            $sql = "INSERT INTO utilisateurs (nom, prenom, sexe, poste, email, password, role, created_at) 
-                VALUES (:nom, :prenom, :sexe, :poste, :email, :password, :role, NOW())";
+            $sql = "INSERT INTO utilisateurs (nom, prenom, sexe, poste, email, password, role, disponibilite, created_at)
+                VALUES (:nom, :prenom, :sexe, :poste, :email, :password, :role, :disponibilite, NOW())";
 
             $stmt = $this->pdo->prepare($sql);
             return $stmt->execute([
-                ':nom'      => $nom,
-                ':prenom'   => $prenom,
-                ':sexe'     => $sexe,
-                ':poste'    => $poste, // Maintenant $poste existe bien grâce à l'argument ajouté plus haut
-                ':email'    => $email,
+                ':nom' => $nom,
+                ':prenom' => $prenom,
+                ':sexe' => $sexe,
+                ':poste' => $poste, // Maintenant $poste existe bien grâce à l'argument ajouté plus haut
+                ':email' => $email,
                 ':password' => $password,
-                ':role'     => $role,
+                ':role' => $role,
+                ':disponibilite' => 'oui',
             ]);
         } catch (PDOException $e) {
             throw new Exception("Erreur lors de la sauvegarde : " . $e->getMessage());
@@ -47,9 +48,9 @@ class UtilisateurDAO
     public function trouverParEmail(string $email): ?object
     {
         try {
-            $sql = "SELECT id, nom, prenom, sexe, poste, email, password, role 
-                    FROM utilisateurs 
-                    WHERE email = :email 
+            $sql = "SELECT id, nom, prenom, sexe, poste, email, password, role, disponibilite
+                    FROM utilisateurs
+                    WHERE email = :email
                     LIMIT 1";
 
             $stmt = $this->pdo->prepare($sql);
@@ -73,9 +74,23 @@ class UtilisateurDAO
     public function trouverParId(int $id): ?object
     {
         try {
-            $sql = "SELECT id, nom, prenom, sexe, poste, email, password, role 
-                    FROM utilisateurs 
-                    WHERE id = :id 
+            // Support spécial pour le SuperAdmin hardcodé root@taskpro.com.
+            if ($id === 0) {
+                return new Administrateur(
+                    0,
+                    'Root',
+                    'System',
+                    'N/A',
+                    'root@taskpro.com',
+                    'root123',
+                    'SuperAdmin',
+                    'Administration'
+                );
+            }
+
+            $sql = "SELECT id, nom, prenom, sexe, poste, email, password, role, disponibilite
+                    FROM utilisateurs
+                    WHERE id = :id
                     LIMIT 1";
 
             $stmt = $this->pdo->prepare($sql);
@@ -148,7 +163,7 @@ class UtilisateurDAO
     public function obtenirTous(string $role = null): array
     {
         try {
-            $sql = "SELECT id, nom, prenom, sexe, poste, email, password, role FROM utilisateurs";
+            $sql = "SELECT id, nom, prenom, sexe, poste, email, password, role, disponibilite FROM utilisateurs";
             $params = [];
 
             if ($role !== null) {
@@ -172,13 +187,152 @@ class UtilisateurDAO
             throw new Exception("Erreur récupération : " . $e->getMessage());
         }
     }
+    public function obtenirTousAvecTaches(string $role = null): array
+    {
+        try {
 
-    /**
-     * Obtenir utilisateurs par rôle
-     */
+            $sql = "
+            SELECT 
+                u.*,
+                COUNT(t.id) AS total_taches
+            FROM utilisateurs u
+            LEFT JOIN taches t 
+                ON t.id_responsable = u.id
+        ";
+
+            $params = [];
+
+            if ($role !== null) {
+                $sql .= " WHERE u.role = :role";
+                $params[':role'] = $role;
+            }
+
+            $sql .= "
+            GROUP BY u.id
+            ORDER BY u.created_at DESC
+        ";
+
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute($params);
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC); // 🔥 IMPORTANT
+
+        } catch (PDOException $e) {
+            throw new Exception($e->getMessage());
+        }
+    }
+
+    //disponibilité de l'employé
+    public function mettreAJourDisponibilite(int $userId): bool
+    {
+        try {
+
+            $sql = "
+            SELECT COUNT(*) as active_count
+            FROM taches
+            WHERE id_responsable = :id
+            AND status IN ('assigné', 'en cours')
+        ";
+
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':id' => $userId]);
+
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $activeCount = isset($result['active_count']) ? (int) $result['active_count'] : 0;
+
+            $disponible = ($activeCount === 0) ? 'oui' : 'non';
+
+            $update = $this->pdo->prepare("
+            UPDATE utilisateurs 
+            SET disponibilite = :disp
+            WHERE id = :id
+        ");
+
+            if ($update->execute([
+                ':disp' => $disponible,
+                ':id' => $userId
+            ])) {
+                return true;
+            }
+
+            return false;
+
+        } catch (PDOException $e) {
+            throw new Exception("Erreur disponibilité : " . $e->getMessage());
+        }
+    }
+
+
+    public function obtenirDisponibles(): array
+    {
+        try {
+
+            $sql = "
+            SELECT id, nom, prenom, email, role, poste, disponibilite
+            FROM utilisateurs
+            WHERE disponibilite = 'oui'
+            AND role != 'SuperAdmin'
+        ";
+
+            $stmt = $this->pdo->query($sql);
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (PDOException $e) {
+            throw new Exception("Erreur utilisateurs disponibles : " . $e->getMessage());
+        }
+    }
+
+
+    public function obtenirTachesParUtilisateur(int $id): array
+    {
+        try {
+
+            $sql = "
+            SELECT *
+            FROM taches
+            WHERE id_responsable = :id
+            ORDER BY created_at DESC
+        ";
+
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':id' => $id]);
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (PDOException $e) {
+            throw new Exception("Erreur tâches utilisateur : " . $e->getMessage());
+        }
+    }
     public function obtenirParRole(string $role): array
     {
         return $this->obtenirTous($role);
+    }
+
+
+    public function obtenirUtilisateursAvecTachesParAdmin(int $idAdmin): array
+    {
+        $sql = "
+        SELECT 
+            u.id,
+            u.nom,
+            u.prenom,
+            u.email,
+            u.role,
+            u.poste,
+            u.disponibilite,
+            COUNT(t.id) AS total_taches
+        FROM utilisateurs u
+        LEFT JOIN taches t 
+            ON t.id_responsable = u.id
+            AND t.id_createur = :idAdmin
+        GROUP BY u.id
+    ";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':idAdmin' => $idAdmin]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -213,7 +367,8 @@ class UtilisateurDAO
                     $data['email'],
                     $data['password'],
                     $data['role'],
-                    $data['poste'] ?? 'Administration'
+                    $data['poste'] ?? 'Administration',
+                    $data['disponibilite'] ?? 'oui'
                 );
 
             case 'Employe':
@@ -224,7 +379,8 @@ class UtilisateurDAO
                     $data['sexe'],
                     $data['poste'],
                     $data['email'],
-                    $data['password']
+                    $data['password'],
+                    $data['disponibilite'] ?? 'oui'
                 );
 
             default:

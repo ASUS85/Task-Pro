@@ -10,8 +10,9 @@ abstract class Personne
     public string $poste;
     protected string $password;
     protected string $role;
+    protected string $disponibilite;
 
-    public function __construct(int $id, string $nom, string $prenom, string $sexe, string $email, string $poste, string $password, string $role)
+    public function __construct(int $id, string $nom, string $prenom, string $sexe, string $email, string $poste, string $password, string $role, string $disponibilite = 'oui')
     {
         $this->id = $id;
         $this->nom = $nom;
@@ -21,6 +22,7 @@ abstract class Personne
         $this->poste = $poste;
         $this->password = $password;
         $this->role = $role;
+        $this->disponibilite = $disponibilite;
     }
 
     private function validerEmail(string $email): string
@@ -62,6 +64,10 @@ abstract class Personne
     public function getRole(): string
     {
         return $this->role;
+    }
+    public function getDisponibilite(): string
+    {
+        return $this->disponibilite;
     }
 
     public function setNom(string $nom): void

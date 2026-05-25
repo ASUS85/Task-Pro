@@ -305,7 +305,7 @@ class TacheDAO {
             $data['dateFinReelle'] ?? null,
             $data['cheminFichier'] ?? null,
             $data['id_responsable'] !== null ? (int) $data['id_responsable'] : null,
-            (int) $data['id_createur']
+            $data['id_createur'] !== null ? (int) $data['id_createur'] : null
         );
     }
 }

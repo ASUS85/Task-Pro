@@ -104,6 +104,10 @@ class AuthServices
      */
     public function modifierProfil(int $id, array $donnees): bool
     {
+        if ($id === 0) {
+            throw new Exception("Impossible de modifier le profil du SuperAdmin root.");
+        }
+
         // Validation de l'email s'il est fourni
         if (!empty($donnees['email'])) {
             if (!filter_var($donnees['email'], FILTER_VALIDATE_EMAIL)) {
