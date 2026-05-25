@@ -312,6 +312,13 @@ body.dashboard-body {
     background: rgba(212, 175, 55, 0.12);
 }
 
+.pagination-info {
+    color: #d4af37;
+    font-weight: 600;
+    margin-right: 12px;
+    align-self: center;
+}
+
 .pagination-button.active {
     background: #d4af37;
     border-color: #d4af37;

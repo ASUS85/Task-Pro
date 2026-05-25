@@ -271,6 +271,12 @@ function renderUserPagination(totalItems) {
     const totalPages = Math.max(1, Math.ceil(totalItems / usersPerPage));
     userPaginationControls.innerHTML = '';
 
+    const pageInfo = document.createElement('span');
+    pageInfo.id = 'userPaginationInfo';
+    pageInfo.className = 'pagination-info';
+    pageInfo.textContent = `Page ${currentUserPage} / ${totalPages}`;
+    userPaginationControls.appendChild(pageInfo);
+
     if (totalPages <= 1) {
         return;
     }

@@ -16,6 +16,7 @@ let currentFilteredTasks = [];
 // DOM
 // -------------------------------
 const tableBody = document.getElementById("taskTableBody");
+const taskPaginationControls = document.getElementById("taskPaginationControls");
 const modal = document.getElementById("taskDetailsModal");
 const closeModalBtn = document.getElementById("closeTaskModal");
 
@@ -264,6 +265,12 @@ function renderTaskPagination(totalItems) {
 
     const totalPages = Math.max(1, Math.ceil(totalItems / tasksPerPage));
     taskPaginationControls.innerHTML = '';
+
+    const pageInfo = document.createElement('span');
+    pageInfo.id = 'taskPaginationInfo';
+    pageInfo.className = 'pagination-info';
+    pageInfo.textContent = `Page ${currentTaskPage} / ${totalPages}`;
+    taskPaginationControls.appendChild(pageInfo);
 
     if (totalPages <= 1) {
         return;
