@@ -30,7 +30,7 @@
 
         <a href="create-task.html">
             <i data-lucide="plus-square"></i>
-            <span>Créer une nouvelle tâche</span>
+            <span>Créer une tâche</span>
         </a>
 
         <a href="task-list.html">
@@ -40,7 +40,7 @@
 
         <a href="users-list.html" class="active">
             <i data-lucide="users"></i>
-            <span>Liste des utilisateurs</span>
+            <span>Utilisateurs</span>
         </a>
 
         <a href="profile.html">
@@ -52,7 +52,7 @@
 
     <!-- FOOTER FIXÉ EN BAS -->
     <div class="sidebar-footer">
-        <button onclick="logout()" class="logout-btn">
+        <button onclick="openLogoutModal()" class="logout-btn">
             <i data-lucide="log-out"></i>
             <span>Déconnexion</span>
         </button>
@@ -241,6 +241,17 @@
     </div>
 
 </div>
+
+    <div id="logoutModal" class="modal">
+        <div class="modal-content confirm-modal">
+            <h2>Confirmer la déconnexion</h2>
+            <p>Voulez-vous vraiment vous déconnecter ?</p>
+            <div class="modal-actions">
+                <button id="cancelLogoutBtn" class="secondary-btn">Annuler</button>
+                <button id="confirmLogoutBtn" class="danger-btn">Se déconnecter</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         lucide.createIcons();

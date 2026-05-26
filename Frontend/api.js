@@ -320,3 +320,40 @@ function requireAuth() {
     }
 }
 
+function openLogoutModal() {
+    const logoutModal = document.getElementById('logoutModal');
+    logoutModal?.classList.add('show');
+}
+
+function closeLogoutModal() {
+    const logoutModal = document.getElementById('logoutModal');
+    logoutModal?.classList.remove('show');
+}
+
+function bindLogoutModal() {
+    const logoutModal = document.getElementById('logoutModal');
+    const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+    const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+
+    if (!logoutModal || !cancelLogoutBtn || !confirmLogoutBtn) {
+        return;
+    }
+
+    cancelLogoutBtn.addEventListener('click', () => closeLogoutModal());
+    confirmLogoutBtn.addEventListener('click', async () => {
+        try {
+            await apiLogout();
+        } finally {
+            window.location.href = 'login.html';
+        }
+    });
+
+    logoutModal.addEventListener('click', (event) => {
+        if (event.target === logoutModal) {
+            closeLogoutModal();
+        }
+    });
+}
+
+window.addEventListener('DOMContentLoaded', bindLogoutModal);
+

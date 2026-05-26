@@ -10,7 +10,6 @@
 </head>
 
 <body class="dashboard-body">
-    <a href="dashboard.html" class="active"></a>
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
@@ -38,7 +37,7 @@
 
             <a href="users-list.html">
                 <i data-lucide="users"></i>
-                <span>Liste des utilisateurs</span>
+                <span>Utilisateurs</span>
             </a>
 
             <a href="profile.html">
@@ -47,10 +46,12 @@
             </a>
         </nav>
 
-        <button onclick="logout()" class="logout-btn">
-            <i data-lucide="log-out"></i>
-            <span>Déconnexion</span>
-        </button>
+        <div class="sidebar-footer">
+            <button onclick="openLogoutModal()" class="logout-btn">
+                <i data-lucide="log-out"></i>
+                <span>Déconnexion</span>
+            </button>
+        </div>
 
     </aside>
 
@@ -211,6 +212,17 @@
         </div>
 
     </main>
+
+    <div id="logoutModal" class="modal">
+        <div class="modal-content confirm-modal">
+            <h2>Confirmer la déconnexion</h2>
+            <p>Voulez-vous vraiment vous déconnecter ?</p>
+            <div class="modal-actions">
+                <button id="cancelLogoutBtn" class="secondary-btn">Annuler</button>
+                <button id="confirmLogoutBtn" class="danger-btn">Se déconnecter</button>
+            </div>
+        </div>
+    </div>
 
     <script src="api.js"></script>
     <script src="script.js"></script>

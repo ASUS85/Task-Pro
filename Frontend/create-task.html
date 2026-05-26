@@ -33,7 +33,7 @@
       </a>
       <a href="create-task.html" class="active" data-page="create-task">
         <i data-lucide="plus-square"></i>
-        <span>Créer une nouvelle tâche</span>
+        <span>Créer une tâche</span>
       </a>
       <a href="task-list.html" data-page="tasks">
         <i data-lucide="check-square"></i>
@@ -41,7 +41,7 @@
       </a>
       <a href="users-list.html" data-page="users">
         <i data-lucide="users"></i>
-        <span>Liste des utilisateurs</span>
+        <span>Utilisateurs</span>
       </a>
       <a href="profile.html" data-page="profile">
         <i data-lucide="user-cog"></i>
@@ -49,10 +49,12 @@
       </a>
     </nav>
 
-    <button onclick="logout()" class="logout-btn">
-      <i data-lucide="log-out"></i>
-      <span>Déconnexion</span>
-    </button>
+    <div class="sidebar-footer">
+      <button onclick="openLogoutModal()" class="logout-btn">
+        <i data-lucide="log-out"></i>
+        <span>Déconnexion</span>
+      </button>
+    </div>
   </aside>
 
   <!-- =========================================
@@ -192,6 +194,17 @@
 
       <div class="modal-list" id="parentTaskList">
         <!-- Les tâches existantes seront injectées ici via JS -->
+      </div>
+    </div>
+  </div>
+
+  <div id="logoutModal" class="modal">
+    <div class="modal-content confirm-modal">
+      <h2>Confirmer la déconnexion</h2>
+      <p>Voulez-vous vraiment vous déconnecter ?</p>
+      <div class="modal-actions">
+        <button id="cancelLogoutBtn" class="secondary-btn">Annuler</button>
+        <button id="confirmLogoutBtn" class="danger-btn">Se déconnecter</button>
       </div>
     </div>
   </div>

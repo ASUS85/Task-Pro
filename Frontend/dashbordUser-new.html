@@ -216,10 +216,12 @@
             </a>
         </nav>
 
-        <button onclick="logout()" class="logout-btn">
-            <i data-lucide="log-out"></i>
-            <span>Déconnexion</span>
-        </button>
+        <div class="sidebar-footer">
+            <button onclick="openLogoutModal()" class="logout-btn">
+                <i data-lucide="log-out"></i>
+                <span>Déconnexion</span>
+            </button>
+        </div>
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -310,6 +312,18 @@
     <!-- SCRIPTS -->
     <script src="api.js"></script>
     <script src="script.js"></script>
+
+    <div id="logoutModal" class="modal">
+        <div class="modal-content confirm-modal">
+            <h2>Confirmer la déconnexion</h2>
+            <p>Voulez-vous vraiment vous déconnecter ?</p>
+            <div class="modal-actions">
+                <button id="cancelLogoutBtn" class="secondary-btn">Annuler</button>
+                <button id="confirmLogoutBtn" class="danger-btn">Se déconnecter</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         lucide.createIcons();
 
