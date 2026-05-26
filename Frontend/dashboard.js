@@ -1,6 +1,3 @@
-
-const logoutSessionBtn = document.getElementById("logoutSessionBtn");
-
 async function loadDashboard() {
     try {
         const data = await apiGetDashboard();
@@ -73,18 +70,7 @@ function renderDashboard(data) {
 
 }
 
-function openLogoutModal() {
-  logoutModal?.classList.add("show");
-}
-
-function bindProfileActions() {
-  logoutSessionBtn?.addEventListener("click", openLogoutModal);
-  
-}
-
 function init() {
-  bindProfileActions();
 }
-
 
 document.addEventListener("DOMContentLoaded", init);
