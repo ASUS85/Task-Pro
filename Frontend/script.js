@@ -210,7 +210,20 @@ function showMessage(message, color, element) {
     }
 }
 
+async function confirmAction(message) {
+    if (window.loaderManager?.confirm) {
+        return await loaderManager.confirm(message);
+    }
+    return confirm(message);
+}
+
 function notify(txt, color) {
+    if (window.loaderManager?.toast) {
+        const type = color === 'red' ? 'error' : color === 'orange' ? 'warning' : 'success';
+        loaderManager.toast(txt, type, 3000);
+        return;
+    }
+
     const msgEl = document.getElementById("message");
     showMessage(txt, color, msgEl);
 }
@@ -453,7 +466,7 @@ function editTask(id, titre, description, statut) {
 }
 
 async function deleteTask(id) {
-    if (!confirm("Voulez-vous vraiment supprimer cette tâche ?")) return;
+    if (!(await confirmAction("Voulez-vous vraiment supprimer cette tâche ?"))) return;
 
     toggleLoader(true);
     try {

@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaskPRO - Profil</title>
 
     <link rel="stylesheet" href="profile.css">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="assets/css/loaders.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@1.16.0/dist/umd/lucide.min.js"></script>
+    <script src="assets/js/loaders.js"></script>
 </head>
 
 <body class="dashboard-body" data-page="profile">
@@ -47,10 +50,10 @@
         </nav>
 
         <div class="sidebar-footer">
-<button class="logout-btn" onclick="openLogoutModal()">
-    <i data-lucide="log-out"></i>
-    Déconnexion
-</button>
+            <button class="logout-btn" onclick="openLogoutModal()">
+                <i data-lucide="log-out"></i>
+                <span>Déconnexion</span>
+            </button>
         </div>
 
     </aside>
@@ -123,6 +126,7 @@
             <div class="card">
                 <h2>Sécurité</h2>
 
+                <button class="btn" id="editProfileBtn">Modifier mon profil</button>
                 <button class="btn" id="changePasswordBtn">Changer mot de passe</button>
                 <button class="btn danger" id="logoutSessionBtn">Déconnecter tous les appareils</button>
                 <button class="btn danger" id="disableAccountBtn">Désactiver compte</button>
@@ -207,15 +211,16 @@
                 <p>Chargement en cours...</p>
             </div>
             <h3>Nouvel administrateur</h3>
-            <p style="margin-bottom: 20px;">Remplissez toutes les informations nécessaires pour créer un administrateur.</p>
+            <p style="margin-bottom: 20px;">Remplissez toutes les informations nécessaires pour créer un administrateur.
+            </p>
 
             <form class="admin-create-form" id="createAdminForm">
                 <div class="form-fields">
                     <input type="text" id="createAdminPrenom" placeholder="Prénom*" required>
                     <input type="text" id="createAdminNom" placeholder="Nom*" required>
                     <input type="email" id="createAdminEmail" placeholder="Adresse email*" required>
-                    <input type="text" id="createAdminPoste" placeholder="Poste" >
-                    <select id="createAdminSexe" >
+                    <input type="text" id="createAdminPoste" placeholder="Poste">
+                    <select id="createAdminSexe">
                         <option value="">Sélectionner le sexe</option>
                         <option value="Homme">Homme</option>
                         <option value="Femme">Femme</option>
@@ -237,24 +242,24 @@
     </div>
 
     <div class="modal" id="adminActionModal">
-    <div class="modal-content">
+        <div class="modal-content">
 
-        <h3 id="modalTitle">Action Admin</h3>
+            <h3 id="modalTitle">Action Admin</h3>
 
-        <div id="adminDetails"></div>
+            <div id="adminDetails"></div>
 
-        <div class="modal-actions">
+            <div class="modal-actions">
 
-            <button class="btn" id="closeAdminModal">Fermer</button>
+                <button class="btn" id="closeAdminModal">Fermer</button>
 
-            <button class="btn" id="editAdminBtn">Modifier</button>
+                <button class="btn" id="editAdminBtn">Modifier</button>
 
-            <button class="btn danger" id="deleteAdminBtn">Supprimer</button>
+                <button class="btn danger" id="deleteAdminBtn">Supprimer</button>
+
+            </div>
 
         </div>
-
     </div>
-</div>
 
     <div class="modal" id="createAdminSuccessModal">
         <div class="modal-content">
@@ -268,6 +273,29 @@
             <div class="modal-actions">
                 <button class="btn" id="closeCreateAdminSuccess">Fermer</button>
             </div>
+        </div>
+    </div>
+
+    <div class="modal" id="editProfileModal">
+        <div class="modal-content">
+            <h3>Modifier mon profil</h3>
+            <form id="editProfileForm">
+                <div class="form-fields">
+                    <input type="text" id="editFirstName" placeholder="Prénom*" required>
+                    <input type="text" id="editLastName" placeholder="Nom*" required>
+                    <input type="email" id="editEmail" placeholder="Email*" required>
+                    <select id="editSexe">
+                        <option value="">Sélectionner le sexe</option>
+                        <option value="Homme">Homme</option>
+                        <option value="Femme">Femme</option>
+                        <option value="Autre">Autre</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn" id="cancelEditProfile">Annuler</button>
+                    <button type="submit" class="btn">Enregistrer</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -287,4 +315,5 @@
     <script src="api.js"></script>
     <script src="profile.js"></script>
 </body>
+
 </html>

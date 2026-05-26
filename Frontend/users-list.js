@@ -28,6 +28,14 @@ const roleFilter = document.getElementById("filterRole");
 const posteFilter = document.getElementById("filterPoste");
 const availabilityFilter = document.getElementById("filterAvailability");
 
+function showToast(message, type = 'info') {
+    if (window.loaderManager?.toast) {
+        loaderManager.toast(message, type, 3000);
+        return;
+    }
+    alert(message);
+}
+
 // MODALS
 const profileModal = document.getElementById("userModal");
 const editModal = document.getElementById("editUserModal");
@@ -222,6 +230,7 @@ document.getElementById("editUserForm").addEventListener("submit", (e) => {
 
     renderUsersFromCurrentFilter();
     editModal.style.display = "none";
+    showToast("Utilisateur mis à jour avec succès.", "success");
 });
 
 document.getElementById("confirmDelete").onclick = () => {
@@ -234,6 +243,7 @@ document.getElementById("confirmDelete").onclick = () => {
     currentFilteredUsers = currentFilteredUsers.filter(u => u.id !== userToDelete);
     renderUsersFromCurrentFilter();
     deleteModal.style.display = "none";
+    showToast("Utilisateur supprimé.", "success");
 };
 
 document.getElementById("cancelDelete").onclick = () => {
@@ -391,7 +401,7 @@ async function initializePage() {
 
         if (!currentUser) {
             console.warn("⚠️ PAS D'UTILISATEUR AUTHENTIFIÉ");
-            alert("Vous devez être connecté");
+            showToast("Vous devez être connecté", "error");
             window.location.href = 'login.html';
             return;
         }
@@ -425,7 +435,7 @@ async function initializePage() {
     } catch (error) {
         console.error("❌ Erreur lors de l'initialisation:", error);
         console.error("Stack:", error.stack);
-        alert("⚠️ Erreur de chargement des utilisateurs:\n" + error.message);
+        showToast("⚠️ Erreur de chargement des utilisateurs: " + error.message, "error");
     }
 }
 

@@ -53,6 +53,9 @@ body.dashboard-body {
     flex-direction: column;
     z-index: 1000;
 }
+.sidebar-footer {
+  margin-top: auto;
+}
 
 /* LOGO */
 .logo-area {

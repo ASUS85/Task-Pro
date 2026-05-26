@@ -12,6 +12,21 @@ let currentTaskPage = 1;
 const tasksPerPage = 10;
 let currentFilteredTasks = [];
 
+function showToast(message, type = 'info') {
+    if (window.loaderManager?.toast) {
+        loaderManager.toast(message, type, 3000);
+        return;
+    }
+    alert(message);
+}
+
+async function confirmAction(message) {
+    if (window.loaderManager?.confirm) {
+        return await loaderManager.confirm(message);
+    }
+    return confirm(message);
+}
+
 // -------------------------------
 // DOM
 // -------------------------------
@@ -407,7 +422,7 @@ function openEditTask(taskId) {
 
     const currentUser = getCurrentUserFromStorage();
     if (!currentUser) {
-        alert("Vous devez être connecté pour modifier une tâche.");
+        showToast("Vous devez être connecté pour modifier une tâche.", "error");
         return;
     }
 
@@ -505,7 +520,7 @@ if (taskEditForm) {
 
         const currentUser = getCurrentUserFromStorage();
         if (!currentUser) {
-            alert("Vous devez être connecté pour modifier une tâche.");
+            showToast("Vous devez être connecté pour modifier une tâche.", "error");
             return;
         }
 
@@ -513,11 +528,11 @@ if (taskEditForm) {
             if (currentUser.role === 'Employe' && editStatusGroup.style.display === 'block') {
                 const newStatus = editStatus.value;
                 if (!newStatus) {
-                    alert('Veuillez sélectionner un statut.');
+                    showToast('Veuillez sélectionner un statut.', 'error');
                     return;
                 }
                 await apiUpdateTaskStatus(currentTaskEdit.id, newStatus);
-                alert('Statut mis à jour avec succès.');
+                showToast('Statut mis à jour avec succès.', 'success');
             } else {
                 await apiUpdateTask(currentTaskEdit.id, {
                     libelle: editTitle.value.trim(),
@@ -525,7 +540,7 @@ if (taskEditForm) {
                     periode_realisation: editDeadline.value.trim(),
                     id_parent: currentTaskEdit.parentTask || null
                 });
-                alert('Tâche mise à jour avec succès.');
+                showToast('Tâche mise à jour avec succès.', 'success');
             }
 
             editModal.style.display = 'none';
@@ -535,7 +550,7 @@ if (taskEditForm) {
             applyFilters();
         } catch (error) {
             console.error('[EDIT] Erreur mise à jour tâche:', error);
-            alert('Erreur: ' + error.message);
+            showToast('Erreur: ' + error.message, 'error');
         }
     });
 }
@@ -549,7 +564,7 @@ tableBody.addEventListener("click", async (e) => {
     if (e.target.classList.contains("delete-btn")) {
         e.stopPropagation();
 
-        if (confirm("Supprimer cette tâche ?")) {
+        if (await confirmAction("Supprimer cette tâche ?")) {
             try {
                 console.log("[DELETE] Suppression de la tâche", id);
                 const result = await apiDeleteTask(id);
@@ -560,13 +575,13 @@ tableBody.addEventListener("click", async (e) => {
                     tasks = tasks.filter(t => t.id !== id);
                     allTasks = allTasks.filter(t => t.id !== id);
                     applyFilters();
-                    alert("Tâche supprimée avec succès");
+                    showToast("Tâche supprimée avec succès", "success");
                 } else {
                     throw new Error(result.message || "Erreur lors de la suppression");
                 }
             } catch (error) {
                 console.error("Erreur suppression:", error);
-                alert("Erreur: " + error.message);
+                showToast("Erreur: " + error.message, "error");
             }
         }
     }
@@ -650,7 +665,7 @@ async function initializePage() {
 
         if (!currentUser) {
             console.warn("⚠️ PAS D'UTILISATEUR AUTHENTIFIÉ - Redirection vers login");
-            alert("Vous devez être connecté");
+            showToast("Vous devez être connecté", "error");
             window.location.href = 'login.html';
             return;
         }
@@ -687,7 +702,7 @@ async function initializePage() {
     } catch (error) {
         console.error("❌ Erreur lors de l'initialisation:", error);
         console.error("Stack:", error.stack);
-        alert("⚠️ Erreur de chargement des tâches:\n" + error.message);
+        showToast("⚠️ Erreur de chargement des tâches: " + error.message, "error");
     }
 }
 

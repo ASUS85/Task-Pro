@@ -43,6 +43,14 @@ const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
 const logoutSessionBtn = document.getElementById("logoutSessionBtn");
 const disableAccountBtn = document.getElementById("disableAccountBtn");
 const changePasswordBtn = document.getElementById("changePasswordBtn");
+const editProfileBtn = document.getElementById("editProfileBtn");
+const editProfileModal = document.getElementById("editProfileModal");
+const editProfileForm = document.getElementById("editProfileForm");
+const cancelEditProfileBtn = document.getElementById("cancelEditProfile");
+const editFirstNameInput = document.getElementById("editFirstName");
+const editLastNameInput = document.getElementById("editLastName");
+const editEmailInput = document.getElementById("editEmail");
+const editSexeSelect = document.getElementById("editSexe");
 
 function normalizeRole(role) {
   return String(role || "")
@@ -228,6 +236,11 @@ function formatDisplayValue(value) {
 }
 
 function showToast(message, type = "success") {
+  if (window.loaderManager?.toast) {
+    loaderManager.toast(message, type, 3000);
+    return;
+  }
+
   if (!toastContainer) return;
 
   const toast = document.createElement("div");
@@ -382,12 +395,98 @@ function bindNavigation() {
 }
 
 function bindProfileActions() {
+  editProfileBtn?.addEventListener("click", openEditProfileModal);
   changePasswordBtn?.addEventListener("click", handleChangePassword);
 
   logoutSessionBtn?.addEventListener("click", openLogoutModal);
-  disableAccountBtn?.addEventListener("click", () => {
-    if (confirm("Voulez-vous vraiment désactiver ce compte ?")) {
-      alert("Compte désactivé (simulation).");
+  disableAccountBtn?.addEventListener("click", async () => {
+    const confirmed = window.loaderManager?.confirm
+      ? await loaderManager.confirm("Voulez-vous vraiment désactiver ce compte ?")
+      : confirm("Voulez-vous vraiment désactiver ce compte ?");
+
+    if (confirmed) {
+      showToast("Compte désactivé (simulation).", "success");
+    }
+  });
+}
+
+function openEditProfileModal() {
+  if (!currentUser) {
+    showToast("Impossible de charger les informations du profil.", "error");
+    return;
+  }
+
+  if (editFirstNameInput) {
+    editFirstNameInput.value = currentUser.prenom || "";
+  }
+  if (editLastNameInput) {
+    editLastNameInput.value = currentUser.nom || "";
+  }
+  if (editEmailInput) {
+    editEmailInput.value = currentUser.email || "";
+  }
+  if (editSexeSelect) {
+    editSexeSelect.value = currentUser.sexe || "";
+  }
+
+  editProfileModal?.classList.add("show");
+  if (typeof lucide !== "undefined") {
+    lucide.createIcons();
+  }
+}
+
+function closeEditProfileModal() {
+  editProfileModal?.classList.remove("show");
+}
+
+function bindEditProfileActions() {
+  cancelEditProfileBtn?.addEventListener("click", closeEditProfileModal);
+
+  editProfileModal?.addEventListener("click", (event) => {
+    if (event.target === editProfileModal) {
+      closeEditProfileModal();
+    }
+  });
+
+  editProfileForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const prenom = editFirstNameInput?.value.trim();
+    const nom = editLastNameInput?.value.trim();
+    const email = editEmailInput?.value.trim();
+    const sexe = editSexeSelect?.value.trim();
+
+    if (!prenom || !nom || !email) {
+      showToast("Veuillez remplir votre prénom, nom et email.", "error");
+      return;
+    }
+
+    try {
+      const response = await apiUpdateProfile({
+        prenom,
+        nom,
+        email,
+        sexe,
+      });
+
+      if (response.success) {
+        currentUser = {
+          ...currentUser,
+          prenom,
+          nom,
+          email,
+          sexe,
+        };
+
+        localStorage.setItem("user", JSON.stringify(currentUser));
+        await initProfilePage();
+        closeEditProfileModal();
+        showToast("Profil mis à jour avec succès.", "success");
+      } else {
+        showToast(response.message || "Erreur lors de la mise à jour du profil.", "error");
+      }
+    } catch (error) {
+      showToast(error.message || "Erreur lors de la mise à jour du profil.", "error");
     }
   });
 }
@@ -424,7 +523,7 @@ async function handleChangePassword() {
       return;
     }
 
-    if (newPassword.length < 3) {
+    if (newPassword.length < 6) {
       showToast(
         "Le mot de passe doit contenir au moins 6 caractères.",
         "error",
@@ -433,7 +532,10 @@ async function handleChangePassword() {
     }
 
     try {
-      await apiChangePassword(newPassword, confirmPassword);
+      await apiChangePassword({
+        new_password: newPassword,
+        confirm_password: confirmPassword,
+      });
 
       showToast("Mot de passe mis à jour avec succès.", "success");
 
@@ -592,7 +694,7 @@ function bindAdminActionModal() {
     const newName = document.getElementById("editAdminName")?.value.trim();
     const newEmail = document.getElementById("editAdminEmail")?.value.trim();
     if (!newName || !newEmail) {
-      alert("Veuillez remplir le nom et l’email.");
+      showToast("Veuillez remplir le nom et l’email.", "error");
       return;
     }
 
@@ -602,10 +704,14 @@ function bindAdminActionModal() {
     closeAdminModal();
   });
 
-  deleteAdminBtn?.addEventListener("click", () => {
+  deleteAdminBtn?.addEventListener("click", async () => {
     if (!selectedAdmin || selectedAdmin.action !== "delete") return;
 
-    if (!confirm("Voulez-vous vraiment supprimer cet administrateur ?")) {
+    const confirmed = window.loaderManager?.confirm
+      ? await loaderManager.confirm("Voulez-vous vraiment supprimer cet administrateur ?")
+      : confirm("Voulez-vous vraiment supprimer cet administrateur ?");
+
+    if (!confirmed) {
       return;
     }
 
@@ -621,9 +727,14 @@ function init() {
   bindNavigation();
   bindProfileActions();
   bindLogoutModal();
+  bindEditProfileActions();
   bindCreateAdminActions();
   bindAdminActionModal();
   initProfilePage();
+
+  if (typeof lucide !== "undefined") {
+    lucide.createIcons();
+  }
 }
 
 document.addEventListener("DOMContentLoaded", init);

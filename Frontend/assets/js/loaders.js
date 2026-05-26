@@ -14,7 +14,12 @@ class LoaderManager {
         this.loadingQueue = new Map();
         this.sectionLoaders = new Map();
         this.loadingCount = 0;
-        this.init();
+
+        if (document.body) {
+            this.init();
+        } else {
+            document.addEventListener('DOMContentLoaded', () => this.init());
+        }
     }
 
     /**
@@ -146,6 +151,10 @@ class LoaderManager {
      * @param {number} duration - Durée d'affichage en ms
      */
     toast(message, type = 'info', duration = 3000) {
+        if (!this.toastContainer && document.body) {
+            this.init();
+        }
+
         const toast = document.createElement('div');
         toast.className = `toast-loader active`;
         
@@ -165,6 +174,10 @@ class LoaderManager {
             `;
         }
 
+        if (!this.toastContainer) {
+            return this;
+        }
+
         this.toastContainer.appendChild(toast);
 
         setTimeout(() => {
@@ -173,6 +186,59 @@ class LoaderManager {
         }, duration);
 
         return this;
+    }
+
+    /**
+     * Afficher une boîte de confirmation personnalisée
+     * @param {string} message - Message à afficher
+     * @param {object} options - Options {title, confirmText, cancelText}
+     * @returns {Promise<boolean>}
+     */
+    confirm(message, options = {}) {
+        const {
+            title = 'Confirmer',
+            confirmText = 'Confirmer',
+            cancelText = 'Annuler',
+        } = options;
+
+        if (!document.body) {
+            return new Promise((resolve) => {
+                document.addEventListener('DOMContentLoaded', () => {
+                    this.confirm(message, options).then(resolve);
+                }, { once: true });
+            });
+        }
+
+        return new Promise((resolve) => {
+            const overlay = document.createElement('div');
+            overlay.className = 'confirm-overlay';
+            overlay.innerHTML = `
+                <div class="confirm-dialog">
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+                    <div class="confirm-actions">
+                        <button type="button" class="confirm-cancel">${cancelText}</button>
+                        <button type="button" class="confirm-accept">${confirmText}</button>
+                    </div>
+                </div>
+            `;
+
+            const cleanup = (result) => {
+                overlay.remove();
+                resolve(result);
+            };
+
+            overlay.addEventListener('click', (event) => {
+                if (event.target === overlay) {
+                    cleanup(false);
+                }
+            });
+
+            overlay.querySelector('.confirm-cancel').addEventListener('click', () => cleanup(false));
+            overlay.querySelector('.confirm-accept').addEventListener('click', () => cleanup(true));
+
+            document.body.appendChild(overlay);
+        });
     }
 
     /**
@@ -283,6 +349,7 @@ class LoaderManager {
 
 // Initialiser le gestionnaire de loaders globalement
 const loaderManager = new LoaderManager();
+window.loaderManager = loaderManager;
 
 // Injection du CSS au chargement du DOM
 document.addEventListener('DOMContentLoaded', () => {

@@ -197,10 +197,19 @@
 }
 
 /* --- TOAST LOADER (petit notif) --- */
-.toast-loader {
+#toast-container {
     position: fixed;
-    bottom: 20px;
+    top: 20px;
     right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 9997;
+    pointer-events: none;
+}
+
+.toast-loader {
+    position: relative;
     background: rgba(8, 8, 10, 0.95);
     border: 1px solid rgba(212, 175, 55, 0.2);
     border-radius: 10px;
@@ -208,16 +217,18 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    z-index: 9997;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.3s, visibility 0.3s;
+    transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
+    transform: translateY(-8px);
     backdrop-filter: blur(10px);
+    pointer-events: auto;
 }
 
 .toast-loader.active {
     opacity: 1;
     visibility: visible;
+    transform: translateY(0);
 }
 
 .toast-loader .small-spinner {
@@ -230,9 +241,66 @@
 }
 
 .toast-loader .message {
-    color: #D4AF37;
+    color: #fff;
     font-size: 13px;
     font-weight: 500;
+}
+
+.confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 16px;
+}
+
+.confirm-dialog {
+    width: min(100%, 420px);
+    background: rgba(15, 15, 18, 0.98);
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+    color: #fff;
+    border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.confirm-dialog h3 {
+    margin: 0 0 12px;
+    font-size: 1.15rem;
+}
+
+.confirm-dialog p {
+    margin: 0 0 20px;
+    line-height: 1.6;
+    color: #ddd;
+}
+
+.confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.confirm-actions button {
+    min-width: 100px;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.confirm-actions .confirm-cancel {
+    background: rgba(255, 255, 255, 0.08);
+    color: #f3f3f3;
+}
+
+.confirm-actions .confirm-accept {
+    background: #d4af37;
+    color: #111;
 }
 
 /* --- FADE IN/OUT --- */

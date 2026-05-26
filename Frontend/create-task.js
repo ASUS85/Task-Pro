@@ -54,6 +54,15 @@ let selectedParentTask = null;
 let selectedUser = null;
 let selectedFiles = [];
 
+function showToast(message, type = 'success') {
+  if (window.loaderManager?.toast) {
+    loaderManager.toast(message, type, 3000);
+    return;
+  }
+
+  alert(message);
+}
+
 /* =========================
    FILE UPLOAD
 ========================= */
@@ -209,7 +218,7 @@ parentBtn.addEventListener("click", async () => {
     }
     
     if (realTasks.length === 0) {
-      alert("Aucune tâche disponible");
+      showToast("Aucune tâche disponible", "error");
       return;
     }
     
@@ -217,7 +226,7 @@ parentBtn.addEventListener("click", async () => {
     openModal(parentModal);
   } catch (error) {
     console.error("Erreur chargement tâches:", error);
-    alert("Erreur lors du chargement des tâches parentes: " + error.message);
+    showToast("Erreur lors du chargement des tâches parentes: " + error.message, "error");
   }
 });
 
@@ -275,7 +284,7 @@ userBtn.addEventListener("click", async () => {
     }
     
     if (realUsers.length === 0) {
-      alert("Aucun utilisateur disponible pour assignation.\nAssurez-vous d'être connecté en tant qu'Administrateur.");
+      showToast("Aucun utilisateur disponible pour assignation. Assurez-vous d'être connecté en tant qu'Administrateur.", "error");
       return;
     }
     
@@ -283,7 +292,7 @@ userBtn.addEventListener("click", async () => {
     openModal(userModal);
   } catch (error) {
     console.error("Erreur chargement utilisateurs:", error);
-    alert("Erreur lors du chargement des utilisateurs: " + error.message);
+    showToast("Erreur lors du chargement des utilisateurs: " + error.message, "error");
   }
 });
 
@@ -364,24 +373,24 @@ form.addEventListener("submit", (e) => {
 
   // VALIDATION MINIMALE
   if (!title) {
-    alert("Le libellé est obligatoire");
+    showToast("Le libellé est obligatoire", "error");
     return;
   }
 
   if (!description) {
-    alert("La description est obligatoire");
+    showToast("La description est obligatoire", "error");
     return;
   }
 
   if (!duration) {
-    alert("La durée ou échéance est obligatoire");
+    showToast("La durée ou échéance est obligatoire", "error");
     taskDuration.classList.add("invalid-input");
     taskDurationHint.textContent = "La durée ou l'échéance est obligatoire.";
     return;
   }
 
   if (!validateTaskDurationField()) {
-    alert(taskDurationHint.textContent);
+    showToast(taskDurationHint.textContent, "error");
     return;
   }
 
@@ -424,7 +433,7 @@ confirmCreateBtn.addEventListener("click", async () => {
 
         closeModal(confirmModal);
 
-        alert("Tâche créée avec succès !");
+        showToast("Tâche créée avec succès !", "success");
 
         // Réinitialiser le formulaire
         form.reset();
@@ -442,7 +451,7 @@ confirmCreateBtn.addEventListener("click", async () => {
 
         console.error(error);
 
-        alert("Erreur: " + error.message);
+        showToast("Erreur: " + error.message, "error");
     }
 });
 
@@ -468,7 +477,7 @@ async function initializePage() {
     
     if (!currentUser) {
       console.warn("⚠️ PAS D'UTILISATEUR AUTHENTIFIÉ - Redirection vers login");
-      alert("Vous devez être connecté pour créer une tâche");
+      showToast("Vous devez être connecté pour créer une tâche", "error");
       window.location.href = 'login.html';
       return;
     }
@@ -513,7 +522,7 @@ async function initializePage() {
   } catch (error) {
     console.error("❌ Erreur lors de l'initialisation:", error);
     console.error("Stack:", error.stack);
-    alert("⚠️ Erreur de chargement des données:\n" + error.message + "\n\nVérifiez la console pour plus de détails");
+    showToast("⚠️ Erreur de chargement des données: " + error.message, "error");
   }
 }
 
