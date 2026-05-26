@@ -67,6 +67,37 @@ class TacheService
         return null;
     }
 
+    private function normalizeChildDeadlineForParent(array $donnees, $parentTask): array
+    {
+        $parentDeadline = $this->getDeadlineTimestamp($parentTask);
+        if ($parentDeadline === null) {
+            throw new Exception("Impossible de déterminer la date limite de la tâche parente.");
+        }
+
+        $raw = trim((string) ($donnees['periode_realisation'] ?? ''));
+        if ($raw === '') {
+            throw new Exception("La période de réalisation de la tâche enfant est obligatoire.");
+        }
+
+        $durationSeconds = $this->parseDurationToSeconds($raw);
+        if ($durationSeconds !== null) {
+            $donnees['periode_realisation'] = date('Y-m-d H:i:s', $parentDeadline + $durationSeconds);
+            return $donnees;
+        }
+
+        $childTs = strtotime($raw);
+        if ($childTs === false) {
+            throw new Exception("La période de réalisation est invalide.");
+        }
+
+        if ($childTs <= $parentDeadline) {
+            throw new Exception("La date limite de la tâche enfant doit être postérieure à celle de la tâche parente.");
+        }
+
+        $donnees['periode_realisation'] = date('Y-m-d H:i:s', $childTs);
+        return $donnees;
+    }
+
     private function mettreAJourDisponibiliteUtilisateur(?int $idUtilisateur): void
     {
         if (!$idUtilisateur) {
@@ -126,6 +157,7 @@ class TacheService
             if (!in_array($parentTask->getStatus(), ['assigné', 'en cours'])) {
                 throw new Exception("Seules les tâches en statut 'assigné' ou 'en cours' peuvent être parentes.");
             }
+            $donnees = $this->normalizeChildDeadlineForParent($donnees, $parentTask);
             $donnees['status'] = 'non assigné';
             $donnees['dateDebutAssignation'] = null;
         } elseif (!empty($donnees['id_responsable'])) {

@@ -189,14 +189,44 @@
       ✖ Aucune tâche parent
     </button>
 
-    <div class="modal-content">
-      <h2>Sélectionner une Tâche Parent</h2>
+    <div class="modal-content parent-modal-content">
+      <h2>Liste des tâches</h2>
+      <h3>Sélectionnez une tâche parente avec sa date limite et son temps restant.</h3>
 
-      <input type="text" id="searchParentTask" placeholder="Rechercher une tâche..." />
-
-      <div class="modal-list" id="parentTaskList">
-        <!-- Les tâches existantes seront injectées ici via JS -->
+      <div class="parent-modal-controls">
+        <input type="text" id="searchParentTask" placeholder="Rechercher une tâche..." />
+        <div class="parent-modal-filters">
+          <label for="parentSortField">Trier par
+            <select id="parentSortField">
+              <option value="deadline">Date limite</option>
+              <option value="name">Nom</option>
+            </select>
+          </label>
+          <label for="parentSortOrder">Ordre
+            <select id="parentSortOrder">
+              <option value="desc">Décroissant</option>
+              <option value="asc">Croissant</option>
+            </select>
+          </label>
+        </div>
       </div>
+
+      <div class="modal-list-wrapper">
+        <table class="parent-task-table">
+          <thead>
+            <tr>
+              <th>Libellé</th>
+              <th>Status</th>
+              <th>Date limite</th>
+              <th>Temps restant</th>
+            </tr>
+          </thead>
+          <tbody id="parentTaskList">
+            <!-- Les tâches existantes seront injectées ici via JS -->
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination-controls" id="parentPagination"></div>
     </div>
   </div>
 
