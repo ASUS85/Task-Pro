@@ -322,12 +322,16 @@ function requireAuth() {
 
 function openLogoutModal() {
     const logoutModal = document.getElementById('logoutModal');
-    logoutModal?.classList.add('show');
+    if (logoutModal) {
+        logoutModal.style.display = 'block'; 
+    }
 }
 
 function closeLogoutModal() {
     const logoutModal = document.getElementById('logoutModal');
-    logoutModal?.classList.remove('show');
+    if (logoutModal) {
+        logoutModal.style.display = 'none'; 
+    }
 }
 
 function bindLogoutModal() {
