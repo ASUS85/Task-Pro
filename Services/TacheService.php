@@ -174,11 +174,52 @@ class TacheService
         // 7. Enregistrement
         $result = $this->tacheDAO->sauvegarder($donnees);
 
+        if (!$result) {
+            throw new Exception("Impossible d'enregistrer la tâche.");
+        }
+
+        $warnings = [];
+
+        // Notification de création au créateur
+        $creationMessage = "La tâche '" . $donnees['libelle'] . "' a été créée avec succès.";
+        $creatorNotification = $this->notificationService->notifierUtilisateur(
+            $idCreateur,
+            $createur->getEmail(),
+            $createur->getPrenom(),
+            $creationMessage,
+            null,
+            "Tâche créée : " . $donnees['libelle']
+        );
+
+        if (!$creatorNotification['success']) {
+            $warnings[] = $creatorNotification['message'];
+        }
+
+        // Notification au responsable si la tâche est assignée immédiatement
+        if (!empty($donnees['id_responsable']) && $donnees['status'] === 'assigné') {
+            $responsable = $this->utilisateurDAO->trouverParId((int) $donnees['id_responsable']);
+            if ($responsable) {
+                $assignMessage = "Vous avez été assigné à la tâche '" . $donnees['libelle'] . "'.";
+                $assignResult = $this->notificationService->notifierUtilisateur(
+                    (int) $donnees['id_responsable'], 
+                    $responsable->getEmail(),
+                    $responsable->getPrenom(),
+                    $assignMessage,
+                    null,
+                    "Tâche assignée : " . $donnees['libelle']
+                );
+
+                if (!$assignResult['success']) {
+                    $warnings[] = $assignResult['message'];
+                }
+            }
+        }
+
         if ($result && !empty($donnees['id_responsable'])) {
             $this->mettreAJourDisponibiliteUtilisateur((int) $donnees['id_responsable']);
         }
 
-        return $result;
+        return ['success' => $result, 'warnings' => $warnings];
     }
 
     /**
@@ -474,22 +515,29 @@ class TacheService
 
             // 4. On déclenche la notification via le service
             $msg = "La tâche '" . $tache->getLibelle() . "' vous a été assignée par l'administrateur.";
-
-            $this->notificationService->notifierUtilisateur(
+            $notifyResult = $this->notificationService->notifierUtilisateur(
                 $idResponsable,
                 $resp->getEmail(),
                 $resp->getPrenom(),
                 $msg,
-                $idTache
+                $idTache,
+                "Tâche assignée : " . $tache->getLibelle()
             );
+
+            $warnings = [];
+            if (!$notifyResult['success']) {
+                $warnings[] = $notifyResult['message'];
+            }
 
             // 5. Mettre à jour la disponibilité de l'ancien et du nouveau responsable
             $this->mettreAJourDisponibiliteUtilisateur($idResponsable);
             if ($ancienResponsable && $ancienResponsable !== $idResponsable) {
                 $this->mettreAJourDisponibiliteUtilisateur($ancienResponsable);
             }
+
+            return ['success' => true, 'warnings' => $warnings];
         }
 
-        return $result;
+        return ['success' => false, 'warnings' => []];
     }
 }

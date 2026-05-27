@@ -336,7 +336,15 @@ if ($parts[0] === 'auth') {
         if (($parts[1] ?? '') === 'create' && $method === 'POST') {
             try {
                 $result = $tacheServices->creerTache($data, $_SESSION['user_id']);
-                echo json_encode(['success' => true, 'message' => 'Tâche créée avec succès', 'created' => $result]);
+                $response = [
+                    'success' => true,
+                    'message' => 'Tâche créée avec succès',
+                    'created' => is_array($result) ? ($result['success'] ?? false) : $result,
+                ];
+                if (is_array($result) && !empty($result['warnings'])) {
+                    $response['warnings'] = $result['warnings'];
+                }
+                echo json_encode($response);
             } catch (Exception $e) {
                 http_response_code(400);
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
