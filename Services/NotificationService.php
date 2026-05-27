@@ -18,16 +18,37 @@ class NotificationService {
     /**
      * Méthode principale pour notifier un utilisateur sur tous les canaux
      */
-    public function notifierUtilisateur(int $idDestinataire, string $emailDestinataire, string $prenomDestinataire, string $message, ?int $idTache = null) {
-        
+    public function notifierUtilisateur(int $idDestinataire, string $emailDestinataire, string $prenomDestinataire, string $message, ?int $idTache = null, ?string $subject = null): array {
         // 1. Notification Web (Base de données)
         $this->notificationDAO->sauvegarder($idDestinataire, "INFO", $message, $idTache);
 
-        // 2. Notification Email
-        $this->envoyerEmail($emailDestinataire, $prenomDestinataire, $message);
+        if (!$this->isValidEmail($emailDestinataire)) {
+            return [
+                'success' => false,
+                'reason' => 'missing_email',
+                'message' => "L'adresse e-mail du destinataire n'est pas disponible. Le message n'a pas pu être envoyé par email.",
+            ];
+        }
+
+        try {
+            $mailSubject = $subject ?? 'Notification Task-Pro';
+            $this->envoyerEmail($emailDestinataire, $prenomDestinataire, $message, $mailSubject);
+            return ['success' => true];
+        } catch (Exception $e) {
+            error_log("Erreur email: " . $e->getMessage());
+            return [
+                'success' => false,
+                'reason' => 'send_error',
+                'message' => "Impossible d'envoyer l'email : " . $e->getMessage(),
+            ];
+        }
     }
 
-    private function envoyerEmail(string $to, string $prenom, string $contenu) {
+    private function isValidEmail(string $email): bool {
+        return filter_var(trim($email), FILTER_VALIDATE_EMAIL) !== false;
+    }
+
+    private function envoyerEmail(string $to, string $prenom, string $contenu, string $subject) {
         $mail = new PHPMailer(true);
         try {
             $mailConfig = $this->config->getMailConfig();
@@ -43,14 +64,12 @@ class NotificationService {
             $mail->setFrom($mailConfig['from'], 'Task-Pro Notification');
             $mail->addAddress($to, $prenom);
             $mail->isHTML(true);
-            $mail->Subject = "Nouvelle mise à jour sur Task-Pro";
+            $mail->Subject = $subject;
             $mail->Body    = "<h3>Bonjour $prenom,</h3><p>$contenu</p><hr><p><em>Message automatisé - Ne pas répondre</em></p>";
 
             $mail->send();
         } catch (Exception $e) {
-            // Log l'erreur au lieu de la laisser en clair
-            error_log("Erreur email: " . $mail->ErrorInfo);
-            throw new Exception("Erreur lors de l'envoi de l'email");
+            throw new Exception($e->getMessage());
         }
     }
 }
