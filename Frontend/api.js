@@ -333,7 +333,6 @@ function closeLogoutModal() {
         logoutModal.style.display = 'none'; 
     }
 }
-
 function bindLogoutModal() {
     const logoutModal = document.getElementById('logoutModal');
     const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
