@@ -755,6 +755,7 @@ td { padding: 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,25
     background: rgba(212, 175, 55, 0.05);
     padding: 16px;
     border-radius: 12px;
+    appearance: none;
     border: 1px solid rgba(212, 175, 55, 0.15);
 }
 .status-update-zone label {
@@ -836,22 +837,26 @@ td { padding: 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,25
 }
 
 /* Stylisation du conteneur et du select de la modale */
+/* Stylisation du conteneur et du select de la modale */
 .status-update-zone select {
     width: 100%;
     padding: 12px;
-    background-color: #1a1b23; /* Fond sombre adapté à votre modale */
-    color: #ffffff;
-    border: 1px solid var(--glass-border);
+    background: var(--bg-dark) !important;
+    color: #ffffff !important;
+    border: 1px solid var(--primary-gold);
     border-radius: 8px;
     outline: none;
     cursor: pointer;
     font-family: inherit;
+    
+    /* FORCE LE NAVIGATEUR À PASSER LE MENU DÉROULANT EN MODE SOMBRE */
+    color-scheme: dark !important; 
 }
 
 /* Stylisation des options internes du menu déroulant */
 .status-update-zone select option {
-    background-color: #111217; /* Fond de la modale */
-    color: #ffffff;
+    background-color: #111217 !important; 
+    color: #ffffff !important;
     padding: 10px;
 }
 
