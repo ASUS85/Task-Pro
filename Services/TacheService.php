@@ -114,7 +114,7 @@ class TacheService
     /**
      * Créer une tâche - Admin ou SuperAdmin uniquement
      */
-    public function creerTache(array $donnees, int $idCreateur): bool
+    public function creerTache(array $donnees, int $idCreateur): array  
     {
         // 1. Vérification des droits
         $createur = $this->utilisateurDAO->trouverParId($idCreateur);
@@ -178,10 +178,17 @@ class TacheService
             throw new Exception("Impossible d'enregistrer la tâche.");
         }
 
+        $idTache = $this->tacheDAO->getLastInsertId();
+        $tache = $this->tacheDAO->trouverParId($idTache);
+
         $warnings = [];
 
         // Notification de création au créateur
-        $creationMessage = "La tâche '" . $donnees['libelle'] . "' a été créée avec succès.";
+        $creationMessage = $this->notificationService->genererContenuTache(
+            $tache,
+            $createur,
+            !empty($donnees['id_responsable']) ? $responsable : null
+        );
         $creatorNotification = $this->notificationService->notifierUtilisateur(
             $idCreateur,
             $createur->getEmail(),
@@ -199,9 +206,13 @@ class TacheService
         if (!empty($donnees['id_responsable']) && $donnees['status'] === 'assigné') {
             $responsable = $this->utilisateurDAO->trouverParId((int) $donnees['id_responsable']);
             if ($responsable) {
-                $assignMessage = "Vous avez été assigné à la tâche '" . $donnees['libelle'] . "'.";
+                $assignMessage = $this->notificationService->genererContenuTache(
+                    $tache,
+                    $createur,
+                    $responsable
+                );
                 $assignResult = $this->notificationService->notifierUtilisateur(
-                    (int) $donnees['id_responsable'], 
+                    (int) $donnees['id_responsable'],
                     $responsable->getEmail(),
                     $responsable->getPrenom(),
                     $assignMessage,
@@ -514,7 +525,11 @@ class TacheService
             $resp = $this->utilisateurDAO->trouverParId($idResponsable);
 
             // 4. On déclenche la notification via le service
-            $msg = "La tâche '" . $tache->getLibelle() . "' vous a été assignée par l'administrateur.";
+            $msg = $this->notificationService->genererContenuTache(
+                $tache,
+                $utilisateur,
+                $resp
+            );
             $notifyResult = $this->notificationService->notifierUtilisateur(
                 $idResponsable,
                 $resp->getEmail(),
