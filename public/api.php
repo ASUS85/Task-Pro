@@ -142,7 +142,8 @@ try {
                         'nom' => $user->getNom(),
                         'prenom' => $user->getPrenom(),
                         'email' => $user->getEmail(),
-                        'role' => $user->getRole()
+                        'role' => $user->getRole(),
+                        'sexe' => method_exists($user, 'getSexe') ? $user->getSexe() : ($user->sexe ?? null)
                     ]
                 ]);
             } catch (Exception $e) {
@@ -177,6 +178,7 @@ try {
                     'prenom' => $user->getPrenom(),
                     'email' => $user->getEmail(),
                     'role' => $user->getRole(),
+                    'sexe' => method_exists($user, 'getSexe') ? $user->getSexe() : ($user->sexe ?? null),
                     'poste' => $user->getPoste()
                 ]
             ]);
