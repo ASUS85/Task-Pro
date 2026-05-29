@@ -643,6 +643,31 @@ try {
             exit;
         }
 
+        // 2. NOUVELLE ROUTE : DELETE (Suppression d'un utilisateur)
+        if (($parts[1] ?? '') === 'users' && ($parts[2] ?? '') === 'delete' && $method === 'POST') {
+            try {
+                // On vérifie qu'on a bien reçu l'ID à supprimer
+                if (!isset($data['id'])) {
+                    throw new Exception("L'identifiant de l'utilisateur à supprimer est manquant.");
+                }
+
+                // Appelle la méthode de suppression de ton DAO (adapte le nom si nécessaire, ex: supprimer)
+                $result = $utilisateurDAO->supprimer((int)$data['id']);
+
+                echo json_encode([
+                    'success' => $result,
+                    'message' => $result ? 'Utilisateur supprimé avec succès' : 'Impossible de supprimer l\'utilisateur'
+                ]);
+            } catch (Exception $e) {
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ]);
+            }
+            exit;
+        }
+
         // 2. ROUTE EXISTANTE : CREATE
         if (($parts[1] ?? '') === 'users' && ($parts[2] ?? '') === 'create') {
             $result = $authServices->creerUtilisateurParAdmin($data, $_SESSION['user_id']);

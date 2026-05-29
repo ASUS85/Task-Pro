@@ -275,18 +275,44 @@ document.getElementById("editUserForm").addEventListener("submit", async (e) => 
     }
 });
 
-// CONFIRM DELETE
-document.getElementById("confirmDelete").onclick = () => {
+
+// CONFIRM DELETE (Avec suppression en Base de Données)
+document.getElementById("confirmDelete").onclick = async () => {
     if (userToDelete == null) return;
 
-    users = users.filter(u => u.id !== userToDelete);
-    allUsers = allUsers.filter(u => u.id !== userToDelete);
-    currentFilteredUsers = currentFilteredUsers.filter(u => u.id !== userToDelete);
-    
-    renderUsersFromCurrentFilter();
-    deleteModal.style.display = "none";
-    userToDelete = null; // Reset
-    showToast("Utilisateur supprimé.", "success");
+    try {
+        // Envoi de la demande de suppression à ton API PHP
+        // On passe l'ID de l'utilisateur à supprimer
+        const response = await fetch('../public/api.php/admin/users/delete', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: userToDelete })
+        });
+
+        // On vérifie si le serveur a bien validé la suppression
+        if (!response.ok) {
+            throw new Error("Erreur serveur lors de la suppression");
+        }
+
+        // 1. Suppression dans la mémoire locale JS (uniquement si l'API a réussi)
+        users = users.filter(u => u.id !== userToDelete);
+        allUsers = allUsers.filter(u => u.id !== userToDelete);
+        currentFilteredUsers = currentFilteredUsers.filter(u => u.id !== userToDelete);
+        
+        // 2. Rafraîchir l'affichage de la table
+        renderUsersFromCurrentFilter();
+        
+        // 3. Fermer la modale, réinitialiser la variable et notifier
+        deleteModal.style.display = "none";
+        userToDelete = null; 
+        showToast("Utilisateur supprimé avec succès en base de données.", "success");
+
+    } catch (error) {
+        console.error(" Erreur de synchronisation API (Suppression):", error);
+        showToast("Impossible de supprimer l'utilisateur sur le serveur.", "error");
+    }
 };
 
 document.getElementById("cancelDelete").onclick = () => {
