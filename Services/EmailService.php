@@ -15,7 +15,8 @@ class EmailService
     public function send(string $to, string $name, string $subject, string $html): bool
     {
         $mail = new PHPMailer(true);
-
+        $mail->CharSet = "UTF-8";
+        $mail->Encoding = "base64";
         try {
             $mail->SMTPDebug = 2; 
             $mail->Debugoutput = 'error_log';

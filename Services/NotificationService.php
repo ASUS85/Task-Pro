@@ -155,6 +155,8 @@ class NotificationService
     private function envoyerEmail(string $to, string $prenom, string $contenu, string $subject)
     {
         $mail = new PHPMailer(true);
+        $mail->CharSet = "UTF-8";
+        $mail->Encoding = "base64";
 
         $mail->SMTPOptions = [
             'ssl' => [
@@ -166,26 +168,26 @@ class NotificationService
 
         try {
             // Désactivation du debug bavard pour la production/développement propre
-            $mail->SMTPDebug = 0; 
+            $mail->SMTPDebug = 0;
 
             $mail->isSMTP();
             // Utilisation des valeurs du .env avec l'alias config()
-            $mail->Host       = config('MAIL_HOST', 'smtp.gmail.com');
-            $mail->SMTPAuth   = true;
+            $mail->Host = config('MAIL_HOST', 'smtp.gmail.com');
+            $mail->SMTPAuth = true;
             $mail->SMTPDebug = 2;
             $mail->Debugoutput = 'error_log';
-            $mail->Username   = config('MAIL_USERNAME');
-            $mail->Password   = config('MAIL_PASSWORD');
+            $mail->Username = config('MAIL_USERNAME');
+            $mail->Password = config('MAIL_PASSWORD');
             $mail->SMTPSecure = config('MAIL_ENCRYPTION') === 'tls' ? PHPMailer::ENCRYPTION_STARTTLS : PHPMailer::ENCRYPTION_SMTPS;
-            $mail->Port       = (int)config('MAIL_PORT', 587);
+            $mail->Port = (int) config('MAIL_PORT', 587);
 
             // L'expéditeur est lu de manière sécurisée depuis le .env
             $fromEmail = config('MAIL_FROM');
-            $fromName  = config('MAIL_FROM_NAME', 'TaskPro');
-            
+            $fromName = config('MAIL_FROM_NAME', 'TaskPro');
+
             $mail->setFrom($fromEmail, $fromName);
             $mail->addAddress($to, $prenom);
-            
+
             $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body = "
