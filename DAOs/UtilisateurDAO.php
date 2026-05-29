@@ -28,13 +28,13 @@ class UtilisateurDAO
 
             $stmt = $this->pdo->prepare($sql);
             return $stmt->execute([
-                ':nom'          => $nom,
-                ':prenom'       => $prenom,
-                ':sexe'         => $sexe,
-                ':poste'        => $poste,
-                ':email'        => $email,
-                ':password'     => $password,
-                ':role'         => $role,
+                ':nom' => $nom,
+                ':prenom' => $prenom,
+                ':sexe' => $sexe,
+                ':poste' => $poste,
+                ':email' => $email,
+                ':password' => $password,
+                ':role' => $role,
                 ':disponibilite' => 'oui',
             ]);
         } catch (PDOException $e) {
@@ -200,21 +200,18 @@ class UtilisateurDAO
                 END AS disponibilite,
                 COUNT(t.id) AS total_taches
             FROM utilisateurs u
-            LEFT JOIN taches t 
-                ON t.id_responsable = u.id
+            LEFT JOIN taches t ON t.id_responsable = u.id
+            WHERE u.role != 'SuperAdmin'
         ";
 
             $params = [];
 
             if ($role !== null) {
-                $sql .= " WHERE u.role = :role";
+                $sql .= " AND u.role = :role";
                 $params[':role'] = $role;
             }
 
-            $sql .= "
-            GROUP BY u.id
-            ORDER BY u.created_at DESC
-        ";
+            $sql .= " GROUP BY u.id ORDER BY u.created_at DESC";
 
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute($params);
@@ -252,7 +249,7 @@ class UtilisateurDAO
 
             return $update->execute([
                 ':disp' => $disponible,
-                ':id'   => $userId
+                ':id' => $userId
             ]);
 
         } catch (PDOException $e) {
@@ -304,35 +301,42 @@ class UtilisateurDAO
         return $this->obtenirTous($role);
     }
 
+    // APRÈS
     public function obtenirUtilisateursAvecTachesParAdmin(int $idAdmin): array
     {
-        $sql = "
-        SELECT 
-            u.id,
-            u.nom,
-            u.prenom,
-            u.email,
-            u.role,
-            u.poste,
-            CASE
-                WHEN SUM(CASE WHEN t.status IN ('assigné', 'en cours') THEN 1 ELSE 0 END) > 0
-                THEN 'non'
-                ELSE 'oui'
-            END AS disponibilite,
-            COUNT(t.id) AS total_taches
-        FROM utilisateurs u
-        LEFT JOIN taches t 
-            ON t.id_responsable = u.id
-        GROUP BY u.id
-        ORDER BY u.created_at DESC
-    ";
+        try {
+            // Admin voit uniquement les Employés
+            // (pas les autres Admins ni le SuperAdmin)
+            $sql = "
+            SELECT 
+                u.id,
+                u.nom,
+                u.prenom,
+                u.email,
+                u.role,
+                u.poste,
+                CASE
+                    WHEN SUM(CASE WHEN t.status IN ('assigné', 'en cours') THEN 1 ELSE 0 END) > 0
+                    THEN 'non'
+                    ELSE 'oui'
+                END AS disponibilite,
+                COUNT(t.id) AS total_taches
+            FROM utilisateurs u
+            LEFT JOIN taches t ON t.id_responsable = u.id
+            WHERE u.role = 'Employe'
+            GROUP BY u.id
+            ORDER BY u.created_at DESC
+        ";
 
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute();
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute();
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (PDOException $e) {
+            throw new Exception("Erreur récupération utilisateurs (admin) : " . $e->getMessage());
+        }
     }
-
     /**
      * Supprimer utilisateur
      */
