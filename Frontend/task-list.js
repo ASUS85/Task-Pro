@@ -697,11 +697,18 @@ async function loadUsersById() {
             });
         }
     } catch (error) {
-        console.warn('[WARN] Impossible de charger la liste des utilisateurs pour le mapping des responsables :', error.message);
-        const currentUser = getCurrentUserFromStorage();
-        if (currentUser) {
-            usersById[currentUser.id] = currentUser;
-        }
+        console.warn('[WARN] Impossible de charger la liste des utilisateurs :', error.message);
+    }
+
+    // Toujours ajouter l'utilisateur connecté dans la map
+    // (il peut ne pas apparaître dans apiListUsers selon son rôle)
+    const currentUser = getCurrentUserFromStorage();
+    if (currentUser && currentUser.id && !usersById[currentUser.id]) {
+        usersById[currentUser.id] = {
+            id: currentUser.id,
+            nom: currentUser.nom,
+            prenom: currentUser.prenom
+        };
     }
 }
 
