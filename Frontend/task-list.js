@@ -121,6 +121,7 @@ function transformTaskFromAPI(apiTask) {
         deadlineRaw: deadlineRaw,
         priority: "Moyenne", // TODO: ajouter priorité en BD
         description: apiTask.description || "Aucune description",
+        responsableId: responsableId,
         parentTask: apiTask.id_parent || null,
         dateDebutAssignation: apiTask.dateDebutAssignation || null
     };
@@ -198,7 +199,6 @@ function computeDeadline(createdAtRaw, deadlineRaw, dateDebutAssignation) {
 // RENDER TABLE
 // -------------------------------
 function renderTasks(data) {
-    console.log("[RENDER] Affichage de", data.length, "tâche(s)");
 
     tableBody.innerHTML = "";
 
@@ -382,7 +382,7 @@ function openModal(id) {
         return;
     }
 
-    console.log("[MODAL] Ouverture détails tâche:", task.name);
+    ("[MODAL] Ouverture détails tâche:", task.name);
 
     detailTitle.textContent = task.name;
     detailDescription.textContent = task.description;
@@ -477,10 +477,45 @@ function openEditTask(taskId) {
             editDescription.disabled = true;
             editDeadline.disabled = true;
         }
+        // APRÈS
     } else {
-        // Admin / SuperAdmin : édition possible uniquement tant que la tâche n'est pas assignée
-        if (currentTaskEdit.rawStatus !== 'non assigné') {
-            editMessage.textContent = "La tâche ne peut plus être modifiée par l'administrateur après assignation.";
+        // Admin / SuperAdmin
+        const isAssignedToMe = currentTaskEdit.responsableId === currentUser.id;
+        const canUpdateStatus = isAssignedToMe &&
+            (currentTaskEdit.rawStatus === 'assigné' || currentTaskEdit.rawStatus === 'en cours');
+
+        if (canUpdateStatus) {
+            // La tâche lui est assignée → il peut changer le statut comme un Employé
+            editTitle.disabled = true;
+            editDescription.disabled = true;
+            editDeadline.disabled = true;
+            editStatusGroup.style.display = 'block';
+
+            const options = [];
+            if (currentTaskEdit.rawStatus === 'assigné') {
+                options.push({ value: 'en cours', label: 'En cours' });
+                options.push({ value: 'terminé', label: 'Terminée' });
+            } else if (currentTaskEdit.rawStatus === 'en cours') {
+                options.push({ value: 'terminé', label: 'Terminée' });
+            }
+
+            options.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt.value;
+                option.textContent = opt.label;
+                editStatus.appendChild(option);
+            });
+
+        } else if (currentTaskEdit.rawStatus === 'non assigné') {
+            // Tâche non assignée → Admin peut éditer librement
+            // (champs déjà activés par défaut en haut de la fonction)
+
+        } else {
+            // Tâche assignée à quelqu'un d'autre ou statut bloquant
+            const msg = isAssignedToMe
+                ? "Cette tâche ne peut plus être modifiée dans son état actuel."
+                : "La tâche ne peut plus être modifiée par l'administrateur après assignation.";
+            editMessage.textContent = msg;
             editMessage.style.display = 'block';
             editTitle.disabled = true;
             editDescription.disabled = true;
@@ -524,8 +559,25 @@ if (taskEditForm) {
             return;
         }
 
+        if (editStatusGroup.style.display !== 'block') {
+            const statusMessages = {
+                'expiré': "Cette tâche a expiré et ne peut plus être modifiée.",
+                'non terminé': "Cette tâche est marquée comme non terminée et ne peut pas être modifiée.",
+                'terminé': "Cette tâche est déjà terminée et ne peut plus être modifiée.",
+                'en cours': "Cette tâche est en cours d'exécution et ne peut pas être modifiée.",
+                'assigné': "Cette tâche est déjà assignée et ne peut plus être modifiée."
+            };
+
+            const blockedMessage = statusMessages[currentTaskEdit.rawStatus];
+            if (blockedMessage) {
+                editModal.style.display = 'none';
+                showToast(blockedMessage, 'error');
+                return;
+            }
+        }
+
         try {
-            if (currentUser.role === 'Employe' && editStatusGroup.style.display === 'block') {
+            if (editStatusGroup.style.display === 'block') {
                 const newStatus = editStatus.value;
                 if (!newStatus) {
                     showToast('Veuillez sélectionner un statut.', 'error');
@@ -549,6 +601,7 @@ if (taskEditForm) {
             allTasks = [...tasks];
             applyFilters();
         } catch (error) {
+            editModal.style.display = 'none';
             console.error('[EDIT] Erreur mise à jour tâche:', error);
             showToast('Erreur: ' + error.message, 'error');
         }
@@ -566,11 +619,9 @@ tableBody.addEventListener("click", async (e) => {
 
         if (await confirmAction("Supprimer cette tâche ?")) {
             try {
-                console.log("[DELETE] Suppression de la tâche", id);
                 const result = await apiDeleteTask(id);
 
                 if (result.success) {
-                    console.log("✅ Tâche supprimée avec succès");
                     // Supprimer du tableau local
                     tasks = tasks.filter(t => t.id !== id);
                     allTasks = allTasks.filter(t => t.id !== id);
@@ -646,11 +697,18 @@ async function loadUsersById() {
             });
         }
     } catch (error) {
-        console.warn('[WARN] Impossible de charger la liste des utilisateurs pour le mapping des responsables :', error.message);
-        const currentUser = getCurrentUserFromStorage();
-        if (currentUser) {
-            usersById[currentUser.id] = currentUser;
-        }
+        console.warn('[WARN] Impossible de charger la liste des utilisateurs :', error.message);
+    }
+
+    // Toujours ajouter l'utilisateur connecté dans la map
+    // (il peut ne pas apparaître dans apiListUsers selon son rôle)
+    const currentUser = getCurrentUserFromStorage();
+    if (currentUser && currentUser.id && !usersById[currentUser.id]) {
+        usersById[currentUser.id] = {
+            id: currentUser.id,
+            nom: currentUser.nom,
+            prenom: currentUser.prenom
+        };
     }
 }
 
@@ -661,7 +719,6 @@ async function initializePage() {
     try {
         // Vérifier l'authentification
         const currentUser = getCurrentUserFromStorage();
-        console.log("[AUTH] Utilisateur actuel:", currentUser);
 
         if (!currentUser) {
             console.warn("⚠️ PAS D'UTILISATEUR AUTHENTIFIÉ - Redirection vers login");
@@ -670,14 +727,10 @@ async function initializePage() {
             return;
         }
 
-        console.log("[INIT] Démarrage du chargement des tâches pour", currentUser.prenom, currentUser.nom);
         await loadUsersById();
-
-        console.log("[API] Appel GET /taches/list...");
 
         // Charger les tâches
         const tasksResponse = await apiListTasks();
-        console.log("[API RESPONSE] Tâches reçues:", tasksResponse);
 
         if (!Array.isArray(tasksResponse)) {
             console.warn("[WARN] apiListTasks() n'a pas retourné un tableau");
@@ -689,15 +742,10 @@ async function initializePage() {
             allTasks = [...tasks];
             currentFilteredTasks = [...allTasks];
             currentTaskPage = 1;
-
-            console.log("✅ Tâches transformées et chargées");
-            console.log("📊 Nombre de tâches:", tasks.length);
         }
 
         // Afficher les tâches
         renderTasksFromCurrentFilter();
-
-        console.log("✅ TaskPRO Task List initialisé avec succès 🚀");
 
     } catch (error) {
         console.error("❌ Erreur lors de l'initialisation:", error);

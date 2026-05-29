@@ -59,7 +59,7 @@ $input = file_get_contents("php://input");
 $data = json_decode($input, true) ?? [];
 
 // Services
-$utilisateurDAO = new UtilisateurDAO(); 
+$utilisateurDAO = new UtilisateurDAO();
 $tacheDAO = new TacheDAO();
 $notificationDAO = new NotificationDAO();
 $notificationServices = new NotificationService($notificationDAO);
@@ -434,22 +434,22 @@ try {
         }
 
         if (!empty($statsByResponsable)) {
-                $utilisateurs = $utilisateurDAO->obtenirTous();
-                $utilisateurMap = [];
-                foreach ($utilisateurs as $utilisateurItem) {
-                    $utilisateurMap[$utilisateurItem->getId()] = $utilisateurItem->getNom() . ' ' . $utilisateurItem->getPrenom();
-                }
+            $utilisateurs = $utilisateurDAO->obtenirTous();
+            $utilisateurMap = [];
+            foreach ($utilisateurs as $utilisateurItem) {
+                $utilisateurMap[$utilisateurItem->getId()] = $utilisateurItem->getNom() . ' ' . $utilisateurItem->getPrenom();
+            }
 
-                arsort($statsByResponsable);
-                foreach ($statsByResponsable as $responsableId => $count) {
-                    if (count($teamPerformance) >= 3) {
-                        break;
-                    }
-                    $teamPerformance[] = [
-                        'name' => $utilisateurMap[$responsableId] ?? 'Utilisateur #' . $responsableId,
-                        'progress' => $count
-                    ];
+            arsort($statsByResponsable);
+            foreach ($statsByResponsable as $responsableId => $count) {
+                if (count($teamPerformance) >= 3) {
+                    break;
                 }
+                $teamPerformance[] = [
+                    'name' => $utilisateurMap[$responsableId] ?? 'Utilisateur #' . $responsableId,
+                    'progress' => $count
+                ];
+            }
         }
 
         if (empty($teamPerformance)) {
@@ -502,40 +502,32 @@ try {
             exit;
         }
 
-        if ($user->getRole() === 'SuperAdmin') {
-            $users = $utilisateurDAO->obtenirTousAvecTaches();
-            $users = array_map(function ($u) {
-                return [
-                    'id' => $u['id'],
-                    'nom' => $u['nom'],
-                    'prenom' => $u['prenom'],
-                    'email' => $u['email'],
-                    'role' => $u['role'],
-                    'poste' => $u['poste'],
-                    'disponibilite' => $u['disponibilite'] ?? 'oui',
-                    'total_taches' => (int) $u['total_taches']
-                ];
-            }, $users);
-        } else {
-            $users = $utilisateurDAO->obtenirUtilisateursAvecTachesParAdmin($user->getId());
-            $users = array_map(function ($u) {
-                return [
-                    'id' => $u['id'],
-                    'nom' => $u['nom'],
-                    'prenom' => $u['prenom'],
-                    'email' => $u['email'],
-                    'role' => $u['role'],
-                    'poste' => $u['poste'],
-                    'disponibilite' => $u['disponibilite'] ?? 'oui',
-                    'total_taches' => (int) $u['total_taches']
-                ];
-            }, $users);
-        }
+        // APRÈS
+        $mapUser = function ($u) {
+            return [
+                'id' => $u['id'],
+                'nom' => $u['nom'],
+                'prenom' => $u['prenom'],
+                'email' => $u['email'],
+                'role' => $u['role'],
+                'poste' => $u['poste'],
+                'disponibilite' => $u['disponibilite'] ?? 'oui',
+                'total_taches' => (int) $u['total_taches']
+            ];
+        };
 
-        // EXCLUSION SUPERADMIN
-        $users = array_filter($users, function ($u) {
-            return $u['role'] !== 'SuperAdmin';
-        });
+        if ($user->getRole() === 'SuperAdmin') {
+            // SuperAdmin voit tout sauf lui-même (les autres SuperAdmin exclus)
+            $users = $utilisateurDAO->obtenirTousAvecTaches();
+            $users = array_map($mapUser, $users);
+            $users = array_filter($users, fn($u) => $u['role'] !== 'SuperAdmin');
+
+        } else {
+            // Admin voit uniquement les Employés
+            // (obtenirUtilisateursAvecTachesParAdmin filtre déjà sur role = 'Employe')
+            $users = $utilisateurDAO->obtenirUtilisateursAvecTachesParAdmin($user->getId());
+            $users = array_map($mapUser, $users);
+        }
 
         echo json_encode([
             'success' => true,
@@ -547,15 +539,15 @@ try {
     // ================= DASHBOARD STATS PAR RÔLE =================
     if ($parts[0] === 'dashboard') {
         requireAuth();
-        
+
         if (($parts[1] ?? '') === 'stats' && $method === 'GET') {
             $userId = $_SESSION['user_id'];
             $userRole = $_SESSION['user_role'];
             $user = $utilisateurDAO->trouverParId($userId);
-            
+
             $stats = [];
             $allTaches = $tacheDAO->obtenirTous();
-            
+
             if ($userRole === 'SuperAdmin' || $userRole === 'Administrateur') {
                 $stats = [
                     'totalTaches' => count($allTaches),
@@ -566,23 +558,25 @@ try {
                     'utilisateurActif' => $user->getNom() . ' ' . $user->getPrenom(),
                     'role' => $userRole
                 ];
-                
+
                 $allUsers = $utilisateurDAO->obtenirTous();
                 $stats['totalUtilisateurs'] = count($allUsers);
 
-                $stats['adminCount'] = count(array_filter($allUsers, function($u) {
-                    if (is_object($u)) return method_exists($u, 'getRole') && $u->getRole() === 'Administrateur';
+                $stats['adminCount'] = count(array_filter($allUsers, function ($u) {
+                    if (is_object($u))
+                        return method_exists($u, 'getRole') && $u->getRole() === 'Administrateur';
                     return isset($u['role']) && $u['role'] === 'Administrateur';
                 }));
-                
-                $stats['employeCount'] = count(array_filter($allUsers, function($u) {
-                    if (is_object($u)) return method_exists($u, 'getRole') && $u->getRole() === 'Employe';
+
+                $stats['employeCount'] = count(array_filter($allUsers, function ($u) {
+                    if (is_object($u))
+                        return method_exists($u, 'getRole') && $u->getRole() === 'Employe';
                     return isset($u['role']) && $u['role'] === 'Employe';
                 }));
-                
+
             } else if ($userRole === 'Employe') {
                 $mesTaches = array_filter($allTaches, fn($t) => isset($t['id_responsable']) && $t['id_responsable'] == $userId);
-                
+
                 $stats = [
                     'totalTaches' => count($mesTaches),
                     'tachesEnCours' => count(array_filter($mesTaches, fn($t) => isset($t['status']) && $t['status'] === 'en cours')),
@@ -592,16 +586,16 @@ try {
                     'role' => $userRole
                 ];
             }
-            
+
             echo json_encode(['success' => true, 'stats' => $stats]);
             exit;
         }
-        
+
         // TÂCHES RÉCENTES
         if (($parts[1] ?? '') === 'recent-tasks' && $method === 'GET') {
             $userId = $_SESSION['user_id'];
             $userRole = $_SESSION['user_role'];
-            
+
             $allTaches = $tacheDAO->obtenirTous();
             $taches = [];
 
@@ -611,7 +605,7 @@ try {
                 $mesTaches = array_filter($allTaches, fn($t) => isset($t['id_responsable']) && $t['id_responsable'] == $userId);
                 $taches = array_slice(array_values($mesTaches), 0, 5);
             }
-            
+
             echo json_encode(['success' => true, 'taches' => $taches]);
             exit;
         }

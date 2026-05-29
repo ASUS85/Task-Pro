@@ -58,9 +58,9 @@ function transformUserFromAPI(apiUser) {
         "Employe": "employe",
         "SuperAdmin": "super_admin"
     };
-    
+
     const role = roleMap[apiUser.role] || "employe";
-    
+
     return {
         id: apiUser.id,
         name: `${apiUser.prenom} ${apiUser.nom}`,
@@ -112,11 +112,9 @@ function formatAvailability(av) {
 // RENDER TABLE
 // -------------------------------
 function renderUsers(data) {
-    console.log("[RENDER] Affichage de", data.length, "utilisateur(s)");
-    
+
     tableBody.innerHTML = "";
 
-    // Si aucun utilisateur
     if (data.length === 0) {
         tableBody.innerHTML = `
             <tr>
@@ -128,17 +126,22 @@ function renderUsers(data) {
         return;
     }
 
+    const currentUser = getCurrentUserFromStorage();
+    const isSuperAdmin = currentUser?.role === 'SuperAdmin';
+
     data.forEach(user => {
         const row = document.createElement("tr");
+
+        // Admin ne peut agir que sur les Employés
+        const canEdit = isSuperAdmin || user.role === 'employe';
+        const canDelete = isSuperAdmin || user.role === 'employe';
 
         row.innerHTML = `
             <td>
                 <div class="user-avatar">${getAvatar(user.name)}</div>
                 ${user.name}
             </td>
-
             <td>${user.email}</td>
-
             <td>${formatRole(user.role)}</td>
             <td>${user.poste}</td>
             <td>
@@ -148,27 +151,15 @@ function renderUsers(data) {
             </td>
             <td>${user.tasks}</td>
             <td>${user.lastSeen}</td>
-
             <td>
                 <div class="action-buttons">
-
-                    <button class="btn-action view-btn" data-id="${user.id}">
-                        Voir
-                    </button>
-
-                    <button class="btn-action edit-btn" data-id="${user.id}">
-                        Modifier
-                    </button>
-
-                    <button class="btn-action delete-btn" data-id="${user.id}">
-                        Supprimer
-                    </button>
-
+                    <button class="btn-action view-btn" data-id="${user.id}">Voir</button>
+                    ${canEdit ? `<button class="btn-action edit-btn"   data-id="${user.id}">Modifier</button>` : ''}
+                    ${canDelete ? `<button class="btn-action delete-btn" data-id="${user.id}">Supprimer</button>` : ''}
                 </div>
             </td>
         `;
 
-        // click row => profil
         row.addEventListener("click", (e) => {
             if (!e.target.closest(".btn-action")) {
                 openProfileModal(user.id);
@@ -397,7 +388,6 @@ async function initializePage() {
     try {
         // Vérifier l'authentification
         const currentUser = getCurrentUserFromStorage();
-        console.log("[AUTH] Utilisateur actuel:", currentUser);
 
         if (!currentUser) {
             console.warn("⚠️ PAS D'UTILISATEUR AUTHENTIFIÉ");
@@ -406,12 +396,8 @@ async function initializePage() {
             return;
         }
 
-        console.log("[INIT] Démarrage du chargement des utilisateurs");
-        console.log("[API] Appel GET /users...");
-
         // Charger les utilisateurs (seulement pour Administrateur)
         const usersResponse = await apiListUsers();
-        console.log("[API RESPONSE] Utilisateurs reçus:", usersResponse);
 
         if (!Array.isArray(usersResponse)) {
             console.warn("[WARN] apiListUsers() n'a pas retourné un tableau");
@@ -425,13 +411,10 @@ async function initializePage() {
             currentUserPage = 1;
 
             populatePosteFilter();
-            console.log("✅ Utilisateurs transformés et chargés");
-            console.log("📊 Nombre d'utilisateurs:", users.length);
         }
 
         // Afficher les utilisateurs
         renderUsersFromCurrentFilter();
-        console.log("✅ TaskPRO Users List initialisé avec succès 🚀");
     } catch (error) {
         console.error("❌ Erreur lors de l'initialisation:", error);
         console.error("Stack:", error.stack);
@@ -441,7 +424,7 @@ async function initializePage() {
 
 // Lancer l'initialisation au chargement
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializePage);
+    document.addEventListener('DOMContentLoaded', initializePage);
 } else {
-  initializePage();
+    initializePage();
 }

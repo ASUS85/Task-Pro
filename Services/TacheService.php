@@ -178,10 +178,17 @@ class TacheService
             throw new Exception("Impossible d'enregistrer la tâche.");
         }
 
+        $idTache = $this->tacheDAO->getLastInsertId();
+        $tache = $this->tacheDAO->trouverParId($idTache);
+
         $warnings = [];
 
         // Notification de création au créateur
-        $creationMessage = "La tâche '" . $donnees['libelle'] . "' a été créée avec succès.";
+        $creationMessage = $this->notificationService->genererContenuTache(
+            $tache,
+            $createur,
+            !empty($donnees['id_responsable']) ? $responsable : null
+        );
         $creatorNotification = $this->notificationService->notifierUtilisateur(
             $idCreateur,
             $createur->getEmail(),
@@ -199,9 +206,13 @@ class TacheService
         if (!empty($donnees['id_responsable']) && $donnees['status'] === 'assigné') {
             $responsable = $this->utilisateurDAO->trouverParId((int) $donnees['id_responsable']);
             if ($responsable) {
-                $assignMessage = "Vous avez été assigné à la tâche '" . $donnees['libelle'] . "'.";
+                $assignMessage = $this->notificationService->genererContenuTache(
+                    $tache,
+                    $createur,
+                    $responsable
+                );
                 $assignResult = $this->notificationService->notifierUtilisateur(
-                    (int) $donnees['id_responsable'], 
+                    (int) $donnees['id_responsable'],
                     $responsable->getEmail(),
                     $responsable->getPrenom(),
                     $assignMessage,
@@ -339,10 +350,29 @@ class TacheService
             } else {
                 throw new Exception("Action interdite : le statut ne peut être modifié que lorsque la tâche est assignée ou en cours.");
             }
+            // APRÈS
         } else {
-            // Administrateur / SuperAdmin ne peuvent plus modifier le statut dès que la tâche est assignée
-            if ($tache->getStatus() !== "non assigné") {
-                throw new Exception("La modification de statut est réservée à l'employé une fois la tâche assignée.");
+            // Admin/SuperAdmin assigné à la tâche → mêmes droits que l'Employé
+            $isResponsable = $tache->getIdResponsable() === $idUtilisateur;
+
+            if ($isResponsable) {
+                // L'admin est le responsable → transitions autorisées comme un Employé
+                if ($tache->getStatus() === "assigné") {
+                    if (!in_array($nouveauStatut, ["en cours", "terminé"])) {
+                        throw new Exception("Action interdite : depuis 'assigné', vous pouvez passer à 'en cours' ou 'terminé' uniquement.");
+                    }
+                } elseif ($tache->getStatus() === "en cours") {
+                    if ($nouveauStatut !== "terminé") {
+                        throw new Exception("Action interdite : depuis 'en cours', vous pouvez passer à 'terminé' uniquement.");
+                    }
+                } else {
+                    throw new Exception("Action interdite : le statut ne peut être modifié que lorsque la tâche est assignée ou en cours.");
+                }
+            } else {
+                // Admin non responsable → ne peut pas toucher au statut après assignation
+                if ($tache->getStatus() !== "non assigné") {
+                    throw new Exception("La modification de statut est réservée à l'employé une fois la tâche assignée.");
+                }
             }
         }
 
@@ -398,9 +428,13 @@ class TacheService
 
         switch ($utilisateur->getRole()) {
             case "SuperAdmin":
-            case "Administrateur":
-                // Les admins voient toutes les tâches pour les vues de gestion.
+                // SuperAdmin voit absolument tout
                 $tachesObjet = $this->tacheDAO->obtenirTous();
+                break;
+
+            case "Administrateur":
+                // Admin voit uniquement ses tâches : créées, assignées à lui, ou qu'il a assignées
+                $tachesObjet = $this->tacheDAO->obtenirParAdministrateur($idUtilisateur);
                 break;
 
             case "Employe":
@@ -416,8 +450,10 @@ class TacheService
         $this->syncStatuses($tachesObjet);
 
         // Recharger les tâches après éventuelles modifications
-        if ($utilisateur->getRole() === "SuperAdmin" || $utilisateur->getRole() === "Administrateur") {
+        if ($utilisateur->getRole() === "SuperAdmin") {
             $tachesObjet = $this->tacheDAO->obtenirTous();
+        } elseif ($utilisateur->getRole() === "Administrateur") {
+            $tachesObjet = $this->tacheDAO->obtenirParAdministrateur($idUtilisateur);
         } else {
             $tachesObjet = $this->tacheDAO->obtenirParResponsable($idUtilisateur);
         }
@@ -514,7 +550,11 @@ class TacheService
             $resp = $this->utilisateurDAO->trouverParId($idResponsable);
 
             // 4. On déclenche la notification via le service
-            $msg = "La tâche '" . $tache->getLibelle() . "' vous a été assignée par l'administrateur.";
+            $msg = $this->notificationService->genererContenuTache(
+                $tache,
+                $utilisateur,
+                $resp
+            );
             $notifyResult = $this->notificationService->notifierUtilisateur(
                 $idResponsable,
                 $resp->getEmail(),

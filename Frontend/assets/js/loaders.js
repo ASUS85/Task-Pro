@@ -72,11 +72,11 @@ class LoaderManager {
     show(message = 'Chargement', timeout = 0) {
         const container = this.mainOverlay.querySelector('.loader-container');
         const textElement = container.querySelector('.loader-text');
-        
+
         if (message) {
             textElement.innerHTML = `${message}<span class="loader-dots">.</span><span class="loader-dots">.</span><span class="loader-dots">.</span>`;
         }
-        
+
         this.mainOverlay.classList.add('active');
 
         if (timeout > 0) {
@@ -157,10 +157,10 @@ class LoaderManager {
 
         const toast = document.createElement('div');
         toast.className = `toast-loader active`;
-        
-        const icon = type === 'success' ? '✓' : 
-                    type === 'error' ? '✕' : 
-                    type === 'warning' ? '!' : 'ⓘ';
+
+        const icon = type === 'success' ? '✓' :
+            type === 'error' ? '✕' :
+                type === 'warning' ? '!' : 'ⓘ';
 
         toast.innerHTML = `
             <div class="small-spinner"></div>
@@ -331,6 +331,29 @@ class LoaderManager {
 
             throw error;
         }
+    }
+
+    setButtonLoading(button, text = 'Chargement...') {
+        if (!button) return;
+
+        button.dataset.originalText = button.innerHTML;
+
+        button.innerHTML = `
+        <span class="btn-spinner"></span>
+        ${text}
+    `;
+
+        button.disabled = true;
+        button.classList.add('btn-loading');
+    }
+
+    removeButtonLoading(button) {
+        if (!button) return;
+
+        button.innerHTML = button.dataset.originalText || 'Valider';
+
+        button.disabled = false;
+        button.classList.remove('btn-loading');
     }
 
     /**
