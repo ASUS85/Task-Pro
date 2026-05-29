@@ -61,12 +61,7 @@ class NotificationService {
 
         try {
             // Désactivation du debug bavard pour la production/développement propre
-            // $mail->SMTPDebug = 0; 
-
-            $mail->SMTPDebug = 2; 
-            $mail->Debugoutput = function($str, $level) {
-                error_log("SMTP Debug: $str");
-            };
+            $mail->SMTPDebug = 0; 
 
             $mail->isSMTP();
             // Utilisation des valeurs du .env avec l'alias config()
