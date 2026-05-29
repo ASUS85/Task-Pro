@@ -28,23 +28,26 @@ class ConfigManager {
     }
 
     /**
-     * Charger les variables d'environnement
+     * Charger les variables d'environnement de manière robuste
      */
     private function loadEnvironment() {
-        // Charger depuis le fichier .env
         if (file_exists($this->envFile)) {
+            // file() peut garder les \r de Windows, on applique un nettoyage rigoureux
             $lines = file($this->envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            
             foreach ($lines as $line) {
-                if (strpos($line, '#') === 0) continue;
+                $line = trim($line); // Nettoie les espaces et \r invisibles en début/fin de ligne
+                
+                if ($line === '' || strpos($line, '#') === 0) continue;
                 if (strpos($line, '=') === false) continue;
 
                 list($key, $value) = explode('=', $line, 2);
                 $key = trim($key);
                 $value = trim($value);
 
-                // Supprimer les guillemets si présents
-                if (in_array($value[0] ?? '', ['"', "'"])) {
-                    $value = substr($value, 1, -1);
+                // CORRECTION : Nettoyage safe des guillemets doubles ou simples entourant la valeur
+                if (preg_match('/^"([^"]*)"$/', $value, $matches) || preg_match('/^\'([^\']*)\'$/', $value, $matches)) {
+                    $value = $matches[1];
                 }
 
                 $this->config[$key] = $value;

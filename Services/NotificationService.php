@@ -50,26 +50,47 @@ class NotificationService {
 
     private function envoyerEmail(string $to, string $prenom, string $contenu, string $subject) {
         $mail = new PHPMailer(true);
+
+        $mail->SMTPOptions = [
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true
+            ]
+        ];
+
         try {
-            $mailConfig = $this->config->getMailConfig();
+            // Désactivation du debug bavard pour la production/développement propre
+            // $mail->SMTPDebug = 0; 
+
+            $mail->SMTPDebug = 2; 
+            $mail->Debugoutput = function($str, $level) {
+                error_log("SMTP Debug: $str");
+            };
 
             $mail->isSMTP();
-            $mail->Host       = $mailConfig['host'];
+            // Utilisation des valeurs du .env avec l'alias config()
+            $mail->Host       = config('MAIL_HOST', 'smtp.gmail.com');
             $mail->SMTPAuth   = true;
-            $mail->Username   = $mailConfig['username'];
-            $mail->Password   = $mailConfig['password'];
-            $mail->SMTPSecure = $mailConfig['encryption'] === 'tls' ? PHPMailer::ENCRYPTION_STARTTLS : PHPMailer::ENCRYPTION_SMTPS;
-            $mail->Port       = $mailConfig['port'];
+            $mail->Username   = config('MAIL_USERNAME');
+            $mail->Password   = config('MAIL_PASSWORD');
+            $mail->SMTPSecure = config('MAIL_ENCRYPTION') === 'tls' ? PHPMailer::ENCRYPTION_STARTTLS : PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port       = (int)config('MAIL_PORT', 587);
 
-            $mail->setFrom($mailConfig['from'], 'Task-Pro Notification');
+            // L'expéditeur est lu de manière sécurisée depuis le .env
+            $fromEmail = config('MAIL_FROM');
+            $fromName  = config('MAIL_FROM_NAME', 'TaskPro');
+            
+            $mail->setFrom($fromEmail, $fromName);
             $mail->addAddress($to, $prenom);
+            
             $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body    = "<h3>Bonjour $prenom,</h3><p>$contenu</p><hr><p><em>Message automatisé - Ne pas répondre</em></p>";
 
             $mail->send();
         } catch (Exception $e) {
-            throw new Exception($e->getMessage());
+            throw new Exception("Échec SMTP", 0, $e);
         }
     }
 }
