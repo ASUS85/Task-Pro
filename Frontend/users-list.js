@@ -112,7 +112,6 @@ function formatAvailability(av) {
 // RENDER TABLE
 // -------------------------------
 function renderUsers(data) {
-    console.log("[RENDER] Affichage de", data.length, "utilisateur(s)");
 
     tableBody.innerHTML = "";
 
@@ -389,7 +388,6 @@ async function initializePage() {
     try {
         // Vérifier l'authentification
         const currentUser = getCurrentUserFromStorage();
-        console.log("[AUTH] Utilisateur actuel:", currentUser);
 
         if (!currentUser) {
             console.warn("⚠️ PAS D'UTILISATEUR AUTHENTIFIÉ");
@@ -398,12 +396,8 @@ async function initializePage() {
             return;
         }
 
-        console.log("[INIT] Démarrage du chargement des utilisateurs");
-        console.log("[API] Appel GET /users...");
-
         // Charger les utilisateurs (seulement pour Administrateur)
         const usersResponse = await apiListUsers();
-        console.log("[API RESPONSE] Utilisateurs reçus:", usersResponse);
 
         if (!Array.isArray(usersResponse)) {
             console.warn("[WARN] apiListUsers() n'a pas retourné un tableau");
@@ -417,13 +411,10 @@ async function initializePage() {
             currentUserPage = 1;
 
             populatePosteFilter();
-            console.log("✅ Utilisateurs transformés et chargés");
-            console.log("📊 Nombre d'utilisateurs:", users.length);
         }
 
         // Afficher les utilisateurs
         renderUsersFromCurrentFilter();
-        console.log("✅ TaskPRO Users List initialisé avec succès 🚀");
     } catch (error) {
         console.error("❌ Erreur lors de l'initialisation:", error);
         console.error("Stack:", error.stack);

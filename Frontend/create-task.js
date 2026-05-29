@@ -297,7 +297,6 @@ updateDurationInput();
 
 parentBtn.addEventListener("click", async () => {
   try {
-    console.log("[MODAL] Ouverture modal tâches parentes...");
 
     if (realTasks.length === 0) {
       console.warn("[MODAL] Aucune tâche en mémoire, rechargement...");
@@ -455,7 +454,6 @@ searchParent.addEventListener("input", () => {
 
 userBtn.addEventListener("click", async () => {
   try {
-    console.log("[MODAL] Ouverture modal utilisateurs...");
 
     if (realUsers.length === 0) {
       console.warn("[MODAL] Aucun utilisateur en mémoire, rechargement...");
@@ -686,7 +684,6 @@ async function initializePage() {
   try {
     // Vérifier d'abord que l'utilisateur est authentifié
     const currentUser = getCurrentUserFromStorage();
-    console.log("[AUTH] Utilisateur actuel:", currentUser);
 
     if (!currentUser) {
       console.warn("⚠️ PAS D'UTILISATEUR AUTHENTIFIÉ - Redirection vers login");
@@ -695,12 +692,9 @@ async function initializePage() {
       return;
     }
 
-    console.log("[INIT] Démarrage du chargement des données pour", currentUser.prenom, currentUser.nom);
 
     // Charger les utilisateurs pour la modal
-    console.log("[API] Appel GET /users...");
     const usersResponse = await apiListUsers();
-    console.log("[API] Réponse utilisateurs:", usersResponse);
 
     if (Array.isArray(usersResponse)) {
       realUsers = usersResponse.filter((user) => (user.disponibilite || 'oui') === 'oui');
@@ -710,9 +704,7 @@ async function initializePage() {
     }
 
     // Charger les tâches pour les tâches parentes
-    console.log("[API] Appel GET /taches/list...");
     const tasksResponse = await apiListTasks();
-    console.log("[API] Réponse tâches:", tasksResponse);
 
     if (Array.isArray(tasksResponse)) {
       realTasks = tasksResponse;
@@ -721,16 +713,13 @@ async function initializePage() {
       realTasks = [];
     }
 
-    console.log("✅ TaskPRO Create Task JS chargé et données initialisées");
-    console.log("📊 Utilisateurs disponibles:", realUsers.length);
-    console.log("📊 Tâches disponibles:", realTasks.length);
 
-    if (realUsers.length === 0) {
+  /*   if (realUsers.length === 0) {
       console.warn("⚠️ AUCUN UTILISATEUR DISPONIBLE CHARGÉ - Vérifiez les droits (doit être Administrateur) ou qu'aucun utilisateur n'est actuellement disponible.");
     }
     if (realTasks.length === 0) {
       console.warn("⚠️ AUCUNE TÂCHE CHARGÉE - C'est normal si c'est la première fois");
-    }
+    } */
 
   } catch (error) {
     console.error("❌ Erreur lors de l'initialisation:", error);

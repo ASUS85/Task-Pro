@@ -12,7 +12,6 @@ const API_BASE_URL = (() => {
     return `${protocol}//${hostname}${port}/Task-Pro/public/api.php`;
 })();
 
-console.log('API Base URL:', API_BASE_URL);
 
 /**
  * Helper centralisé pour toutes les requêtes API

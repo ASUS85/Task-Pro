@@ -10,7 +10,7 @@ const API_BASE_URL = window.location.protocol + '//' + window.location.hostname 
     (window.location.port ? ':' + window.location.port : '') +
     '/Task-Pro/public/api.php';
 
-console.log('API_BASE_URL:', API_BASE_URL);
+
 
 /**
  * Helper pour faire des appels API avec gestion d'erreurs
@@ -28,12 +28,10 @@ async function apiCall(endpoint, method = 'GET', data = null) {
         if (data) {
             options.body = JSON.stringify(data);
         }
-        console.log(`[API] ${method} ${endpoint}`, data || '');
+      
 
         const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
         const result = await response.json();
-
-        console.log(`[API RESPONSE] Status: ${response.status}`, result);
 
         // Vérifier le statut HTTP OU le champ success
         if (!response.ok || !result.success) {

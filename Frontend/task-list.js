@@ -199,7 +199,6 @@ function computeDeadline(createdAtRaw, deadlineRaw, dateDebutAssignation) {
 // RENDER TABLE
 // -------------------------------
 function renderTasks(data) {
-    console.log("[RENDER] Affichage de", data.length, "tâche(s)");
 
     tableBody.innerHTML = "";
 
@@ -383,7 +382,7 @@ function openModal(id) {
         return;
     }
 
-    console.log("[MODAL] Ouverture détails tâche:", task.name);
+    ("[MODAL] Ouverture détails tâche:", task.name);
 
     detailTitle.textContent = task.name;
     detailDescription.textContent = task.description;
@@ -620,11 +619,9 @@ tableBody.addEventListener("click", async (e) => {
 
         if (await confirmAction("Supprimer cette tâche ?")) {
             try {
-                console.log("[DELETE] Suppression de la tâche", id);
                 const result = await apiDeleteTask(id);
 
                 if (result.success) {
-                    console.log("✅ Tâche supprimée avec succès");
                     // Supprimer du tableau local
                     tasks = tasks.filter(t => t.id !== id);
                     allTasks = allTasks.filter(t => t.id !== id);
@@ -715,7 +712,6 @@ async function initializePage() {
     try {
         // Vérifier l'authentification
         const currentUser = getCurrentUserFromStorage();
-        console.log("[AUTH] Utilisateur actuel:", currentUser);
 
         if (!currentUser) {
             console.warn("⚠️ PAS D'UTILISATEUR AUTHENTIFIÉ - Redirection vers login");
@@ -724,14 +720,10 @@ async function initializePage() {
             return;
         }
 
-        console.log("[INIT] Démarrage du chargement des tâches pour", currentUser.prenom, currentUser.nom);
         await loadUsersById();
-
-        console.log("[API] Appel GET /taches/list...");
 
         // Charger les tâches
         const tasksResponse = await apiListTasks();
-        console.log("[API RESPONSE] Tâches reçues:", tasksResponse);
 
         if (!Array.isArray(tasksResponse)) {
             console.warn("[WARN] apiListTasks() n'a pas retourné un tableau");
@@ -743,15 +735,10 @@ async function initializePage() {
             allTasks = [...tasks];
             currentFilteredTasks = [...allTasks];
             currentTaskPage = 1;
-
-            console.log("✅ Tâches transformées et chargées");
-            console.log("📊 Nombre de tâches:", tasks.length);
         }
 
         // Afficher les tâches
         renderTasksFromCurrentFilter();
-
-        console.log("✅ TaskPRO Task List initialisé avec succès 🚀");
 
     } catch (error) {
         console.error("❌ Erreur lors de l'initialisation:", error);
