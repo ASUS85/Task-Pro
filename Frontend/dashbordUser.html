@@ -308,7 +308,7 @@
                 </div>
             </div>
             <div class="modal-footer" style="margin-top:15px;">
-                <button onclick="updatePassword()" class="btn-save-action" style="background: #e67e22;">
+                <button onclick="updatePassword()" class="btn-save-action" style="background: #D4AF37;">
                     <i data-lucide="shield-alert"></i> Mettre à jour le mot de passe
                 </button>
             </div>
@@ -316,14 +316,14 @@
     </div>
 
     <div id="logoutModal" class="modal">
-    <div class="modal-content confirm-modal">
-        <h2>Confirmer la déconnexion</h2>
-        <p>Voulez-vous vraiment vous déconnecter ?</p>
-        <div class="modal-actions">
-            <button id="cancelLogoutBtn" class="secondary-btn" onclick="closeModal('logoutModal')">Annuler</button>
-            <button id="confirmLogoutBtn" class="danger-btn" onclick="logout()">Se déconnecter</button>
+        <div class="modal-content confirm-modal">
+          <h2>Confirmer la déconnexion</h2>
+          <p>Voulez-vous vraiment vous déconnecter ?</p>
+            <div class="modal-actions">
+              <button id="cancelLogoutBtn" class="secondary-btn" onclick="closeModal('logoutModal')">Annuler</button>
+              <button id="confirmLogoutBtn" class="danger-btn" onclick="logout()">Se déconnecter</button>
+            </div>
         </div>
-    </div>
     </div>
 
     <script src="api.js"></script>

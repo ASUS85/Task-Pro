@@ -114,7 +114,7 @@ class TacheService
     /**
      * Créer une tâche - Admin ou SuperAdmin uniquement
      */
-    public function creerTache(array $donnees, int $idCreateur): array  
+    public function creerTache(array $donnees, int $idCreateur): array
     {
         // 1. Vérification des droits
         $createur = $this->utilisateurDAO->trouverParId($idCreateur);
@@ -481,7 +481,7 @@ class TacheService
     /**
      * Assigner une tâche à un employé
      */
-    public function assignerTache(int $idTache, int $idResponsable, int $idUtilisateur): bool
+    public function assignerTache(int $idTache, int $idResponsable, int $idUtilisateur): array
     {
 
         // 1. Vérifier les droits

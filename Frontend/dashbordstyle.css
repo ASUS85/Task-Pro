@@ -439,8 +439,28 @@ td { padding: 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,25
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(4, 4, 6, 0.7); /* Fond très sombre */
-    backdrop-filter: blur(6px); /* Effet de flou fluide derrière la modale */
+    background-color:var(--bg-dark); 
+    backdrop-filter: blur(6px); 
+} 
+.confirm-modal {
+    background: #111217 !important; 
+    color: #ffffff !important;     
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 18px !important;
+    padding: 30px !important;
+    width: 100% !important;
+    max-width: 420px !important;    
+    margin: 15% auto !important;   
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+    text-align: center; 
+}
+
+.confirm-modal h2{
+    color: var(--accent-orange);
+    margin: 0;
+}
+.confirm-modal p{
+    color: var(--primary-gold);
 }
 
 /* Scrollbar Style */
@@ -459,25 +479,6 @@ td { padding: 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,25
     display: flex;
     align-items: center;
     gap: 10px;
-}
-
-/* Le menu déroulant (Select) */
-#filterStatus {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--glass-border);
-    color: #ffffff;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    outline: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-#filterStatus:focus {
-    border-color: var(--primary-gold);
-    color: #fff;
-    
 }
 
 /* Le bouton de rafraîchissement */
@@ -506,6 +507,21 @@ td { padding: 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,25
     height: 16px;
 }
 
+.secondary-btn {
+    flex: 1;
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.04);
+    color: #ffffff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+.secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #888;
+}
 
 /* Style de base des badges */
 .status-badge {
@@ -539,11 +555,6 @@ td { padding: 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,25
     background-color: rgba(150, 150, 150, 0.2);
     color: #999;
 }
-
-
-
-
-
 
 #profile-section.info-grid {
     display: grid !important;
@@ -611,19 +622,36 @@ td { padding: 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,25
     margin-bottom: 10px;
 
     transition: 0.25s;
-}
+} 
 
-.btn:hover {
+ .btn:hover {
     transform: translateY(-2px);
     border-color: var(--primary-gold);
 }
-
-.btn.danger {
+.btn {
     background: rgba(255,77,77,0.1);
     border-color: rgba(255,77,77,0.2);
     color: #ff4d4d;
 }
 
+.danger-btn {
+    flex: 1;
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 77, 77, 0.2);
+    background: rgba(255, 77, 77, 0.15);
+    color: #ff4d4d;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.danger-btn:hover {
+    background: #ff4d4d;
+    color: #ffffff;
+    box-shadow: 0 6px 15px rgba(255, 77, 77, 0.25);
+    transform: translateY(-1px);
+}
 
 /* ============================================================
    TASKPRO - STYLE DE LA MODALE TACHE (V3 RETOUCHÉE)
@@ -651,6 +679,24 @@ td { padding: 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,25
 }
 .modal-header h3 i {
     color: var(--primary-gold); /* Icônes dorées pour rappeler le thème */
+}
+
+/* Alignement horizontal parfait des boutons de confirmation */
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;      /* Espace régulier entre les deux boutons */
+    margin-top: 25px; /* Espace par rapport au texte du dessus */
+    width: 100%;
+}
+
+/* Ajustement pour s'assurer qu'ils partagent équitablement l'espace si nécessaire */
+.modal-actions .secondary-btn, 
+.modal-actions .danger-btn {
+    margin: 0; /* Supprime d'éventuelles marges par défaut conflictuelles */
+    flex: 1;   /* Donne la même largeur aux deux boutons */
+    max-width: 160px; /* Évite qu'ils ne deviennent trop larges */
 }
 
 .modal-header h3 {
@@ -709,6 +755,7 @@ td { padding: 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,25
     background: rgba(212, 175, 55, 0.05);
     padding: 16px;
     border-radius: 12px;
+    appearance: none;
     border: 1px solid rgba(212, 175, 55, 0.15);
 }
 .status-update-zone label {
@@ -716,17 +763,6 @@ td { padding: 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,25
     font-weight: 600;
 }
 
-#statusSelect {
-    width: 100%;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    background: white;
-    font-size: 1rem;
-    margin-top: 10px;
-    cursor: pointer;
-    color: #333;
-}
 
 .modal-footer {
     padding: 20px 24px;
@@ -787,7 +823,7 @@ td { padding: 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,25
 
 .custom-task-modal .input-group input:focus, 
 .custom-task-modal .input-group select:focus,
-#statusSelect:focus {
+#statusSelect:focus { 
     border-color: var(--primary-gold) !important;
     box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
 }
@@ -800,6 +836,29 @@ td { padding: 12px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,25
     transition: color 0.2s;
 }
 
+/* Stylisation du conteneur et du select de la modale */
+/* Stylisation du conteneur et du select de la modale */
+.status-update-zone select {
+    width: 100%;
+    padding: 12px;
+    background: var(--bg-dark) !important;
+    color: #ffffff !important;
+    border: 1px solid var(--primary-gold);
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+    font-family: inherit;
+    
+    /* FORCE LE NAVIGATEUR À PASSER LE MENU DÉROULANT EN MODE SOMBRE */
+    color-scheme: dark !important; 
+}
+
+/* Stylisation des options internes du menu déroulant */
+.status-update-zone select option {
+    background-color: #111217 !important; 
+    color: #ffffff !important;
+    padding: 10px;
+}
 
 #passwordModal .status-update-zone {
     background: rgba(255, 95, 95, 0.08) !important;
