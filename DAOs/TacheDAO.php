@@ -298,6 +298,39 @@ class TacheDAO
         }
     }
 
+
+    /**
+     * Récupère les tâches visibles par un Administrateur :
+     * - tâches qu'il a créées
+     * - tâches qui lui sont assignées (id_responsable)
+     * - tâches qu'il a assignées à quelqu'un (id_createur + id_responsable != null)
+     */
+    public function obtenirParAdministrateur(int $idAdmin): array
+    {
+        try {
+            $stmt = $this->pdo->prepare("
+            SELECT * FROM taches
+            WHERE id_createur = :id
+               OR id_responsable = :id2
+            ORDER BY dateCreation DESC
+        ");
+            $stmt->execute([
+                ':id' => $idAdmin,
+                ':id2' => $idAdmin
+            ]);
+
+            $resultats = [];
+            while ($row = $stmt->fetch()) {
+                $resultats[] = $this->hydratiserTache($row);  // ← "hydratiser" et non "hydrater"
+            }
+
+            return $resultats;
+
+        } catch (PDOException $e) {
+            throw new Exception("Erreur récupération tâches administrateur : " . $e->getMessage());
+        }
+    }
+
     public function getLastInsertId(): int
     {
         return (int) $this->pdo->lastInsertId();

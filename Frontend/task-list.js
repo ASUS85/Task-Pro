@@ -121,6 +121,7 @@ function transformTaskFromAPI(apiTask) {
         deadlineRaw: deadlineRaw,
         priority: "Moyenne", // TODO: ajouter priorité en BD
         description: apiTask.description || "Aucune description",
+        responsableId: responsableId,
         parentTask: apiTask.id_parent || null,
         dateDebutAssignation: apiTask.dateDebutAssignation || null
     };
@@ -477,10 +478,45 @@ function openEditTask(taskId) {
             editDescription.disabled = true;
             editDeadline.disabled = true;
         }
+        // APRÈS
     } else {
-        // Admin / SuperAdmin : édition possible uniquement tant que la tâche n'est pas assignée
-        if (currentTaskEdit.rawStatus !== 'non assigné') {
-            editMessage.textContent = "La tâche ne peut plus être modifiée par l'administrateur après assignation.";
+        // Admin / SuperAdmin
+        const isAssignedToMe = currentTaskEdit.responsableId === currentUser.id;
+        const canUpdateStatus = isAssignedToMe &&
+            (currentTaskEdit.rawStatus === 'assigné' || currentTaskEdit.rawStatus === 'en cours');
+
+        if (canUpdateStatus) {
+            // La tâche lui est assignée → il peut changer le statut comme un Employé
+            editTitle.disabled = true;
+            editDescription.disabled = true;
+            editDeadline.disabled = true;
+            editStatusGroup.style.display = 'block';
+
+            const options = [];
+            if (currentTaskEdit.rawStatus === 'assigné') {
+                options.push({ value: 'en cours', label: 'En cours' });
+                options.push({ value: 'terminé', label: 'Terminée' });
+            } else if (currentTaskEdit.rawStatus === 'en cours') {
+                options.push({ value: 'terminé', label: 'Terminée' });
+            }
+
+            options.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt.value;
+                option.textContent = opt.label;
+                editStatus.appendChild(option);
+            });
+
+        } else if (currentTaskEdit.rawStatus === 'non assigné') {
+            // Tâche non assignée → Admin peut éditer librement
+            // (champs déjà activés par défaut en haut de la fonction)
+
+        } else {
+            // Tâche assignée à quelqu'un d'autre ou statut bloquant
+            const msg = isAssignedToMe
+                ? "Cette tâche ne peut plus être modifiée dans son état actuel."
+                : "La tâche ne peut plus être modifiée par l'administrateur après assignation.";
+            editMessage.textContent = msg;
             editMessage.style.display = 'block';
             editTitle.disabled = true;
             editDescription.disabled = true;
@@ -524,8 +560,25 @@ if (taskEditForm) {
             return;
         }
 
+        if (editStatusGroup.style.display !== 'block') {
+            const statusMessages = {
+                'expiré': "Cette tâche a expiré et ne peut plus être modifiée.",
+                'non terminé': "Cette tâche est marquée comme non terminée et ne peut pas être modifiée.",
+                'terminé': "Cette tâche est déjà terminée et ne peut plus être modifiée.",
+                'en cours': "Cette tâche est en cours d'exécution et ne peut pas être modifiée.",
+                'assigné': "Cette tâche est déjà assignée et ne peut plus être modifiée."
+            };
+
+            const blockedMessage = statusMessages[currentTaskEdit.rawStatus];
+            if (blockedMessage) {
+                editModal.style.display = 'none';
+                showToast(blockedMessage, 'error');
+                return;
+            }
+        }
+
         try {
-            if (currentUser.role === 'Employe' && editStatusGroup.style.display === 'block') {
+            if (editStatusGroup.style.display === 'block') {
                 const newStatus = editStatus.value;
                 if (!newStatus) {
                     showToast('Veuillez sélectionner un statut.', 'error');
@@ -549,6 +602,7 @@ if (taskEditForm) {
             allTasks = [...tasks];
             applyFilters();
         } catch (error) {
+            editModal.style.display = 'none';
             console.error('[EDIT] Erreur mise à jour tâche:', error);
             showToast('Erreur: ' + error.message, 'error');
         }

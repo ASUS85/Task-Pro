@@ -298,17 +298,17 @@ updateDurationInput();
 parentBtn.addEventListener("click", async () => {
   try {
     console.log("[MODAL] Ouverture modal tâches parentes...");
-    
+
     if (realTasks.length === 0) {
       console.warn("[MODAL] Aucune tâche en mémoire, rechargement...");
       realTasks = await apiListTasks();
     }
-    
+
     if (realTasks.length === 0) {
       showToast("Aucune tâche disponible", "error");
       return;
     }
-    
+
     parentCurrentPage = 1;
     renderParentTasks(realTasks);
     openModal(parentModal);
@@ -456,17 +456,17 @@ searchParent.addEventListener("input", () => {
 userBtn.addEventListener("click", async () => {
   try {
     console.log("[MODAL] Ouverture modal utilisateurs...");
-    
+
     if (realUsers.length === 0) {
       console.warn("[MODAL] Aucun utilisateur en mémoire, rechargement...");
       realUsers = await apiListUsers();
     }
-    
+
     if (realUsers.length === 0) {
       showToast("Aucun utilisateur disponible pour assignation. Assurez-vous d'être connecté en tant qu'Administrateur.", "error");
       return;
     }
-    
+
     renderUsers(realUsers);
     openModal(userModal);
   } catch (error) {
@@ -587,83 +587,85 @@ cancelConfirmBtn.addEventListener("click", () => {
 
 confirmCreateBtn.addEventListener("click", async () => {
 
-    try {
-        const rawDuration = document.getElementById("taskDuration").value.trim();
-        let periode_realisation = rawDuration;
+  try {
+    const rawDuration = document.getElementById("taskDuration").value.trim();
+    let periode_realisation = rawDuration;
 
-        if (selectedParentTask) {
-          const parentDeadlineTs = getParentDeadlineTimestamp();
-          if (!parentDeadlineTs) {
-            throw new Error("Impossible de récupérer l'échéance de la tâche parente.");
-          }
+    if (selectedParentTask) {
+      const parentDeadlineTs = getParentDeadlineTimestamp();
+      if (!parentDeadlineTs) {
+        throw new Error("Impossible de récupérer l'échéance de la tâche parente.");
+      }
 
-          if (durationType.value === "hours") {
-            const seconds = parseDurationToSeconds(rawDuration);
-            if (seconds === null || seconds <= 0) {
-              throw new Error("La durée doit être au format HH:mm:ss et supérieure à 00:00:00.");
-            }
-            periode_realisation = formatDateTimeForBackend(new Date(parentDeadlineTs + seconds * 1000));
-          } else {
-            if (!isAfterParentDeadline(rawDuration)) {
-              throw new Error("La date/heure doit être postérieure à l'échéance de la tâche parente.");
-            }
-            const selectedDate = parseServerDate(rawDuration);
-            if (Number.isNaN(selectedDate.getTime())) {
-              throw new Error("La date/heure sélectionnée est invalide.");
-            }
-            periode_realisation = formatDateTimeForBackend(selectedDate);
-          }
-        } else if (durationType.value === "date") {
-          const selectedDate = parseServerDate(rawDuration);
-          if (Number.isNaN(selectedDate.getTime())) {
-            throw new Error("La date/heure sélectionnée est invalide.");
-          }
-          periode_realisation = formatDateTimeForBackend(selectedDate);
+      if (durationType.value === "hours") {
+        const seconds = parseDurationToSeconds(rawDuration);
+        if (seconds === null || seconds <= 0) {
+          throw new Error("La durée doit être au format HH:mm:ss et supérieure à 00:00:00.");
         }
-
-        const taskData = {
-          libelle: document.getElementById("taskTitle").value.trim(),
-          description: document.getElementById("taskDescription").value.trim(),
-
-          id_parent: selectedParentTask ? selectedParentTask.id : null,
-
-          id_responsable: selectedUser ? selectedUser.id : null,
-
-          periode_realisation,
-
-          cheminFichier: selectedFiles.length
-            ? selectedFiles.map(f => f.name).join(', ')
-            : null
-        };
-
-        const response = await apiCreateTask(taskData);
-
-        if (!response.success) {
-            throw new Error(response.message || "Erreur création tâche");
+        periode_realisation = formatDateTimeForBackend(new Date(parentDeadlineTs + seconds * 1000));
+      } else {
+        if (!isAfterParentDeadline(rawDuration)) {
+          throw new Error("La date/heure doit être postérieure à l'échéance de la tâche parente.");
         }
-
-        closeModal(confirmModal);
-
-        showToast("Tâche créée avec succès !", "success");
-
-        // Réinitialiser le formulaire
-        form.reset();
-
-        selectedFiles = [];
-        selectedParentTask = null;
-        selectedUser = null;
-
-        filePreview.innerHTML = "";
-        parentDisplay.value = "";
-        userDisplay.value = "";
-        // statut initial déterminé côté serveur
-
-    } catch (error) {
-
-        console.error(error);
-
-        showToast("Erreur: " + error.message, "error");
+        const selectedDate = parseServerDate(rawDuration);
+        if (Number.isNaN(selectedDate.getTime())) {
+          throw new Error("La date/heure sélectionnée est invalide.");
+        }
+        periode_realisation = formatDateTimeForBackend(selectedDate);
+      }
+    } else if (durationType.value === "date") {
+      const selectedDate = parseServerDate(rawDuration);
+      if (Number.isNaN(selectedDate.getTime())) {
+        throw new Error("La date/heure sélectionnée est invalide.");
+      }
+      periode_realisation = formatDateTimeForBackend(selectedDate);
     }
+
+    const taskData = {
+      libelle: document.getElementById("taskTitle").value.trim(),
+      description: document.getElementById("taskDescription").value.trim(),
+
+      id_parent: selectedParentTask ? selectedParentTask.id : null,
+
+      id_responsable: selectedUser ? selectedUser.id : null,
+
+      periode_realisation,
+
+      cheminFichier: selectedFiles.length
+        ? selectedFiles.map(f => f.name).join(', ')
+        : null
+    };
+
+    loaderManager.setButtonLoading(confirmCreateBtn, 'Création...');
+    const response = await apiCreateTask(taskData);
+
+    if (!response.success) {
+      throw new Error(response.message || "Erreur création tâche");
+      showToast("Erreur lors de la création de tache !", "error");
+    }
+
+    closeModal(confirmModal);
+
+    showToast("Tâche créée avec succès !", "success");
+
+    // Réinitialiser le formulaire
+    form.reset();
+
+    selectedFiles = [];
+    selectedParentTask = null;
+    selectedUser = null;
+
+    filePreview.innerHTML = "";
+    parentDisplay.value = "";
+    userDisplay.value = "";
+    // statut initial déterminé côté serveur
+
+  } catch (error) {
+
+    console.error(error);
+
+    showToast("Erreur: " + error.message, "error");
+  }
 });
 
 /* =========================
@@ -685,51 +687,51 @@ async function initializePage() {
     // Vérifier d'abord que l'utilisateur est authentifié
     const currentUser = getCurrentUserFromStorage();
     console.log("[AUTH] Utilisateur actuel:", currentUser);
-    
+
     if (!currentUser) {
       console.warn("⚠️ PAS D'UTILISATEUR AUTHENTIFIÉ - Redirection vers login");
       showToast("Vous devez être connecté pour créer une tâche", "error");
       window.location.href = 'login.html';
       return;
     }
-    
+
     console.log("[INIT] Démarrage du chargement des données pour", currentUser.prenom, currentUser.nom);
-    
+
     // Charger les utilisateurs pour la modal
     console.log("[API] Appel GET /users...");
     const usersResponse = await apiListUsers();
     console.log("[API] Réponse utilisateurs:", usersResponse);
-    
+
     if (Array.isArray(usersResponse)) {
       realUsers = usersResponse.filter((user) => (user.disponibilite || 'oui') === 'oui');
     } else {
       console.warn("[WARN] apiListUsers() n'a pas retourné un tableau, reçu:", usersResponse);
       realUsers = [];
     }
-    
+
     // Charger les tâches pour les tâches parentes
     console.log("[API] Appel GET /taches/list...");
     const tasksResponse = await apiListTasks();
     console.log("[API] Réponse tâches:", tasksResponse);
-    
+
     if (Array.isArray(tasksResponse)) {
       realTasks = tasksResponse;
     } else {
       console.warn("[WARN] apiListTasks() n'a pas retourné un tableau, reçu:", tasksResponse);
       realTasks = [];
     }
-    
+
     console.log("✅ TaskPRO Create Task JS chargé et données initialisées");
     console.log("📊 Utilisateurs disponibles:", realUsers.length);
     console.log("📊 Tâches disponibles:", realTasks.length);
-    
+
     if (realUsers.length === 0) {
       console.warn("⚠️ AUCUN UTILISATEUR DISPONIBLE CHARGÉ - Vérifiez les droits (doit être Administrateur) ou qu'aucun utilisateur n'est actuellement disponible.");
     }
     if (realTasks.length === 0) {
       console.warn("⚠️ AUCUNE TÂCHE CHARGÉE - C'est normal si c'est la première fois");
     }
-    
+
   } catch (error) {
     console.error("❌ Erreur lors de l'initialisation:", error);
     console.error("Stack:", error.stack);
