@@ -1,26 +1,17 @@
-
 // ===============================
-// TASKPRO - USERS LIST JS (FINAL STABLE)
+// TASKPRO - USERS LIST JS (FINAL STABLE CORRIGÉ)
 // ===============================
 
-// -------------------------------
-// DONNÉES RÉELLES (depuis API)
-// -------------------------------
 let users = [];
 let allUsers = [];
 let currentUserPage = 1;
 const usersPerPage = 10;
 let currentFilteredUsers = [];
 
-// -------------------------------
-// STATE
-// -------------------------------
 let userToEdit = null;
 let userToDelete = null;
 
-// -------------------------------
 // DOM
-// -------------------------------
 const tableBody = document.getElementById("userTableBody");
 const userPaginationControls = document.getElementById("userPaginationControls");
 const searchUserInput = document.getElementById("searchUser");
@@ -45,14 +36,8 @@ const deleteModal = document.getElementById("confirmDeleteModal");
 document.getElementById("closeUserModal").onclick = () => profileModal.style.display = "none";
 document.getElementById("closeEditUserModal").onclick = () => editModal.style.display = "none";
 
-// -------------------------------
 // TRANSFORMER DONNÉES API → FRONTEND
-// -------------------------------
-/**
- * Transforme un utilisateur de l'API au format du frontend
- */
 function transformUserFromAPI(apiUser) {
-    // Mapper le rôle API vers le format frontend
     const roleMap = {
         "Administrateur": "admin",
         "Employe": "employe",
@@ -75,11 +60,7 @@ function transformUserFromAPI(apiUser) {
     };
 }
 
-// CLOSE BUTTONS
-
-// -------------------------------
 // AVATAR
-// -------------------------------
 function getAvatar(name) {
     return name
         .split(" ")
@@ -88,9 +69,7 @@ function getAvatar(name) {
         .toUpperCase();
 }
 
-// -------------------------------
 // FORMATTERS
-// -------------------------------
 function formatRole(role) {
     switch (role) {
         case "admin": return "Admin";
@@ -108,11 +87,8 @@ function formatAvailability(av) {
     return av === "free" ? "Libre" : "Occupé";
 }
 
-// -------------------------------
 // RENDER TABLE
-// -------------------------------
 function renderUsers(data) {
-
     tableBody.innerHTML = "";
 
     if (data.length === 0) {
@@ -131,8 +107,8 @@ function renderUsers(data) {
 
     data.forEach(user => {
         const row = document.createElement("tr");
+        row.setAttribute("data-id", user.id); // On stocke l'ID sur la ligne
 
-        // Admin ne peut agir que sur les Employés
         const canEdit = isSuperAdmin || user.role === 'employe';
         const canDelete = isSuperAdmin || user.role === 'employe';
 
@@ -154,25 +130,17 @@ function renderUsers(data) {
             <td>
                 <div class="action-buttons">
                     <button class="btn-action view-btn" data-id="${user.id}">Voir</button>
-                    ${canEdit ? `<button class="btn-action edit-btn"   data-id="${user.id}">Modifier</button>` : ''}
+                    ${canEdit ? `<button class="btn-action edit-btn" data-id="${user.id}">Modifier</button>` : ''}
                     ${canDelete ? `<button class="btn-action delete-btn" data-id="${user.id}">Supprimer</button>` : ''}
                 </div>
             </td>
         `;
 
-        row.addEventListener("click", (e) => {
-            if (!e.target.closest(".btn-action")) {
-                openProfileModal(user.id);
-            }
-        });
-
         tableBody.appendChild(row);
     });
 }
 
-// -------------------------------
 // PROFILE MODAL
-// -------------------------------
 function openProfileModal(id) {
     const user = users.find(u => u.id === id);
     if (!user) return;
@@ -189,9 +157,7 @@ function openProfileModal(id) {
     profileModal.style.display = "flex";
 }
 
-// -------------------------------
 // EDIT MODAL
-// -------------------------------
 function openEditModal(id) {
     const user = users.find(u => u.id === id);
     if (!user) return;
@@ -200,48 +166,134 @@ function openEditModal(id) {
 
     document.getElementById("editName").value = user.name;
     document.getElementById("editEmail").value = user.email;
-    document.getElementById("editRole").value = user.role;
+    document.getElementById("editRole").value = user.role; // S'aligne parfaitement sur l'attribut HTML value
     document.getElementById("editAvailability").value = user.availability;
 
     editModal.style.display = "flex";
 }
 
-// SAVE EDIT
-document.getElementById("editUserForm").addEventListener("submit", (e) => {
+// DELETE MODAL (La fonction qui manquait !)
+function openDeleteModal(id) {
+    userToDelete = id; 
+    deleteModal.style.display = "flex";
+}
+
+// SAVE EDIT (Soumission du Formulaire)
+// document.getElementById("editUserForm").addEventListener("submit", async (e) => {
+//     e.preventDefault();
+
+//     if (!userToEdit) return;
+
+//     const fullName = document.getElementById("editName").value.trim();
+//     const nameParts = fullName.split(" ");
+//     const prenom = nameParts[0] || "";
+//     const nom = nameParts.slice(1).join(" ") || "";
+
+//     const updatedData = {
+//         id: userToEdit.id,
+//         nom: nom,
+//         prenom: prenom,
+//         email: document.getElementById("editEmail").value,
+//         role: document.getElementById("editRole").value,
+//         availability: document.getElementById("editAvailability").value
+//     };
+
+//     // CODE DE SAUVEGARDE EN LOCAL
+//     userToEdit.name = fullName;
+//     userToEdit.email = updatedData.email;
+//     userToEdit.role = updatedData.role;
+//     userToEdit.availability = updatedData.availability;
+
+//     renderUsersFromCurrentFilter();
+//     editModal.style.display = "none";
+//     showToast("Utilisateur mis à jour avec succès.", "success");
+    
+//     // NOTE: Si tu veux lier à ton API, décommente cette partie :
+//     /*
+//     try {
+//         await fetch('api.php/admin/users/update', {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json' },
+//             body: JSON.stringify(updatedData)
+//         });
+//     } catch(err) { console.error("Erreur synchro API", err); }
+//     */
+// });
+
+// SAVE EDIT (Soumission du Formulaire avec sauvegarde en Base de Données)
+document.getElementById("editUserForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    if (!userToEdit) {
-        return;
+    if (!userToEdit) return;
+
+    const fullName = document.getElementById("editName").value.trim();
+    const nameParts = fullName.split(" ");
+    const prenom = nameParts[0] || "";
+    const nom = nameParts.slice(1).join(" ") || "";
+
+    // Préparation des données au format attendu par ton API PHP
+    const updatedData = {
+        id: userToEdit.id,
+        nom: nom,
+        prenom: prenom,
+        email: document.getElementById("editEmail").value,
+        role: document.getElementById("editRole").value,
+        availability: document.getElementById("editAvailability").value
+    };
+
+    try {
+        // Envoi des données modifiées à ton API PHP (Adapte le chemin du fichier si besoin)
+        const response = await fetch('../public/api.php/admin/users/update', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedData)
+        });
+
+        // On vérifie si le serveur a bien accepté la modification
+        if (!response.ok) {
+            throw new Error("Erreur serveur lors de la mise à jour");
+        }
+
+        // 1. Mise à jour dans la mémoire locale JS seulement si l'API a répondu avec succès
+        userToEdit.name = fullName;
+        userToEdit.email = updatedData.email;
+        userToEdit.role = updatedData.role;
+        userToEdit.availability = updatedData.availability;
+
+        // 2. Rafraîchir l'affichage de la table
+        renderUsersFromCurrentFilter();
+        
+        // 3. Fermer la modale et notifier
+        editModal.style.display = "none";
+        showToast("Utilisateur mis à jour avec succès en base de données.", "success");
+
+    } catch (error) {
+        console.error("❌ Erreur de synchronisation API:", error);
+        showToast("⚠️ Impossible d'enregistrer les modifications sur le serveur.", "error");
     }
-
-    userToEdit.name = document.getElementById("editName").value;
-    userToEdit.email = document.getElementById("editEmail").value;
-    userToEdit.role = document.getElementById("editRole").value;
-    userToEdit.availability = document.getElementById("editAvailability").value;
-
-    renderUsersFromCurrentFilter();
-    editModal.style.display = "none";
-    showToast("Utilisateur mis à jour avec succès.", "success");
 });
 
+// CONFIRM DELETE
 document.getElementById("confirmDelete").onclick = () => {
-    if (userToDelete == null) {
-        return;
-    }
+    if (userToDelete == null) return;
 
     users = users.filter(u => u.id !== userToDelete);
     allUsers = allUsers.filter(u => u.id !== userToDelete);
     currentFilteredUsers = currentFilteredUsers.filter(u => u.id !== userToDelete);
+    
     renderUsersFromCurrentFilter();
     deleteModal.style.display = "none";
+    userToDelete = null; // Reset
     showToast("Utilisateur supprimé.", "success");
 };
 
 document.getElementById("cancelDelete").onclick = () => {
     deleteModal.style.display = "none";
+    userToDelete = null;
 };
 
-// -------------------------------
 // PAGINATION
 function getUserPage(data) {
     const start = (currentUserPage - 1) * usersPerPage;
@@ -274,9 +326,7 @@ function populatePosteFilter() {
 }
 
 function renderUserPagination(totalItems) {
-    if (!userPaginationControls) {
-        return;
-    }
+    if (!userPaginationControls) return;
 
     const totalPages = Math.max(1, Math.ceil(totalItems / usersPerPage));
     userPaginationControls.innerHTML = '';
@@ -287,9 +337,7 @@ function renderUserPagination(totalItems) {
     pageInfo.textContent = `Page ${currentUserPage} / ${totalPages}`;
     userPaginationControls.appendChild(pageInfo);
 
-    if (totalPages <= 1) {
-        return;
-    }
+    if (totalPages <= 1) return;
 
     const createButton = (text, page, active = false, disabled = false) => {
         const button = document.createElement('button');
@@ -340,17 +388,9 @@ function applyUserFilters() {
         );
     }
 
-    if (role) {
-        filtered = filtered.filter(user => user.role === role);
-    }
-
-    if (poste) {
-        filtered = filtered.filter(user => user.poste === poste);
-    }
-
-    if (availability) {
-        filtered = filtered.filter(user => user.availability === availability);
-    }
+    if (role) filtered = filtered.filter(user => user.role === role);
+    if (poste) filtered = filtered.filter(user => user.poste === poste);
+    if (availability) filtered = filtered.filter(user => user.availability === availability);
 
     currentFilteredUsers = filtered;
     currentUserPage = 1;
@@ -362,31 +402,28 @@ roleFilter.addEventListener('change', applyUserFilters);
 posteFilter?.addEventListener('change', applyUserFilters);
 availabilityFilter.addEventListener('change', applyUserFilters);
 
-// -------------------------------
-// ACTIONS HANDLER
-// -------------------------------
+// CENTRALISATION DE L'ÉCOUTEUR DES CLICS (Pas de conflits)
 tableBody.addEventListener("click", (e) => {
-    const id = parseInt(e.target.dataset.id);
-
-    if (e.target.classList.contains("view-btn")) {
-        openProfileModal(id);
-    }
-
-    if (e.target.classList.contains("edit-btn")) {
-        openEditModal(id);
-    }
-
-    if (e.target.classList.contains("delete-btn")) {
-        openDeleteModal(id);
+    const btn = e.target.closest(".btn-action");
+    
+    // Si on clique sur un bouton d'action
+    if (btn) {
+        const id = parseInt(btn.dataset.id);
+        if (btn.classList.contains("view-btn")) openProfileModal(id);
+        if (btn.classList.contains("edit-btn")) openEditModal(id);
+        if (btn.classList.contains("delete-btn")) openDeleteModal(id);
+    } else {
+        // Si on clique n'importe où ailleurs sur la ligne <tr>, on ouvre le profil
+        const row = e.target.closest("tr");
+        if (row && row.dataset.id) {
+            openProfileModal(parseInt(row.dataset.id));
+        }
     }
 });
 
-// -------------------------------
 // INITIALISATION
-// -------------------------------
 async function initializePage() {
     try {
-        // Vérifier l'authentification
         const currentUser = getCurrentUserFromStorage();
 
         if (!currentUser) {
@@ -396,7 +433,6 @@ async function initializePage() {
             return;
         }
 
-        // Charger les utilisateurs (seulement pour Administrateur)
         const usersResponse = await apiListUsers();
 
         if (!Array.isArray(usersResponse)) {
@@ -404,7 +440,6 @@ async function initializePage() {
             users = [];
             allUsers = [];
         } else {
-            // Transformer les données
             users = usersResponse.map(apiUser => transformUserFromAPI(apiUser));
             allUsers = [...users];
             currentFilteredUsers = [...allUsers];
@@ -413,16 +448,13 @@ async function initializePage() {
             populatePosteFilter();
         }
 
-        // Afficher les utilisateurs
         renderUsersFromCurrentFilter();
     } catch (error) {
         console.error("❌ Erreur lors de l'initialisation:", error);
-        console.error("Stack:", error.stack);
         showToast("⚠️ Erreur de chargement des utilisateurs: " + error.message, "error");
     }
 }
 
-// Lancer l'initialisation au chargement
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializePage);
 } else {

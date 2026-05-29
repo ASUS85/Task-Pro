@@ -128,21 +128,34 @@ class UtilisateurDAO
     /**
      * Mettre à jour utilisateur
      */
+    /**
+     * Mettre à jour utilisateur
+     */
     public function mettreAJour(int $id, array $donnees): bool
     {
         try {
             $colonnes = [];
             $params = [':id' => $id];
 
+            // Liste des champs autorisés en BDD
+            $champsAutorises = ['nom', 'prenom', 'sexe', 'poste', 'email', 'password', 'role', 'disponibilite'];
+
+            // Traitement spécifique si le JS envoie 'availability' ou 'disponibilite'
+            if (isset($donnees['availability'])) {
+                // Si le front envoie 'libre'/'busy' ou 'oui'/'non', on adapte pour la BDD
+                $donnees['disponibilite'] = ($donnees['availability'] === 'busy' || $donnees['availability'] === 'non') ? 'non' : 'oui';
+            }
+
             foreach ($donnees as $key => $value) {
-                if (in_array($key, ['nom', 'prenom', 'sexe', 'poste', 'email', 'password', 'role'])) {
+                if (in_array($key, $champsAutorises)) {
                     $colonnes[] = "$key = :$key";
                     $params[":$key"] = $value;
                 }
             }
 
+            // Si aucun champ valide n'a été trouvé, on s'arrête
             if (empty($colonnes)) {
-                return true;
+                return false; 
             }
 
             $sql = "UPDATE utilisateurs 
