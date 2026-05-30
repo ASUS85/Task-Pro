@@ -142,7 +142,8 @@ try {
                         'nom' => $user->getNom(),
                         'prenom' => $user->getPrenom(),
                         'email' => $user->getEmail(),
-                        'role' => $user->getRole()
+                        'role' => $user->getRole(),
+                        'sexe' => method_exists($user, 'getSexe') ? $user->getSexe() : ($user->sexe ?? null)
                     ]
                 ]);
             } catch (Exception $e) {
@@ -177,6 +178,7 @@ try {
                     'prenom' => $user->getPrenom(),
                     'email' => $user->getEmail(),
                     'role' => $user->getRole(),
+                    'sexe' => method_exists($user, 'getSexe') ? $user->getSexe() : ($user->sexe ?? null),
                     'poste' => $user->getPoste()
                 ]
             ]);
@@ -611,14 +613,69 @@ try {
 
     // ================= ADMIN (Gestion utilisateurs) =================
     if ($parts[0] === 'admin') {
-        requireSuperAdmin();
+        // Optionnel : si seul le SuperAdmin peut modifier, laisse requireSuperAdmin()
+        // Si les Administrateurs simples peuvent aussi modifier les employés, utilise requireAuth()
+        requireSuperAdmin(); 
 
+        // 1. AJOUT DE LA ROUTE UPDATE (Mise à jour d'un utilisateur)
+        if (($parts[1] ?? '') === 'users' && ($parts[2] ?? '') === 'update' && $method === 'POST') {
+            try {
+                // On vérifie qu'on a bien reçu un ID
+                if (!isset($data['id'])) {
+                    throw new Exception("L'identifiant de l'utilisateur est manquant.");
+                }
+
+                // On appelle la méthode du DAO ou du Service pour mettre à jour la BDD
+                // Note : Assure-toi que mettreAJour prend bien ($id, $donnees) ou adapte selon ton UtilisateurDAO
+                $result = $utilisateurDAO->mettreAJour((int)$data['id'], $data);
+
+                echo json_encode([
+                    'success' => $result,
+                    'message' => $result ? 'Utilisateur mis à jour avec succès' : 'Aucune modification apportée'
+                ]);
+            } catch (Exception $e) {
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ]);
+            }
+            exit;
+        }
+
+        // 2. NOUVELLE ROUTE : DELETE (Suppression d'un utilisateur)
+        if (($parts[1] ?? '') === 'users' && ($parts[2] ?? '') === 'delete' && $method === 'POST') {
+            try {
+                // On vérifie qu'on a bien reçu l'ID à supprimer
+                if (!isset($data['id'])) {
+                    throw new Exception("L'identifiant de l'utilisateur à supprimer est manquant.");
+                }
+
+                // Appelle la méthode de suppression de ton DAO (adapte le nom si nécessaire, ex: supprimer)
+                $result = $utilisateurDAO->supprimer((int)$data['id']);
+
+                echo json_encode([
+                    'success' => $result,
+                    'message' => $result ? 'Utilisateur supprimé avec succès' : 'Impossible de supprimer l\'utilisateur'
+                ]);
+            } catch (Exception $e) {
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ]);
+            }
+            exit;
+        }
+
+        // 2. ROUTE EXISTANTE : CREATE
         if (($parts[1] ?? '') === 'users' && ($parts[2] ?? '') === 'create') {
             $result = $authServices->creerUtilisateurParAdmin($data, $_SESSION['user_id']);
             echo json_encode(['success' => $result]);
             exit;
         }
 
+        // 3. ROUTE EXISTANTE : GET LIST
         if (($parts[1] ?? '') === 'users' && $method === 'GET') {
             $users = $utilisateurDAO->obtenirTous();
 
