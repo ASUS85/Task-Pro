@@ -1,1 +1,16 @@
 .env
+.env.*
+!.env.example
+
+# Donnees locales / temporaires
+cookies.txt
+*.log
+*.tmp
+
+# Systeme / IDE
+.DS_Store
+Thumbs.db
+.idea/
+
+# Dependances recreables si besoin
+node_modules/

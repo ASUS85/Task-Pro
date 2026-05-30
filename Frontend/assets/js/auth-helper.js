@@ -8,9 +8,16 @@
 /**
  * Vérifier l'authentification et rediriger si nécessaire
  */
+function frontendUrl(page) {
+    const appBasePath = window.location.pathname.includes('/Frontend/')
+        ? window.location.pathname.split('/Frontend/')[0]
+        : '';
+    return `${appBasePath}/Frontend/${page}`;
+}
+
 function requireAuth() {
     if (!sessionManager.isAuthenticated()) {
-        window.location.href = '/Task-Pro/Frontend/login.html';
+        window.location.href = frontendUrl('login.html');
         return false;
     }
     return true;
@@ -30,7 +37,7 @@ function notifyAuthError(message) {
 function requireRole(role) {
     if (!sessionManager.hasRole(role)) {
         notifyAuthError('Accès refusé: vous n\'avez pas la permission d\'accéder à cette ressource');
-        window.location.href = '/Task-Pro/Frontend/dashboard.html';
+        window.location.href = frontendUrl('dashboard.html');
         return false;
     }
     return true;
@@ -49,7 +56,7 @@ function requireSuperAdmin() {
 function requireAdmin() {
     if (!sessionManager.isAdmin() && !sessionManager.isSuperAdmin()) {
         notifyAuthError('Accès refusé: droits administrateur requis');
-        window.location.href = '/Task-Pro/Frontend/dashboard.html';
+        window.location.href = frontendUrl('dashboard.html');
         return false;
     }
     return true;

@@ -5,11 +5,19 @@
  * ============================================================
  */
 
+const APP_BASE_PATH = window.location.pathname.includes('/Frontend/')
+    ? window.location.pathname.split('/Frontend/')[0]
+    : '';
+
+function frontendUrl(page) {
+    return `${APP_BASE_PATH}/Frontend/${page}`;
+}
+
 const API_BASE_URL = (() => {
     const protocol = window.location.protocol;
     const hostname = window.location.hostname;
     const port = window.location.port ? ':' + window.location.port : '';
-    return `${protocol}//${hostname}${port}/Task-Pro/public/api.php`;
+    return `${protocol}//${hostname}${port}${APP_BASE_PATH}/public/api.php`;
 })();
 
 
@@ -50,7 +58,7 @@ async function apiCall(endpoint, method = 'GET', data = null, options = {}) {
             if (response.status === 401) {
                 localStorage.removeItem('user');
                 localStorage.removeItem('authenticated');
-                window.location.href = '/Task-Pro/Frontend/login.html';
+                window.location.href = frontendUrl('login.html');
                 throw new Error('Session expirée');
             }
             
@@ -263,7 +271,7 @@ function isAuthenticated() {
 
 function requireAuth() {
     if (!isAuthenticated()) {
-        window.location.href = '/Task-Pro/Frontend/login.html';
+        window.location.href = frontendUrl('login.html');
     }
 }
 

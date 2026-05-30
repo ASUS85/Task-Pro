@@ -1,6 +1,8 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /Task-Pro/
+
+    # Bloquer l'accès HTTP direct au code serveur
+    RewriteRule ^(?:config|DAOs|Models|Services|Templates|vendor|\.git)/ - [F,L]
 
     # 1. Ne rien faire si le fichier ou dossier existe réellement
     RewriteCond %{REQUEST_FILENAME} -f [OR]
@@ -10,12 +12,20 @@
     # 2. Gestion de l'API
     RewriteRule ^api/(.*)$ public/api.php [L,QSA]
 
-    # 3. Rediriger vers Frontend SEULEMENT si on n'y est pas déjà
-    RewriteCond %{REQUEST_URI} !^/Task-Pro/Frontend/ [NC]
+    # 3. Rediriger vers Frontend
     RewriteRule ^(.*)$ Frontend/$1 [L]
 </IfModule>
 
 # Protection des fichiers sensibles
+<FilesMatch "^(\.env|\.gitignore|composer\.(json|lock)|cookies\.txt)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
 <FilesMatch "^(?:config|db|install|setup|test|debug)\.php$">
     <IfModule mod_authz_core.c>
         Require all denied

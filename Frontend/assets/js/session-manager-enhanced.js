@@ -48,7 +48,7 @@ class SessionManager {
         const currentPage = window.location.pathname.split('/').pop() || 'index.html';
         
         if (!publicPages.some(p => currentPage.includes(p)) && !this.authenticated) {
-            window.location.href = '/Task-Pro/Frontend/login.html';
+            window.location.href = this.frontendUrl('login.html');
         }
     }
 
@@ -145,8 +145,15 @@ class SessionManager {
             localStorage.removeItem('authenticated');
             this.user = null;
             this.authenticated = false;
-            window.location.href = '/Task-Pro/Frontend/login.html';
+            window.location.href = this.frontendUrl('login.html');
         }
+    }
+
+    frontendUrl(page) {
+        const appBasePath = window.location.pathname.includes('/Frontend/')
+            ? window.location.pathname.split('/Frontend/')[0]
+            : '';
+        return `${appBasePath}/Frontend/${page}`;
     }
 
     /**

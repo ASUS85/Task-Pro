@@ -6,7 +6,7 @@
  */
 
 class ApiClient {
-    constructor(baseUrl = '/Task-Pro/public/api.php') {
+    constructor(baseUrl = `${window.location.pathname.includes('/Frontend/') ? window.location.pathname.split('/Frontend/')[0] : ''}/public/api.php`) {
         this.baseUrl = baseUrl;
         this.timeout = 30000;
         this.headers = {

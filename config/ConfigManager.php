@@ -66,7 +66,7 @@ class ConfigManager {
         $defaults = [
             'DB_HOST' => 'localhost',
             'DB_PORT' => '3306',
-            'DB_NAME' => 'taskpro_db',
+            'DB_NAME' => 'task_pro_db',
             'DB_USER' => 'root',
             'DB_PASS' => '',
             'APP_ENV' => 'development',

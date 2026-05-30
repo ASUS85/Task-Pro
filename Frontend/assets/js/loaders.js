@@ -364,7 +364,10 @@ class LoaderManager {
             const link = document.createElement('link');
             link.id = 'loaders-css';
             link.rel = 'stylesheet';
-            link.href = '/Task-Pro/Frontend/assets/css/loaders.css';
+            const appBasePath = window.location.pathname.includes('/Frontend/')
+                ? window.location.pathname.split('/Frontend/')[0]
+                : '';
+            link.href = `${appBasePath}/Frontend/assets/css/loaders.css`;
             document.head.appendChild(link);
         }
     }

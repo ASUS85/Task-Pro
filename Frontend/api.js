@@ -6,9 +6,10 @@
 // ========================================
 // CONFIGURATION API
 // ========================================
-const API_BASE_URL = window.location.protocol + '//' + window.location.hostname +
-    (window.location.port ? ':' + window.location.port : '') +
-    '/Task-Pro/public/api.php';
+const appBasePath = window.location.pathname.includes('/Frontend/')
+    ? window.location.pathname.split('/Frontend/')[0]
+    : '';
+const API_BASE_URL = `${window.location.origin}${appBasePath}/public/api.php`;
 
 
 
