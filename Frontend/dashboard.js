@@ -78,7 +78,22 @@ let notifSortOrder = 'DESC';
 let pendingDeleteId = null;
 let allNotifications = [];
 
+function hasNotifUi() {
+    return Boolean(document.getElementById('notifBadgeBtn') && document.getElementById('notifCount'));
+}
+
+function getStoredUserRole() {
+    try {
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        return user?.role || null;
+    } catch (e) {
+        return null;
+    }
+}
+
 async function fetchNotifications() {
+    if (!hasNotifUi()) return;
+
     try {
         const res = await fetch(
             `../public/api.php/notifications?ordre=${notifSortOrder}`,
@@ -105,35 +120,8 @@ function renderNotifBadge(count) {
     }
 }
 
-function stripHtml(html) {
-    // Extrait les données clés du HTML de notification Task-Pro
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html;
-
-    // Essaye d'extraire le libellé et le statut depuis le tableau HTML
-    const rows = tmp.querySelectorAll('tr');
-    let libelle = '', statut = '', responsable = '';
-
-    rows.forEach(row => {
-        const th = row.querySelector('th');
-        const td = row.querySelector('td');
-        if (!th || !td) return;
-        const label = th.textContent.trim().toLowerCase();
-        const value = td.textContent.trim();
-        if (label === 'libellé') libelle = value;
-        if (label === 'statut') statut = value.trim();
-        if (label === 'responsable') responsable = value;
-    });
-
-    if (libelle) {
-        let msg = `Tâche "${libelle}"`;
-        if (statut) msg += ` — ${statut}`;
-        if (responsable) msg += ` · ${responsable}`;
-        return msg;
-    }
-
-    // Fallback : texte brut sans balises
-    return tmp.textContent.replace(/\s+/g, ' ').trim();
+function isNotifUnread(notification) {
+    return Number(notification?.is_read) === 0 || notification?.is_read === false;
 }
 
 function renderNotifList() {
@@ -155,8 +143,8 @@ function renderNotifList() {
     };
 
     list.innerHTML = allNotifications.map(n => {
-        const unread = !parseInt(n.is_read);
-        const parsed = parseNotifMessage(n.message);
+        const unread = isNotifUnread(n);
+        const parsed = normalizeNotif(n);
         const sc = statusColors[parsed.statut] || statusColors['non assigné'];
         const date = new Date(n.created_at).toLocaleString('fr-FR', {
             day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
@@ -210,12 +198,31 @@ function escHtml(str) {
         .replace(/"/g, '&quot;');
 }
 
+function normalizeNotif(notification) {
+    const parsed = parseNotifMessage(notification.message);
+    const libelle = notification.tache_libelle || parsed.libelle;
+    const statut = notification.tache_status || parsed.statut;
+    const responsable = parsed.responsable;
+
+    let resume = parsed.resume;
+    if (libelle) {
+        resume = `Tâche "${libelle}"`;
+        if (statut) resume += ` — ${statut}`;
+        if (responsable) resume += ` · ${responsable}`;
+    }
+
+    return { libelle, statut, responsable, resume };
+}
+
 function parseNotifMessage(html) {
+    const text = String(html || '').replace(/\s+/g, ' ').trim();
     const tmp = document.createElement('div');
-    tmp.innerHTML = html;
+    tmp.innerHTML = text;
 
     const rows = tmp.querySelectorAll('tr');
-    let libelle = '', statut = '', responsable = '';
+    let libelle = '';
+    let statut = '';
+    let responsable = '';
 
     rows.forEach(row => {
         const th = row.querySelector('th');
@@ -228,15 +235,28 @@ function parseNotifMessage(html) {
         if (label === 'responsable') responsable = value;
     });
 
-    // Résumé lisible
+    if (!libelle) {
+        const match = text.match(/Tâche\s+"([^"]+)"/i);
+        if (match) libelle = match[1];
+    }
+
+    if (!statut) {
+        const match = text.match(/statut\s*:\s*([^·]+)/i);
+        if (match) statut = match[1].trim();
+    }
+
+    if (!responsable) {
+        const match = text.match(/Responsable\s*:\s*([^·]+)/i);
+        if (match) responsable = match[1].trim();
+    }
+
     let resume = '';
     if (libelle) {
         resume = `Tâche "${libelle}"`;
         if (statut) resume += ` — ${statut}`;
         if (responsable) resume += ` · ${responsable}`;
     } else {
-        // Fallback : texte brut nettoyé
-        resume = tmp.textContent.replace(/\s+/g, ' ').trim().slice(0, 120);
+        resume = tmp.textContent.replace(/\s+/g, ' ').trim().slice(0, 140);
     }
 
     return { libelle, statut, responsable, resume };
@@ -245,6 +265,8 @@ function parseNotifMessage(html) {
 function toggleNotifPanel() {
     const panel = document.getElementById('notifPanel');
     const overlay = document.getElementById('notifOverlay');
+    if (!panel || !overlay) return;
+
     notifPanelOpen = !notifPanelOpen;
     panel.classList.toggle('open', notifPanelOpen);
     overlay.style.display = notifPanelOpen ? 'block' : 'none';
@@ -272,7 +294,7 @@ async function markOneRead(id) {
         });
         const notif = allNotifications.find(n => n.id == id);
         if (notif) notif.is_read = true;
-        const unread = allNotifications.filter(n => !n.is_read).length;
+        const unread = allNotifications.filter(isNotifUnread).length;
         renderNotifBadge(unread);
         renderNotifList();
     } catch (e) { }
@@ -316,7 +338,7 @@ async function confirmDeleteNotif() {
         const data = await res.json();
         if (data.success) {
             allNotifications = allNotifications.filter(n => n.id != pendingDeleteId);
-            const unread = allNotifications.filter(n => !n.is_read).length;
+            const unread = allNotifications.filter(isNotifUnread).length;
             renderNotifBadge(unread);
             renderNotifList();
         }
@@ -326,6 +348,20 @@ async function confirmDeleteNotif() {
 
 function goToTask(idTache, libelle = '') {
     closeNotifPanel();
+
+    if (window.location.pathname.includes('dashbordUser.html')) {
+        if (typeof showSection === 'function') {
+            showSection('tasks-section');
+        }
+
+        if (idTache && typeof currentTasks !== 'undefined' && Array.isArray(currentTasks)) {
+            const task = currentTasks.find(t => Number(t.id) === Number(idTache));
+            if (task && typeof openTaskModal === 'function') {
+                openTaskModal(task);
+            }
+        }
+        return;
+    }
 
     if (idTache) {
         // Cas normal : id_tache présent en BD
@@ -345,6 +381,8 @@ function goToTask(idTache, libelle = '') {
 
 // Rafraîchir le badge toutes les 60 secondes
 setInterval(async () => {
+    if (!hasNotifUi()) return;
+
     try {
         const res = await fetch('../public/api.php/notifications/unread-count', {
             credentials: 'include'
@@ -356,7 +394,9 @@ setInterval(async () => {
 
 // Charger le badge au démarrage
 document.addEventListener('DOMContentLoaded', () => {
-    fetchNotifications();
+    if (hasNotifUi() && getStoredUserRole()) {
+        fetchNotifications();
+    }
 });
 
 

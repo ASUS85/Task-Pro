@@ -337,30 +337,30 @@ class TacheService
 
             // Transition de statut autorisée uniquement après assignation
             if ($tache->getStatus() === "assigné") {
-                if (!in_array($nouveauStatut, ["en cours", "terminé"])) {
-                    throw new Exception("Action interdite : un employé ne peut passer qu'en cours ou terminé depuis assigné.");
+                if (!in_array($nouveauStatut, ["en cours", "terminé", "non terminé"])) {
+                    throw new Exception("Action interdite : un employé ne peut passer qu'en cours, terminé ou non terminé depuis assigné.");
                 }
             } elseif ($tache->getStatus() === "en cours") {
-                if ($nouveauStatut !== "terminé") {
-                    throw new Exception("Action interdite : un employé ne peut passer qu'à terminé depuis en cours.");
+                if (!in_array($nouveauStatut, ["terminé", "non terminé"])) {
+                    throw new Exception("Action interdite : un employé ne peut passer qu'à terminé ou non terminé depuis en cours.");
                 }
             } else {
                 throw new Exception("Action interdite : le statut ne peut être modifié que lorsque la tâche est assignée ou en cours.");
             }
             // APRÈS
         } else {
-            // Admin/SuperAdmin assigné à la tâche → mêmes droits que l'Employé
+            // Admin/SuperAdmin assigné à la tâche
             $isResponsable = $tache->getIdResponsable() === $idUtilisateur;
 
             if ($isResponsable) {
-                // L'admin est le responsable → transitions autorisées comme un Employé
+                // L'admin responsable peut aussi marquer la tâche comme non terminée.
                 if ($tache->getStatus() === "assigné") {
-                    if (!in_array($nouveauStatut, ["en cours", "terminé"])) {
-                        throw new Exception("Action interdite : depuis 'assigné', vous pouvez passer à 'en cours' ou 'terminé' uniquement.");
+                    if (!in_array($nouveauStatut, ["en cours", "terminé", "non terminé"])) {
+                        throw new Exception("Action interdite : depuis 'assigné', vous pouvez passer à 'en cours', 'terminé' ou 'non terminé' uniquement.");
                     }
                 } elseif ($tache->getStatus() === "en cours") {
-                    if ($nouveauStatut !== "terminé") {
-                        throw new Exception("Action interdite : depuis 'en cours', vous pouvez passer à 'terminé' uniquement.");
+                    if (!in_array($nouveauStatut, ["terminé", "non terminé"])) {
+                        throw new Exception("Action interdite : depuis 'en cours', vous pouvez passer à 'terminé' ou 'non terminé' uniquement.");
                     }
                 } else {
                     throw new Exception("Action interdite : le statut ne peut être modifié que lorsque la tâche est assignée ou en cours.");

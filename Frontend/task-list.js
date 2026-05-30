@@ -456,8 +456,10 @@ function openEditTask(taskId) {
             if (currentTaskEdit.rawStatus === 'assigné') {
                 options.push({ value: 'en cours', label: 'En cours' });
                 options.push({ value: 'terminé', label: 'Terminée' });
+                options.push({ value: 'non terminé', label: 'Non terminé' });
             } else if (currentTaskEdit.rawStatus === 'en cours') {
                 options.push({ value: 'terminé', label: 'Terminée' });
+                options.push({ value: 'non terminé', label: 'Non terminé' });
             }
 
             if (options.length === 0) {
@@ -496,8 +498,10 @@ function openEditTask(taskId) {
             if (currentTaskEdit.rawStatus === 'assigné') {
                 options.push({ value: 'en cours', label: 'En cours' });
                 options.push({ value: 'terminé', label: 'Terminée' });
+                options.push({ value: 'non terminé', label: 'Non terminé' });
             } else if (currentTaskEdit.rawStatus === 'en cours') {
                 options.push({ value: 'terminé', label: 'Terminée' });
+                options.push({ value: 'non terminé', label: 'Non terminé' });
             }
 
             options.forEach(opt => {

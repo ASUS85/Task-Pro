@@ -228,6 +228,29 @@ function notify(txt, color) {
     showMessage(txt, color, msgEl);
 }
 
+function getStatusLabel(status) {
+    const labels = {
+        "non assigné": "Non assigné",
+        "assigné": "Assigné",
+        "en cours": "En cours",
+        "non terminé": "Non terminé",
+        "terminé": "Terminé",
+        "expiré": "Expiré"
+    };
+    return labels[status] || status || "Statut inconnu";
+}
+
+function setStatusSelectOptions(statusSelect, currentStatus) {
+    const options = [currentStatus, "en cours", "terminé", "non terminé"]
+        .filter(Boolean)
+        .filter((status, index, list) => list.indexOf(status) === index);
+
+    statusSelect.innerHTML = options
+        .map(status => `<option value="${status}">${getStatusLabel(status)}</option>`)
+        .join("");
+    statusSelect.value = currentStatus || "";
+}
+
 // =======================
 // CHARGER & AFFICHER LES TÂCHES
 // =======================
@@ -598,7 +621,7 @@ function openTaskModal(task) {
     }
 
     if (statusSelect) {
-        statusSelect.value = task.status || "";
+        setStatusSelectOptions(statusSelect, task.status || "");
     }
 
     if (task.status === 'expiré') {
@@ -676,9 +699,15 @@ window.onclick = function (event) {
 
 async function saveStatus() {
     const newStatus = document.getElementById("statusSelect")?.value;
+    const currentStatus = selectedTaskData?.status || "";
 
     if (!selectedTaskId || !newStatus) {
         notify("Données invalides", "red");
+        return;
+    }
+
+    if (newStatus === currentStatus) {
+        notify("Veuillez modifier le statut avant de sauvegarder.", "orange");
         return;
     }
 

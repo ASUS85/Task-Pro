@@ -109,7 +109,13 @@ class NotificationService
         $msgBD = preg_replace('/\s+/', ' ', $msgBD);
         $msgBD = trim($msgBD);
 
-        $this->notificationDAO->sauvegarder($idDestinataire, "INFO", $msgBD, $idTache);
+        if ($idDestinataire > 0) {
+            try {
+                $this->notificationDAO->sauvegarder($idDestinataire, "INFO", $msgBD, $idTache);
+            } catch (\Throwable $e) {
+                error_log("Erreur notification app: " . $e->getMessage());
+            }
+        }
 
         if (!$this->isValidEmail($emailDestinataire)) {
             return [
