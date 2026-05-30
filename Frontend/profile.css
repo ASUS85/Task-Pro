@@ -672,7 +672,7 @@ body.dashboard-body {
 }
 
 /*Input*/
-input {
+input, select {
   width: 100%;
   padding: 14px 16px;
   border-radius: 14px;
@@ -681,6 +681,11 @@ input {
   color: white;
   outline: none;
   transition: 0.25s;
+}
+
+select option {
+    background: #111217;
+    color: white;
 }
 
 /* =========================
@@ -787,6 +792,14 @@ input {
   justify-content: space-between;
   gap: 20px;
   margin-top: 22px;
+  flex-wrap: nowrap !important;
+}
+
+.btn-save{
+  background: linear-gradient(135deg, #d4af37, #f0c84b);
+  color: black;
+  font-weight: 700;
+  transition: 0.25s ease;
 }
 
 .hidden {

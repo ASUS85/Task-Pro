@@ -155,7 +155,7 @@ class UtilisateurDAO
 
             // Si aucun champ valide n'a été trouvé, on s'arrête
             if (empty($colonnes)) {
-                return false; 
+                return false;
             }
 
             $sql = "UPDATE utilisateurs 
@@ -321,25 +321,25 @@ class UtilisateurDAO
             // Admin voit uniquement les Employés
             // (pas les autres Admins ni le SuperAdmin)
             $sql = "
-            SELECT 
-                u.id,
-                u.nom,
-                u.prenom,
-                u.email,
-                u.role,
-                u.poste,
-                CASE
-                    WHEN SUM(CASE WHEN t.status IN ('assigné', 'en cours') THEN 1 ELSE 0 END) > 0
-                    THEN 'non'
-                    ELSE 'oui'
-                END AS disponibilite,
-                COUNT(t.id) AS total_taches
-            FROM utilisateurs u
-            LEFT JOIN taches t ON t.id_responsable = u.id
-            WHERE u.role = 'Employe'
-            GROUP BY u.id
-            ORDER BY u.created_at DESC
-        ";
+                SELECT 
+                    u.id,
+                    u.nom,
+                    u.prenom,
+                    u.email,
+                    u.role,
+                    u.poste,
+                    CASE
+                        WHEN SUM(CASE WHEN t.status IN ('assigné', 'en cours') THEN 1 ELSE 0 END) > 0
+                        THEN 'non'
+                        ELSE 'oui'
+                    END AS disponibilite,
+                    COUNT(t.id) AS total_taches
+                FROM utilisateurs u
+                LEFT JOIN taches t ON t.id_responsable = u.id
+                WHERE u.role = 'employe'
+                GROUP BY u.id
+                ORDER BY u.created_at DESC
+                ";
 
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute();

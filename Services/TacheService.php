@@ -184,18 +184,17 @@ class TacheService
         $warnings = [];
 
         // Notification de création au créateur
-        $creationMessage = $this->notificationService->genererContenuTache(
-            $tache,
-            $createur,
-            !empty($donnees['id_responsable']) ? $responsable : null
-        );
+        $respPourMessage = !empty($donnees['id_responsable']) ? $responsable : null;
+        $creationMessageHtml = $this->notificationService->genererContenuTache($tache, $createur, $respPourMessage);
+        $creationMessageCourt = $this->notificationService->genererMessageCourt($tache, $createur, $respPourMessage);
         $creatorNotification = $this->notificationService->notifierUtilisateur(
             $idCreateur,
             $createur->getEmail(),
             $createur->getPrenom(),
-            $creationMessage,
-            null,
-            "Tâche créée : " . $donnees['libelle']
+            $creationMessageHtml,
+            $idTache,                   // ← id_tache maintenant rempli
+            "Tâche créée : " . $donnees['libelle'],
+            $creationMessageCourt
         );
 
         if (!$creatorNotification['success']) {
@@ -206,18 +205,16 @@ class TacheService
         if (!empty($donnees['id_responsable']) && $donnees['status'] === 'assigné') {
             $responsable = $this->utilisateurDAO->trouverParId((int) $donnees['id_responsable']);
             if ($responsable) {
-                $assignMessage = $this->notificationService->genererContenuTache(
-                    $tache,
-                    $createur,
-                    $responsable
-                );
+                $assignMessageHtml = $this->notificationService->genererContenuTache($tache, $createur, $responsable);
+                $assignMessageCourt = $this->notificationService->genererMessageCourt($tache, $createur, $responsable);
                 $assignResult = $this->notificationService->notifierUtilisateur(
                     (int) $donnees['id_responsable'],
                     $responsable->getEmail(),
                     $responsable->getPrenom(),
-                    $assignMessage,
-                    null,
-                    "Tâche assignée : " . $donnees['libelle']
+                    $assignMessageHtml,
+                    $idTache,                   // ← id_tache maintenant rempli
+                    "Tâche assignée : " . $donnees['libelle'],
+                    $assignMessageCourt
                 );
 
                 if (!$assignResult['success']) {
@@ -550,18 +547,16 @@ class TacheService
             $resp = $this->utilisateurDAO->trouverParId($idResponsable);
 
             // 4. On déclenche la notification via le service
-            $msg = $this->notificationService->genererContenuTache(
-                $tache,
-                $utilisateur,
-                $resp
-            );
+            $msgHtml = $this->notificationService->genererContenuTache($tache, $utilisateur, $resp);
+            $msgCourt = $this->notificationService->genererMessageCourt($tache, $utilisateur, $resp);
             $notifyResult = $this->notificationService->notifierUtilisateur(
                 $idResponsable,
                 $resp->getEmail(),
                 $resp->getPrenom(),
-                $msg,
-                $idTache,
-                "Tâche assignée : " . $tache->getLibelle()
+                $msgHtml,
+                $idTache,                   // déjà présent ici, juste vérifier
+                "Tâche assignée : " . $tache->getLibelle(),
+                $msgCourt
             );
 
             $warnings = [];

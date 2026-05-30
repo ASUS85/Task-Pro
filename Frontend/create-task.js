@@ -456,16 +456,19 @@ userBtn.addEventListener("click", async () => {
   try {
 
     if (realUsers.length === 0) {
-      console.warn("[MODAL] Aucun utilisateur en mémoire, rechargement...");
       realUsers = await apiListUsers();
     }
 
     if (realUsers.length === 0) {
-      showToast("Aucun utilisateur disponible pour assignation. Assurez-vous d'être connecté en tant qu'Administrateur.", "error");
+      showToast("Aucun utilisateur disponible pour assignation.", "error");
       return;
     }
 
-    renderUsers(realUsers);
+    const availableUsers = realUsers.filter(
+      user => user.disponibilite === 'oui'
+    );
+
+    renderUsers(availableUsers);
     openModal(userModal);
   } catch (error) {
     console.error("Erreur chargement utilisateurs:", error);
@@ -695,7 +698,6 @@ async function initializePage() {
 
     // Charger les utilisateurs pour la modal
     const usersResponse = await apiListUsers();
-
     if (Array.isArray(usersResponse)) {
       realUsers = usersResponse.filter((user) => (user.disponibilite || 'oui') === 'oui');
     } else {
@@ -714,12 +716,12 @@ async function initializePage() {
     }
 
 
-  /*   if (realUsers.length === 0) {
-      console.warn("⚠️ AUCUN UTILISATEUR DISPONIBLE CHARGÉ - Vérifiez les droits (doit être Administrateur) ou qu'aucun utilisateur n'est actuellement disponible.");
-    }
-    if (realTasks.length === 0) {
-      console.warn("⚠️ AUCUNE TÂCHE CHARGÉE - C'est normal si c'est la première fois");
-    } */
+    /*   if (realUsers.length === 0) {
+        console.warn("⚠️ AUCUN UTILISATEUR DISPONIBLE CHARGÉ - Vérifiez les droits (doit être Administrateur) ou qu'aucun utilisateur n'est actuellement disponible.");
+      }
+      if (realTasks.length === 0) {
+        console.warn("⚠️ AUCUNE TÂCHE CHARGÉE - C'est normal si c'est la première fois");
+      } */
 
   } catch (error) {
     console.error("❌ Erreur lors de l'initialisation:", error);

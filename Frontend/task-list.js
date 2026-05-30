@@ -220,6 +220,7 @@ function renderTasks(data) {
 
     data.forEach(task => {
         const row = document.createElement("tr");
+        row.dataset.taskId = task.id;
 
         row.innerHTML = `
             <td>${task.name}</td>
@@ -712,6 +713,7 @@ async function loadUsersById() {
     }
 }
 
+
 // -------------------------------
 // INITIALISATION
 // -------------------------------
@@ -746,6 +748,33 @@ async function initializePage() {
 
         // Afficher les tâches
         renderTasksFromCurrentFilter();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const taskIdFromNotif = parseInt(urlParams.get('task'));
+        const searchFromNotif = urlParams.get('search');
+
+        if (taskIdFromNotif) {
+            const targetTask = allTasks.find(t => t.id === taskIdFromNotif);
+            if (targetTask) {
+                const taskRow = document.querySelector(`[data-task-id="${taskIdFromNotif}"]`);
+                if (taskRow) {
+                    taskRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    taskRow.classList.add('task-highlight');
+                }
+                openModal(taskIdFromNotif);
+            }
+        } else if (searchFromNotif) {
+            // Pré-remplir la barre de recherche et filtrer
+            if (searchInput) {
+                searchInput.value = searchFromNotif;
+                applyFilters();
+                // Highlight la première tâche correspondante
+                setTimeout(() => {
+                    const firstRow = document.querySelector('#taskTableBody tr');
+                    if (firstRow) firstRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
+        }
 
     } catch (error) {
         console.error("❌ Erreur lors de l'initialisation:", error);

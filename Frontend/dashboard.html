@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -65,16 +66,19 @@
 
             <div class="user-profile">
 
-                <div class="notif-badge">
+                <div class="notif-bell-wrapper" id="notifBadgeBtn" onclick="toggleNotifPanel()">
                     <i data-lucide="bell"></i>
+                    <span id="notifCount" class="notif-count-badge">0</span>
                 </div>
 
                 <div class="user-details">
                     <span id="userName">Super Admin</span>
-                    <small>Gestionnaire Principal</small>
                 </div>
 
-                <div class="avatar">SA</div>
+
+                <a href="profile.html" style="text-decoration: none;">
+                    <div class="avatar">SA</div>
+                </a>
 
             </div>
 
@@ -84,7 +88,7 @@
         <div class="content-wrapper">
 
             <!-- STATS -->
-<section class="stats-grid">
+            <section class="stats-grid">
 
                 <div class="stat-card">
                     <div class="stat-icon blue">
@@ -125,53 +129,59 @@
                         <p>Utilisateurs Actifs</p>
                     </div>
                 </div>
-    <section class="analytics-grid">
+                <section class="analytics-grid">
 
-                        <!-- Progression Globale -->
-                        <div class="glass-panel progress-panel">
-                            <div class="panel-header">
-                                <h3><i data-lucide="gauge"></i> Progression Générale</h3>
+                    <!-- Progression Globale -->
+                    <div class="glass-panel progress-panel">
+                        <div class="panel-header">
+                            <h3><i data-lucide="gauge"></i> Progression Générale</h3>
+                        </div>
+
+                        <div class="progress-circle-wrapper">
+                            <div class="progress-circle">
+                                <span id="progressPercent">--//--</span>
                             </div>
 
-                            <div class="progress-circle-wrapper">
-                                <div class="progress-circle">
-                                    <span id="progressPercent">--//--</span>
-                                </div>
+                            <div class="progress-details">
+                                <p id="progressSummary">--//--</p>
+                                <small id="progressNote">Performance de la période actuelle</small>
+                            </div>
+                        </div>
+                    </div>
 
-                                <div class="progress-details">
-                                    <p id="progressSummary">--//--</p>
-                                    <small id="progressNote">Performance de la période actuelle</small>
+
+                    <!-- Performance équipe -->
+                    <div class="glass-panel team-panel">
+                        <div class="panel-header">
+                            <h3><i data-lucide="bar-chart-3"></i> Performance Équipe</h3>
+                        </div>
+
+                        <div class="team-stats" id="teamPerformance">
+                            <div class="team-item">
+                                <span id="teamName1">--//--</span>
+                                <div class="bar">
+                                    <div id="teamBar1" style="width:0%"></div>
+                                </div>
+                            </div>
+
+                            <div class="team-item">
+                                <span id="teamName2">--//--</span>
+                                <div class="bar">
+                                    <div id="teamBar2" style="width:0%"></div>
+                                </div>
+                            </div>
+
+                            <div class="team-item">
+                                <span id="teamName3">--//--</span>
+                                <div class="bar">
+                                    <div id="teamBar3" style="width:0%"></div>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-
-                        <!-- Performance équipe -->
-                        <div class="glass-panel team-panel">
-                            <div class="panel-header">
-                                <h3><i data-lucide="bar-chart-3"></i> Performance Équipe</h3>
-                            </div>
-
-                            <div class="team-stats" id="teamPerformance">
-                                <div class="team-item">
-                                    <span id="teamName1">--//--</span>
-                                    <div class="bar"><div id="teamBar1" style="width:0%"></div></div>
-                                </div>
-
-                                <div class="team-item">
-                                    <span id="teamName2">--//--</span>
-                                    <div class="bar"><div id="teamBar2" style="width:0%"></div></div>
-                                </div>
-
-                                <div class="team-item">
-                                    <span id="teamName3">--//--</span>
-                                    <div class="bar"><div id="teamBar3" style="width:0%"></div></div>
-                                </div>
-                            </div>
-                        </div>
-
-    </section>
-</section>
+                </section>
+            </section>
 
             <!-- OVERVIEW PANEL -->
             <section class="glass-panel overview-panel">
@@ -221,8 +231,41 @@
         </div>
     </div>
 
+
+    <!-- OVERLAY -->
+    <div id="notifOverlay" class="notif-overlay" onclick="closeNotifPanel()"></div>
+
+    <!-- PANEL NOTIFICATIONS -->
+    <div id="notifPanel" class="notif-panel">
+        <div class="notif-panel-header">
+            <h4>Notifications</h4>
+            <div class="notif-panel-controls">
+                <select id="notifSort" class="notif-sort-select" onchange="changeNotifSort()">
+                    <option value="DESC">Plus récentes</option>
+                    <option value="ASC">Plus anciennes</option>
+                </select>
+                <button class="notif-read-all-btn" onclick="markAllRead()">Tout lire</button>
+            </div>
+        </div>
+        <div id="notifList" class="notif-list-body"></div>
+    </div>
+
+    <!-- MODAL CONFIRMATION SUPPRESSION -->
+    <div id="deleteNotifModal" class="modal delete-notif-modal" onclick="handleDeleteBackdrop(event)">
+        <div class="modal-content confirm-modal">
+            <h3>Supprimer la notification</h3>
+            <p>Cette action est irréversible.</p>
+            <div class="modal-actions">
+                <button class="secondary-btn" onclick="closeDeleteConfirm()">Annuler</button>
+                <button id="confirmDeleteBtn" class="danger-btn">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
+
     <script src="api.js"></script>
     <script src="script.js"></script>
     <script src="dashboard.js"></script>
 </body>
+
 </html>

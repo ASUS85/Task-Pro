@@ -393,14 +393,13 @@ body.dashboard-body {
 }
 
 .modal-content {
-    width: 90%;
-    max-width: 900px;
+    width: 50%;
     background: #111217;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 28px;
     padding: 30px;
-    max-height: 85vh;
-    overflow-y: auto;
+    overflow-y: hidden;
+    height: auto;
 }
 
 .modal-header {
@@ -713,4 +712,9 @@ body.dashboard-body {
         width: 95%;
         padding: 20px;
     }
+}
+
+select option {
+    background: #111217;
+    color: white;
 }

@@ -21,32 +21,7 @@ class NotificationService
     /**
      * Méthode principale pour notifier un utilisateur sur tous les canaux
      */
-    public function notifierUtilisateur(int $idDestinataire, string $emailDestinataire, string $prenomDestinataire, string $message, ?int $idTache = null, ?string $subject = null): array
-    {
-        // 1. Notification Web (Base de données)
-        $this->notificationDAO->sauvegarder($idDestinataire, "INFO", $message, $idTache);
 
-        if (!$this->isValidEmail($emailDestinataire)) {
-            return [
-                'success' => false,
-                'reason' => 'missing_email',
-                'message' => "L'adresse e-mail du destinataire n'est pas disponible. Le message n'a pas pu être envoyé par email.",
-            ];
-        }
-
-        try {
-            $mailSubject = $subject ?? 'Notification Task-Pro';
-            $this->envoyerEmail($emailDestinataire, $prenomDestinataire, $message, $mailSubject);
-            return ['success' => true];
-        } catch (Exception $e) {
-            error_log("Erreur email: " . $e->getMessage());
-            return [
-                'success' => false,
-                'reason' => 'send_error',
-                'message' => "Impossible d'envoyer l'email : " . $e->getMessage(),
-            ];
-        }
-    }
 
     private function isValidEmail(string $email): bool
     {
@@ -54,7 +29,31 @@ class NotificationService
     }
 
     /**
-     * Génère le contenu HTML complet d'une tâche
+     * Génère un message court en texte pour la base de données
+     */
+    public function genererMessageCourt(Tache $tache, $createur = null, $responsable = null): string
+    {
+        $libelle = $tache->getLibelle();
+        $statut = $tache->getStatus();
+        $resp = $responsable
+            ? $responsable->getPrenom() . ' ' . $responsable->getNom()
+            : null;
+        $creat = $createur
+            ? $createur->getPrenom() . ' ' . $createur->getNom()
+            : null;
+
+        $msg = "Tâche \"$libelle\" — statut : $statut";
+        if ($resp)
+            $msg .= " · Responsable : $resp";
+        if ($creat)
+            $msg .= " · Créateur : $creat";
+
+        return $msg;
+    }
+
+
+    /**
+     * Génère le contenu HTML complet pour l'email (inchangé)
      */
     public function genererContenuTache(Tache $tache, $createur = null, $responsable = null): string
     {
@@ -67,87 +66,71 @@ class NotificationService
         };
 
         return "
-        <div style='font-family: Arial, sans-serif; padding: 10px;'>
+    <div style='font-family: Arial, sans-serif; padding: 10px;'>
+        <h2 style='color:#0d6efd;'>Task-Pro Notification</h2>
+        <p>Une mise à jour concernant une tâche vient d'être effectuée.</p>
+        <table style='border-collapse: collapse; width:100%;' border='1' cellpadding='8'>
+            <tr><th align='left'>Libellé</th><td>" . htmlspecialchars($tache->getLibelle()) . "</td></tr>
+            <tr><th align='left'>Description</th><td>" . htmlspecialchars($tache->getDescription()) . "</td></tr>
+            <tr>
+                <th align='left'>Statut</th>
+                <td><span style='color:white;background:$statusColor;padding:5px 10px;border-radius:5px;'>
+                    " . htmlspecialchars($tache->getStatus()) . "
+                </span></td>
+            </tr>
+            <tr><th align='left'>Date création</th><td>" . htmlspecialchars($tache->getDateCreation()) . "</td></tr>
+            <tr><th align='left'>Début assignation</th><td>" . (htmlspecialchars($tache->getDateDebutAssignation() ?? 'Non défini')) . "</td></tr>
+            <tr><th align='left'>Période réalisation</th><td>" . htmlspecialchars($tache->getPeriodeRealisation()) . "</td></tr>
+            <tr><th align='left'>Responsable</th><td>" . ($responsable ? $responsable->getPrenom() . ' ' . $responsable->getNom() : 'Non assigné') . "</td></tr>
+            <tr><th align='left'>Créateur</th><td>" . ($createur ? $createur->getPrenom() . ' ' . $createur->getNom() : 'Inconnu') . "</td></tr>
+            <tr><th align='left'>Fichier</th><td>" . ($tache->getCheminFichier() ?? 'Aucun fichier') . "</td></tr>
+        </table>
+        <br>
+        <p>Connectez-vous à votre plateforme Task-Pro pour consulter les détails.</p>
+        <hr>
+        <small>Message automatique - Task-Pro</small>
+    </div>";
+    }
 
-            <h2 style='color:#0d6efd;'>Task-Pro Notification</h2>
+    /**
+     * Méthode principale pour notifier un utilisateur sur tous les canaux
+     */
+    public function notifierUtilisateur(
+        int $idDestinataire,
+        string $emailDestinataire,
+        string $prenomDestinataire,
+        string $messageHtml,   // HTML pour l'email
+        ?int $idTache = null,
+        ?string $subject = null,
+        ?string $messageCourt = null  // texte court pour la BD
+    ): array {
+        // Stocker le message court en BD (pas le HTML)
+        $msgBD = $messageCourt ?? strip_tags(str_replace(['<br>', '<br/>', '</tr>', '</p>'], "\n", $messageHtml));
+        $msgBD = preg_replace('/\s+/', ' ', $msgBD);
+        $msgBD = trim($msgBD);
 
-            <p>Une mise à jour concernant une tâche vient d'être effectuée.</p>
+        $this->notificationDAO->sauvegarder($idDestinataire, "INFO", $msgBD, $idTache);
 
-            <table style='border-collapse: collapse; width:100%;' border='1' cellpadding='8'>
+        if (!$this->isValidEmail($emailDestinataire)) {
+            return [
+                'success' => false,
+                'reason' => 'missing_email',
+                'message' => "L'adresse e-mail du destinataire n'est pas disponible.",
+            ];
+        }
 
-                <tr>
-                    <th align='left'>Libellé</th>
-                    <td>" . htmlspecialchars($tache->getLibelle()) . "</td>
-                </tr>
-
-                <tr>
-                    <th align='left'>Description</th>
-                    <td>" . htmlspecialchars($tache->getDescription()) . "</td>
-                </tr>
-
-                <tr>
-                    <th align='left'>Statut</th>
-                    <td>
-                        <span style='color:white;background:$statusColor;padding:5px 10px;border-radius:5px;'>
-                            " . htmlspecialchars($tache->getStatus()) . "
-                        </span>
-                    </td>
-                </tr>
-
-                <tr>
-                    <th align='left'>Date création</th>
-                    <td>" . htmlspecialchars($tache->getDateCreation()) . "</td>
-                </tr>
-
-                <tr>
-                    <th align='left'>Début assignation</th>
-                    <td>" . (htmlspecialchars($tache->getDateDebutAssignation()) ?? 'Non défini') . "</td>
-                </tr>
-
-                <tr>
-                    <th align='left'>Période réalisation</th>
-                    <td>" . htmlspecialchars($tache->getPeriodeRealisation()) . "</td>
-                </tr>
-
-                <tr>
-                    <th align='left'>Responsable</th>
-                    <td>" . (
-            $responsable
-            ? $responsable->getPrenom() . ' ' . $responsable->getNom()
-            : 'Non assigné'
-        ) . "</td>
-                </tr>
-
-                <tr>
-                    <th align='left'>Créateur</th>
-                    <td>" . (
-            $createur
-            ? $createur->getPrenom() . ' ' . $createur->getNom()
-            : 'Inconnu'
-        ) . "</td>
-                </tr>
-
-                <tr>
-                    <th align='left'>Fichier</th>
-                    <td>" . ($tache->getCheminFichier() ?? 'Aucun fichier') . "</td>
-                </tr>
-
-            </table>
-
-            <br>
-
-            <p>
-                Connectez-vous à votre plateforme Task-Pro pour consulter les détails.
-            </p>
-
-            <hr>
-
-            <small>
-                Message automatique - Task-Pro
-            </small>
-
-        </div>
-    ";
+        try {
+            $mailSubject = $subject ?? 'Notification Task-Pro';
+            $this->envoyerEmail($emailDestinataire, $prenomDestinataire, $messageHtml, $mailSubject);
+            return ['success' => true];
+        } catch (Exception $e) {
+            error_log("Erreur email: " . $e->getMessage());
+            return [
+                'success' => false,
+                'reason' => 'send_error',
+                'message' => "Impossible d'envoyer l'email : " . $e->getMessage(),
+            ];
+        }
     }
 
 

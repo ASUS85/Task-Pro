@@ -98,10 +98,6 @@ function setText(id, value) {
   }
 }
 
-function getStatusLabel(status) {
-  if (!status) return "Hors ligne";
-  return status.toLowerCase() === "online" ? "En ligne" : "Hors ligne";
-}
 
 function isSuperAdmin() {
   return ["superadmin", "super_admin"].includes(
@@ -134,7 +130,7 @@ async function initProfilePage() {
   );
   setText(
     "infoName",
-    currentUser.nom || currentUser.name || currentUser.prenom || "--//--",
+    currentUser.nom+ " " + currentUser.prenom || currentUser.name + " " + currentUser.prenom || "--//--",
   );
   setText("profileEmail", currentUser.email || "--//--");
   setText("infoEmail", currentUser.email || "--//--");
@@ -152,18 +148,11 @@ async function initProfilePage() {
     );
   }
 
-  const statusEl = document.getElementById("profileStatus");
-  if (statusEl) {
-    statusEl.textContent = getStatusLabel(currentUser.status);
-    statusEl.classList.remove("online", "offline");
-    statusEl.classList.add(
-      currentUser.status === "online" ? "online" : "offline",
-    );
-  }
+ 
 
   setText(
-    "infoLastLogin",
-    currentUser.lastLogin || currentUser.dernierLogin || "--//--",
+    "infoSexe",
+    currentUser.sexe || currentUser.sexe || "--//--",
   );
 
   if (isSuperAdmin()) {

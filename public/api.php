@@ -9,7 +9,7 @@ if (isset($_SERVER['HTTP_ORIGIN'])) {
     header("Access-Control-Allow-Origin: http://localhost");
 }
 header("Access-Control-Allow-Credentials: true");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH,  OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -326,7 +326,28 @@ try {
         // GET BY ID
         if ($method === 'GET' && isset($parts[1]) && is_numeric($parts[1])) {
             $tache = $tacheDAO->trouverParId((int) $parts[1]);
-            echo json_encode(['success' => true, 'tache' => $tache]);
+            if (!$tache) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'Tâche introuvable']);
+                exit;
+            }
+            echo json_encode([
+                'success' => true,
+                'tache' => [
+                    'id' => $tache->getId(),
+                    'libelle' => $tache->getLibelle(),
+                    'description' => $tache->getDescription(),
+                    'status' => $tache->getStatus(),
+                    'id_parent' => $tache->getIdParent(),
+                    'periode_realisation' => $tache->getPeriodeRealisation(),
+                    'dateCreation' => $tache->getDateCreation(),
+                    'dateDebutAssignation' => $tache->getDateDebutAssignation(),
+                    'dateFinReelle' => $tache->getDateFinReelle(),
+                    'cheminFichier' => $tache->getCheminFichier(),
+                    'id_responsable' => $tache->getIdResponsable(),
+                    'id_createur' => $tache->getIdCreateur(),
+                ]
+            ]);
             exit;
         }
 
@@ -362,11 +383,48 @@ try {
     // pour les notifications
     if ($parts[0] === 'notifications') {
         requireAuth();
-        $notifDAO = new NotificationDAO();
+        $userId = $_SESSION['user_id'];
 
-        if ($method === 'GET') {
-            $notifications = $notifDAO->obtenirNonLues($_SESSION['user_id']);
-            echo json_encode(['success' => true, 'notifications' => $notifications]);
+        // GET /notifications?ordre=ASC|DESC  — toutes les notifications
+        if ($method === 'GET' && !isset($parts[1])) {
+            $ordre = isset($_GET['ordre']) && strtoupper($_GET['ordre']) === 'ASC' ? 'ASC' : 'DESC';
+            $notifications = $notificationDAO->obtenirToutesParUtilisateur($userId, $ordre);
+            $unreadCount = $notificationDAO->compterNonLues($userId);
+            echo json_encode([
+                'success' => true,
+                'notifications' => $notifications,
+                'unread_count' => $unreadCount
+            ]);
+            exit;
+        }
+
+        // GET /notifications/unread-count  — badge uniquement
+        if ($method === 'GET' && ($parts[1] ?? '') === 'unread-count') {
+            echo json_encode([
+                'success' => true,
+                'unread_count' => $notificationDAO->compterNonLues($userId)
+            ]);
+            exit;
+        }
+
+        // PATCH /notifications/{id}/read  — marquer une comme lue
+        if ($method === 'PATCH' && isset($parts[1]) && is_numeric($parts[1]) && ($parts[2] ?? '') === 'read') {
+            $result = $notificationDAO->marquerCommeLue((int) $parts[1], $userId);
+            echo json_encode(['success' => $result]);
+            exit;
+        }
+
+        // PATCH /notifications/read-all  — tout marquer comme lu
+        if ($method === 'PATCH' && ($parts[1] ?? '') === 'read-all') {
+            $result = $notificationDAO->marquerToutesCommeLues($userId);
+            echo json_encode(['success' => $result]);
+            exit;
+        }
+
+        // DELETE /notifications/{id}  — supprimer une notification
+        if ($method === 'DELETE' && isset($parts[1]) && is_numeric($parts[1])) {
+            $result = $notificationDAO->supprimer((int) $parts[1], $userId);
+            echo json_encode(['success' => $result]);
             exit;
         }
     }
@@ -393,11 +451,12 @@ try {
             $users = $utilisateurDAO->obtenirTous();
             $userCount = count($users);
         } else {
-            $tasks = $tacheDAO->obtenirParCreateur($user->getId());
+            $tasks = $tacheDAO->obtenirParAdministrateur($user->getId());
             $responsables = [];
             foreach ($tasks as $task) {
-                if ($task->getIdResponsable()) {
-                    $responsables[$task->getIdResponsable()] = true;
+                $rid = $task->getIdResponsable();
+                if ($rid && $rid !== $user->getId()) {
+                    $responsables[$rid] = true;
                 }
             }
             $userCount = count($responsables);
@@ -447,8 +506,20 @@ try {
                 }
                 $teamPerformance[] = [
                     'name' => $utilisateurMap[$responsableId] ?? 'Utilisateur #' . $responsableId,
-                    'progress' => $count
+                    'raw_count' => $count,
+                    'progress' => $count  // temporaire, normalisé juste après
                 ];
+            }
+
+            if (!empty($teamPerformance)) {
+                $maxCount = max(array_column($teamPerformance, 'raw_count'));
+                foreach ($teamPerformance as &$member) {
+                    $member['progress'] = $maxCount > 0
+                        ? round(($member['raw_count'] / $maxCount) * 100)
+                        : 0;
+                    unset($member['raw_count']);
+                }
+                unset($member);
             }
         }
 
@@ -615,7 +686,7 @@ try {
     if ($parts[0] === 'admin') {
         // Optionnel : si seul le SuperAdmin peut modifier, laisse requireSuperAdmin()
         // Si les Administrateurs simples peuvent aussi modifier les employés, utilise requireAuth()
-        requireSuperAdmin(); 
+        requireAuth();
 
         // 1. AJOUT DE LA ROUTE UPDATE (Mise à jour d'un utilisateur)
         if (($parts[1] ?? '') === 'users' && ($parts[2] ?? '') === 'update' && $method === 'POST') {
@@ -627,7 +698,7 @@ try {
 
                 // On appelle la méthode du DAO ou du Service pour mettre à jour la BDD
                 // Note : Assure-toi que mettreAJour prend bien ($id, $donnees) ou adapte selon ton UtilisateurDAO
-                $result = $utilisateurDAO->mettreAJour((int)$data['id'], $data);
+                $result = $utilisateurDAO->mettreAJour((int) $data['id'], $data);
 
                 echo json_encode([
                     'success' => $result,
@@ -652,7 +723,7 @@ try {
                 }
 
                 // Appelle la méthode de suppression de ton DAO (adapte le nom si nécessaire, ex: supprimer)
-                $result = $utilisateurDAO->supprimer((int)$data['id']);
+                $result = $utilisateurDAO->supprimer((int) $data['id']);
 
                 echo json_encode([
                     'success' => $result,
